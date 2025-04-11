@@ -44,3 +44,26 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         UserProfile.objects.create(user=user, full_name=full_name)
         return user
+
+class LoginSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(write_only=True, required=True)
+
+    class Meta:
+        model = User
+        fields = ('email', 'password')
+        
+    @transaction.atomic
+    def validate(self, attrs):
+        email = attrs.get('email')
+        password = attrs.get('password')
+
+        if not User.objects.filter(email=email).exists():
+            raise serializers.ValidationError({"email": "Email address is not registered."})
+
+        user = User.objects.get(email=email)
+
+        if not user.check_password(password):
+            raise serializers.ValidationError({"password": "Incorrect password."})
+
+        return attrs

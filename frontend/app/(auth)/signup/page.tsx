@@ -84,7 +84,7 @@ export default function SignUp() {
             } catch (textError) {
                  console.error('Failed to read response body as text:', textError);
             }
-            toast.error('❌ Error processing server response.');
+            toast.error(' Error processing server response.');
             return; 
         }
 
@@ -155,7 +155,7 @@ export default function SignUp() {
               value={formData.email}
               className="form-input w-full py-2"
               type="email"
-              placeholder="your@email.com"
+              placeholder="lidorpahima@email.com"
               autoComplete="email"
               required
             />
