@@ -1,0 +1,17 @@
+# Node.js / Frontend
+node_modules/
+.next/
+.env.local
+
+# Python / Django
+__pycache__/
+*.py[cod]
+env/
+venv/
+*.sqlite3
+.env
+db.sqlite3
+
+# VSCode / OS
+.vscode/
+.DS_Store
