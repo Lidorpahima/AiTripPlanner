@@ -1,11 +1,8 @@
-export const metadata = {
-  title: "About Us - Trip Planner AI",
-  description: "Learn more about the team and vision behind Trip Planner AI",
-};
+
 
 export default function AboutUs() {
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <div className="max-w-4xl mx-auto py-0 px-4 sm:px-6 lg:px-8">
       <div className="mb-12 text-center">
         <h1 className="text-4xl font-extrabold text-gray-900 mb-4">About Trip Planner AI</h1>
         <p className="text-gray-600 text-lg leading-relaxed">
