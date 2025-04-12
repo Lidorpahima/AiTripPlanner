@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import Link from "next/link";
-
+import { useAuth } from "@/app/(auth)/context/AuthContext"; 
 // Helper function to extract error messages (assuming it's correct)
 const extractErrorMessages = (data: any): string => {
   if (!data) return "An unexpected error occurred. Please try again.";
@@ -40,7 +40,7 @@ export default function SignIn() {
   });
 
   const router = useRouter();
-
+  const { login } = useAuth();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -91,8 +91,9 @@ export default function SignIn() {
           localStorage.setItem("refresh", data.refresh);
           toast.success(" Login successful! Redirecting...");
           setTimeout(() => {
-            router.push("/"); // Redirect to home page or dashboard
-          }, 2000); // Wait 2 seconds
+            login(data.access, data.refresh);
+            router.push("/");
+          }, 2000); 
         } else {
           // Edge case: Status OK but tokens/expected data missing
           console.error("Login successful (status OK) but tokens/data missing:", data);
