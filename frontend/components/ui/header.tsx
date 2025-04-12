@@ -51,7 +51,7 @@ export default function Header() {
                 </li>
                 <li>
                     <Link
-                      href="/trips/plan"
+                      href="/fastplan"
                       className="btn-sm bg-blue-600 text-white shadow-sm hover:bg-blue-700"
                     >
                       Plan a Trip
@@ -88,7 +88,6 @@ export default function Header() {
                 </>
               )
             }
-            {/* --- סוף הבלוק המותנה --- */}
           </ul>
         </div>
       </div>
