@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export function middleware(request: NextRequest) {
   const token = request.cookies.get('access')?.value;
 
-  const protectedPaths = ['/fastplan'];
+  const protectedPaths = ['/fastplan', '/fastplan/result'];
   const pathname = request.nextUrl.pathname;
 
   if (protectedPaths.includes(pathname)) {
@@ -18,5 +18,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/fastplan'],
+  matcher: ['/fastplan', '/fastplan/result'],
 };

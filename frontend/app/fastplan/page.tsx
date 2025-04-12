@@ -114,7 +114,7 @@ export default function FastPlanPage() {
       console.log("Trip Plan Result:", result);
   
       toast.success("Trip plan generated successfully!");
-      
+      router.push('/fastplan/result');
       // כאן אפשר לשמור את התוצאה ב־state, או להפנות לדף אחר
       // setTripResult(result);
       // router.push(`/trips/results?id=${result.id}`);
