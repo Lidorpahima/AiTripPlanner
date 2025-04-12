@@ -4,6 +4,7 @@ from .models import UserProfile
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db import transaction
+from rest_framework import serializers
 
 class RegisterSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(required=True,write_only=True)
@@ -67,3 +68,11 @@ class LoginSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"password": "Incorrect password."})
 
         return attrs
+    
+class PlanTripSerializer(serializers.Serializer):
+    destination = serializers.CharField()
+    startDate = serializers.DateField()
+    endDate = serializers.DateField()
+    tripStyle = serializers.ListField(child=serializers.CharField())
+    interests = serializers.ListField(child=serializers.CharField())
+    pace = serializers.CharField()
