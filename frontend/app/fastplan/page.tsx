@@ -92,15 +92,33 @@ export default function FastPlanPage() {
 
 
   // --- Submit Handler (remains mostly the same, triggered at the end) ---
-  const handleSubmit = async () => { // No event needed here, called directly
+  const handleSubmit = async () => {
     setIsLoading(true);
     console.log("Final Form Data Submitted:", formData);
-
-    // ** BACKEND INTEGRATION WILL GO HERE **
+  
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
-      toast.success("Trip plan generated successfully! (Simulation)");
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/plantrip/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", 
+        body: JSON.stringify(formData),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
+      }
+  
+      const result = await response.json();
+      console.log("Trip Plan Result:", result);
+  
+      toast.success("Trip plan generated successfully!");
+      
+      // כאן אפשר לשמור את התוצאה ב־state, או להפנות לדף אחר
+      // setTripResult(result);
       // router.push(`/trips/results?id=${result.id}`);
+  
     } catch (error) {
       console.error("Error generating trip:", error);
       toast.error("Failed to generate trip plan. Please try again.");
@@ -108,6 +126,7 @@ export default function FastPlanPage() {
       setIsLoading(false);
     }
   };
+  
 
   // --- JSX Structure with Conditional Rendering ---
   return (

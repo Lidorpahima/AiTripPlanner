@@ -87,8 +87,6 @@ export default function SignIn() {
         // If successful, verify that the expected tokens are present
         // Adjust 'access' and 'refresh' if your API uses different key names
         if (data && data.access && data.refresh) {
-          localStorage.setItem("access", data.access);
-          localStorage.setItem("refresh", data.refresh);
           toast.success(" Login successful! Redirecting...");
           setTimeout(() => {
             login(data.access, data.refresh);
@@ -176,9 +174,17 @@ export default function SignIn() {
       <div className="mt-6 text-center">
         <Link
           className="text-sm text-gray-700 underline hover:no-underline"
-          href="/reset-password" // Link to password reset page
+          href="/reset-password" 
         >
           Forgot password?
+        </Link>
+      </div>
+      <div className="mt-4 text-center">
+        <Link
+          className="text-sm text-gray-700 underline hover:no-underline"
+          href="/signup" 
+        >
+          Don't have an account? Sign up
         </Link>
       </div>
     </>
