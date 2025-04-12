@@ -11,8 +11,16 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+load_dotenv() 
+
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+MODEL = os.getenv("MODEL")
+MODEL_URL = os.getenv("MODEL_URL")
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
