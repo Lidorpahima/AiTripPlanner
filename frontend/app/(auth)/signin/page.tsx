@@ -137,7 +137,7 @@ export default function SignIn() {
               className="form-input w-full py-2"
               type="email"
               placeholder="Lidorpahima@email.com"
-              autoComplete="email" // Use "email" for autocomplete
+              autoComplete="email" 
               required
             />
           </div>
@@ -155,7 +155,7 @@ export default function SignIn() {
               onChange={handleChange}
               className="form-input w-full py-2"
               type="password"
-              autoComplete="current-password" // Use "current-password" for login
+              autoComplete="current-password" 
               placeholder="••••••••"
               required
             />
