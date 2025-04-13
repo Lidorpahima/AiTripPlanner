@@ -16,6 +16,7 @@ const mockPlan = {
         "18:00 - Sunset walk along Seminyak Beach",
         "19:00 - Dinner at Warung Murah Murah",
         "20:30 - Gelato at Gelato Secrets"
+        
       ]
     },
     {
@@ -29,6 +30,7 @@ const mockPlan = {
         "19:30 - Dinner at Warung Dewa Ruci"
       ]
     },
+    
     {
       title: "Day 3: Cycling, Rafting, and Relaxation",
       activities: [
