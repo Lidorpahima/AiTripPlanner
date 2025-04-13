@@ -3,10 +3,12 @@ from rest_framework.response import Response
 from .serializers import RegisterSerializer , LoginSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import api_view
+import redis
 from .serializers import PlanTripSerializer
 from backend.chat_request import ask_gpt
 import requests
 from bs4 import BeautifulSoup
+import json
 
 class RegisterView(generics.CreateAPIView):
     queryset  = RegisterSerializer
@@ -37,35 +39,44 @@ class RegisterView(generics.CreateAPIView):
 
             return Response(response_data, status=status.HTTP_201_CREATED, headers=headers) 
 
+redis_client = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
+
+def make_key(data):
+    return (
+        f"trip:{data['destination']}:{data['startDate']}:{data['endDate']}:"
+        f"{data['pace']}:{','.join(data['tripStyle'])}:{','.join(data['interests'])}"
+    ).lower().replace(" ", "_")
+
 @api_view(['POST'])
 def plan_trip_view(request):
     serializer = PlanTripSerializer(data=request.data)
     if serializer.is_valid():
         data = serializer.validated_data
 
-        prompt = (
-            f"Create a {data['tripStyle'][0].lower()} travel itinerary to {data['destination']} "
-            f"from {data['startDate']} to {data['endDate']}. "
-            f"The traveler is interested in {', '.join(data['interests'])} "
-            f"and prefers a {data['pace'].lower()} pace. "
-            "Provide a 3-day plan with a short summary."
-        )
+        key = make_key(data)
+        cached = redis_client.get(key)
+        if cached:
+            print("✔️ Found in Redis cache!")
+            return Response(json.loads(cached), status=200)
+
+        prompt = generate_trip_prompt(data)
 
         try:
-            prompt = generate_trip_prompt(request.data)
             result = ask_gpt(prompt)
 
-
-            return Response({
+            parsed = {
                 "summary": prompt,
-                "plan": result
-            })
-            
+                "plan": result  
+            }
+
+            redis_client.setex(key, 60 * 60 * 6, json.dumps(parsed))
+
+            return Response(parsed, status=200)
+
         except Exception as e:
             return Response({"error": str(e)}, status=500)
 
     return Response(serializer.errors, status=400)
-
 def generate_trip_prompt(form_data: dict) -> str:
     destination = form_data.get("destination", "a destination")
     start_date = form_data.get("startDate", "a start date")

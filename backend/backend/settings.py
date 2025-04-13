@@ -98,7 +98,7 @@ DATABASES = {
         'NAME': 'trip_planner_db',
         'USER': 'postgres',
         'PASSWORD': '1',
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': '5432',
     }
 }
