@@ -1,6 +1,5 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
-from django.contrib.auth.models import User
 from .serializers import RegisterSerializer , LoginSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import api_view
@@ -8,9 +7,6 @@ from .serializers import PlanTripSerializer
 from backend.chat_request import ask_gpt
 import requests
 from bs4 import BeautifulSoup
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
 
 class RegisterView(generics.CreateAPIView):
     queryset  = RegisterSerializer
@@ -120,27 +116,35 @@ Your task is to generate a 3-day **detailed** travel itinerary based on the prov
     return prompt.strip()
 
 
+
+
 @api_view(['GET'])
-def get_google_image(request):
-    query = request.GET.get("q")
+def image_search_view(request):
+    query = request.GET.get('q')
     if not query:
-        return Response({"error": "Missing query param 'q'"}, status=400)
+        return Response({'error': 'Missing query'}, status=400)
 
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
+
+    search_url = f"https://www.google.com/search?tbm=isch&q={query}"
     try:
-        headers = {
-            "User-Agent": "Mozilla/5.0",
-        }
-        url = f"https://www.google.com/search?tbm=isch&q={query.replace(' ', '+')}"
-        res = requests.get(url, headers=headers)
-        soup = BeautifulSoup(res.text, "html.parser")
-        images = soup.find_all("img")
+        response = requests.get(search_url, headers=headers, timeout=5)
+        soup = BeautifulSoup(response.text, "html.parser")
 
-        for img in images:
+        image_links = []
+        for img in soup.find_all("img"):
             src = img.get("src")
             if src and src.startswith("http"):
-                return Response({"image_url": src})
+                image_links.append(src)
+            if len(image_links) >= 5:
+                break
 
-        return Response({"image_url": None, "message": "No JPG found"}, status=404)
+        if not image_links:
+            return Response({"images": [], "message": "No images found"}, status=404)
+
+        return Response({"images": image_links})
 
     except Exception as e:
         return Response({"error": str(e)}, status=500)
