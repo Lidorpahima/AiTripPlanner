@@ -2,8 +2,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'react-toastify'
+import Cookies from 'js-cookie'
+import { useAuth } from '@/app/(auth)/context/AuthContext' 
 
-// Helper function to extract error messages from server response
 const extractErrorMessages = (data: any): string => {
   if (!data) return 'An unexpected error occurred. Please try again.';
   if (typeof data === 'string') return data; // Simple string error
@@ -42,7 +43,7 @@ export default function SignUp() {
       password2: '',
     })
     const router = useRouter();
-
+    const { login } = useAuth();
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
       setFormData((prev) => ({
@@ -61,16 +62,12 @@ export default function SignUp() {
       }
 
       try {
-        const res = await fetch('http://localhost:8000/api/register/', { // Verify API endpoint
+        const res = await fetch('http://localhost:8000/api/register/', { 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         })
 
-        // --- Debugging Logs (Optional: Remove or keep commented) ---
-        // console.log('Fetch Response Status:', res.status);
-        // console.log('Fetch Response OK?:', res.ok);
-        // ---------------------------------------------------------
 
         let data: any = {}; e
 
@@ -91,12 +88,13 @@ export default function SignUp() {
         if (res.ok) {
 
             if (data && data.access && data.refresh) {
-                localStorage.setItem('access_token', data.access);
-                localStorage.setItem('refresh_token', data.refresh);
+                Cookies.set('access', data.access, { path: '/', expires: 7 });
+                Cookies.set('refresh', data.refresh, { path: '/', expires: 7 });
+                login(data.access, data.refresh); 
                 toast.success('Registration successful! Redirecting...');
                 setTimeout(() => {
-                    router.push('/'); // Adjust target route as needed
-                }, 2500); // Wait 2.5 seconds
+                    router.push('/');
+                }, 2500); 
             } else {
 
                 console.error('Status OK but tokens missing in response data:', data);

@@ -17,15 +17,6 @@ export default function Header() {
 
           {/* Desktop sign in links */}
           <ul className="flex items-center justify-end gap-3">
-            <li>
-              <Link
-                href="/about"
-                className="text-sm font-medium text-gray-700 hover:text-gray-900"
-              >
-                About us
-              </Link>
-            </li>
-
             {
               isLoading ? (
                 // Placeholder while loading auth state
