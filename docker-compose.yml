@@ -48,6 +48,7 @@ services:
     depends_on:
       - backend
     command: npm run dev
+  
 
 volumes:
   redis-data:

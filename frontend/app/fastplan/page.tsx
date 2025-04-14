@@ -112,7 +112,7 @@ export default function FastPlanPage() {
   
       const result = await response.json();
       console.log("Trip Plan Result:", result);
-  
+      sessionStorage.setItem("fastplan_result", JSON.stringify(result));
       toast.success("Trip plan generated successfully!");
       router.push('/fastplan/result');
       // כאן אפשר לשמור את התוצאה ב־state, או להפנות לדף אחר

@@ -9,6 +9,7 @@ from backend.chat_request import ask_gpt
 import requests
 from bs4 import BeautifulSoup
 import json
+from django.conf import settings
 
 class RegisterView(generics.CreateAPIView):
     queryset  = RegisterSerializer
@@ -39,7 +40,7 @@ class RegisterView(generics.CreateAPIView):
 
             return Response(response_data, status=status.HTTP_201_CREATED, headers=headers) 
 
-redis_client = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
+redis_client = redis.StrictRedis.from_url(settings.REDIS_URL, decode_responses=True)
 
 def make_key(data):
     return (
@@ -63,20 +64,16 @@ def plan_trip_view(request):
 
         try:
             result = ask_gpt(prompt)
+            parsed_result = json.loads(result)
 
-            parsed = {
-                "summary": prompt,
-                "plan": result  
-            }
-
-            redis_client.setex(key, 60 * 60 * 6, json.dumps(parsed))
-
-            return Response(parsed, status=200)
+            redis_client.setex(key, 60 * 60 * 6, json.dumps(parsed_result))
+            return Response(parsed_result, status=200)
 
         except Exception as e:
             return Response({"error": str(e)}, status=500)
 
     return Response(serializer.errors, status=400)
+
 def generate_trip_prompt(form_data: dict) -> str:
     destination = form_data.get("destination", "a destination")
     start_date = form_data.get("startDate", "a start date")
@@ -159,3 +156,4 @@ def image_search_view(request):
 
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+
