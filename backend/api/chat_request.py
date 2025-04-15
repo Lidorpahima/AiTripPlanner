@@ -7,9 +7,9 @@ import re
 
 # ─────────────────────────── OpenRouter Model ─────────────────────────── #
 
-openrouter_api_key = "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"
-URL = "https://openrouter.ai/api/v1/chat/completions"
-MODEL = "sophosympatheia/rogue-rose-103b-v0.2:free"
+openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
+URL = os.getenv("OPENROUTER_URL", "https://openrouter.ai/api/v1/chat/completions")
+MODEL = os.getenv("OPENROUTER_MODEL", "sophosympatheia/rogue-rose-103b-v0.2:free")
 
 def ask_gpt_openrouter(message, model=MODEL):
     try:
@@ -40,18 +40,19 @@ def ask_gpt_openrouter(message, model=MODEL):
 
 # ─────────────────────────── Perplexity SONAR Model (Main Planner) ────────────────────── #
 
-PERPLEXITY_API_KEY = "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"
+PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
+PERPLEXITY_URL = "https://api.perplexity.ai/chat/completions"
 
 
 def ask_gpt_sonar(prompt: str):
-    url = "https://api.perplexity.ai/chat/completions"
+    url = PERPLEXITY_URL
     headers = {
         "Authorization": f"Bearer {PERPLEXITY_API_KEY}",
         "Content-Type": "application/json"
     }
 
     data = {
-        "model": "sonar",  # Powerful model for fetching real-world details
+        "model": "sonar", 
         "messages": [
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": prompt}
@@ -75,7 +76,7 @@ def ask_gpt_convert_to_json(text: str):
     {text}
     ---
 
-    Return ONLY valid JSON in this structure:
+    Return ONLY valid JSON in this structure!:
     {{
       "summary": "Short summary of the trip.",
       "days": [
