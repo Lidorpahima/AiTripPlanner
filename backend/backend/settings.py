@@ -19,7 +19,8 @@ load_dotenv()
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 MODEL = os.getenv("MODEL")
 MODEL_URL = os.getenv("MODEL_URL")
-
+PIXABAY_API_KEY = os.getenv("PIXABAY_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -95,6 +96,7 @@ REDIS_HOST = 'redis'
 REDIS_PORT = 6379
 REDIS_DB = 0
 REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+
 
 DATABASES = {
     'default': {
