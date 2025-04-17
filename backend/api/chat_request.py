@@ -7,11 +7,9 @@ import re
 
 # ─────────────────────────── Environment Variables / Settings ─────────────────────────── #
 
-# מפתחות API
-openrouter_api_key = "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"
+openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
 PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
 
-# כתובות URL של ה-API
 URL_OPENROUTER = os.getenv("OPENROUTER_URL", "https://openrouter.ai/api/v1/chat/completions")
 URL_PERPLEXITY = os.getenv("PERPLEXITY_URL", "https://api.perplexity.ai/chat/completions")
 

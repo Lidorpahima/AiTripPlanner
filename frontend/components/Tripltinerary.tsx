@@ -403,7 +403,6 @@ const TripItinerary: React.FC<Props> = ({ plan }) => {
                                 return (
                                     <li
                                         key={key}
-                                        // **** עיצוב ופונקציונליות מותנים ****
                                         className={`flex flex-col group rounded-lg p-3 transition duration-200 ease-in-out border border-gray-200 relative ${
                                             canFetchDetails
                                                 ? 'cursor-pointer bg-gray-50 hover:bg-indigo-50 hover:border-indigo-200' // סגנון לחיץ
