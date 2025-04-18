@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { toast } from 'react-toastify'; // נצטרך להוסיף toast אם לא קיים
+import { toast } from 'react-toastify';
+import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { ChevronLeft, ChevronRight, MapPin, Star, Phone, Globe, Clock, MessageSquare, Image as ImageIcon, X, Info } from "lucide-react";
 // הגדרת כתובת ה-API
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
@@ -79,7 +80,7 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
     // Handle loading and error states
     if (details === 'loading') {
         return (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in">
+            <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in">
                 <div className="bg-white p-6 rounded-lg shadow-xl text-center">
                     <p className="font-semibold">Loading details for {placeNameQuery}...</p>
                     {/* Add a simple spinner */}
@@ -111,151 +112,158 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
         : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address || name)}`;
 
 
+
     return (
-         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 animate-fade-in" onClick={onClose}>
-            <div
-                className="bg-white rounded-xl shadow-2xl overflow-hidden max-w-lg w-full max-h-[90vh] flex flex-col"
-                onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
-            >
-                {/* Header with Close Button */}
-                <div className="flex justify-between items-center p-3 bg-gray-100 border-b">
-                    <h3 className="text-lg font-semibold text-gray-800">{name}</h3>
-                    <button onClick={onClose} className="text-gray-500 hover:text-black p-1 rounded-full">
-                        <X size={20} />
-                    </button>
-                </div>
+    <Dialog open={true} onClose={onClose} className="relative z-50">
+        {/* רקע כהה עם blur */}
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" aria-hidden="true" />
 
-                {/* Scrollable Content Area */}
-                <div className="overflow-y-auto p-4 flex-grow">
-                    {/* Image Section */}
-                    {photos && photos.length > 0 && (
-                        <div className="relative mb-4 rounded-lg overflow-hidden">
-                            <Image
-                                // Key change forces re-render on src change, useful if URLs could be unstable
-                                key={currentPhotoUrl}
-                                src={currentPhotoUrl || '/placeholder-image.png'} // Provide a real placeholder
-                                alt={`${name} photo ${currentPhotoIndex + 1}`}
-                                width={500}
-                                height={300}
-                                className="w-full h-48 object-cover"
-                                onError={(e) => {
-                                    console.error("Image failed to load:", currentPhotoUrl);
-                                    // Optional: Try next image or show placeholder
-                                    e.currentTarget.src = '/placeholder-image.png'; // Fallback image
-                                }}
-                                unoptimized={process.env.NODE_ENV === 'development'} // Maybe unoptimize in dev
-                            />
-                             {photos.length > 1 && (
-                                <>
-                                <button
-                                    onClick={() => handlePhotoChange('prev')}
-                                    className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-40 text-white p-1 rounded-full hover:bg-opacity-60 focus:outline-none"
-                                    aria-label="Previous photo"
-                                >
-                                    <ChevronLeft size={20} />
-                                </button>
-                                <button
-                                    onClick={() => handlePhotoChange('next')}
-                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-40 text-white p-1 rounded-full hover:bg-opacity-60 focus:outline-none"
-                                    aria-label="Next photo"
-                                >
-                                    <ChevronRight size={20} />
-                                </button>
-                                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white text-xs px-2 py-0.5 rounded-full">
-                                    {currentPhotoIndex + 1} / {photos.length}
-                                </div>
-                                </>
-                            )}
-                        </div>
-                    )}
-                     {!photos || photos.length === 0 && (
-                         <div className="mb-4 p-4 bg-gray-100 rounded-lg text-center text-gray-500">
-                             <ImageIcon size={24} className="mx-auto mb-1"/>
-                             No photos available.
-                         </div>
-                     )}
+        <div className="fixed inset-0 overflow-y-auto">
+        <div className="flex min-h-full items-center justify-center p-4">
+            <DialogPanel className="bg-white rounded-xl shadow-2xl overflow-hidden max-w-lg w-full max-h-[90vh] flex flex-col">
 
-
-                    {/* Basic Info Section */}
-                    <div className="space-y-2 text-sm mb-4">
-                         {rating && total_ratings && (
-                            <div className="flex items-center text-yellow-500">
-                                <Star size={16} className="mr-1 fill-current" />
-                                <strong>{rating.toFixed(1)}</strong>
-                                <span className="text-gray-600 ml-1">({total_ratings} reviews)</span>
-                            </div>
-                        )}
-                        {address && (
-                            <div className="flex items-start">
-                                <MapPin size={16} className="mr-2 mt-0.5 text-gray-600 flex-shrink-0" />
-                                <span className="text-gray-800">{address}</span>
-                                <a
-                                    href={mapLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="ml-2 text-blue-600 hover:underline text-xs whitespace-nowrap"
-                                    title="View on Google Maps"
-                                >
-                                    (View Map)
-                                </a>
-                            </div>
-                        )}
-                        {phone && (
-                            <div className="flex items-center">
-                                <Phone size={16} className="mr-2 text-gray-600" />
-                                <a href={`tel:${phone}`} className="text-blue-600 hover:underline">{phone}</a>
-                            </div>
-                        )}
-                         {website && (
-                            <div className="flex items-center">
-                                <Globe size={16} className="mr-2 text-gray-600" />
-                                <a href={website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
-                                    {website.replace(/^https?:\/\//, '')} {/* Remove http(s) for cleaner display */}
-                                </a>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Opening Hours */}
-                    {opening_hours && opening_hours.length > 0 && (
-                        <div className="mb-4">
-                            <h4 className="font-semibold text-sm mb-1 flex items-center"><Clock size={16} className="mr-1 text-gray-600" /> Opening Hours</h4>
-                            <ul className="text-xs text-gray-700 list-disc list-inside pl-2 space-y-0.5">
-                                {opening_hours.map((line, index) => <li key={index}>{line}</li>)}
-                            </ul>
-                        </div>
-                    )}
-
-                    {/* Reviews */}
-                    {reviews && reviews.length > 0 && (
-                         <div className="mb-4">
-                            <h4 className="font-semibold text-sm mb-2 flex items-center"><MessageSquare size={16} className="mr-1 text-gray-600" /> Reviews</h4>
-                            <div className="space-y-3">
-                                {reviews.map((review, index) => (
-                                    <div key={index} className="border-t pt-2 text-xs">
-                                        <div className="flex justify-between items-center mb-0.5">
-                                            <span className="font-medium text-gray-800">{review.author_name}</span>
-                                            <div className="flex items-center text-yellow-500">
-                                                <Star size={12} className="mr-0.5 fill-current"/> {review.rating}/5
-                                            </div>
-                                        </div>
-                                        <p className="text-gray-700 mb-1">{review.text}</p>
-                                        <p className="text-gray-500 text-right text-[10px]">{review.time}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                     {!reviews || reviews.length === 0 && (
-                         <div className="text-center text-sm text-gray-500 py-2">No reviews available.</div>
-                     )}
-
-                </div>
+            {/* Header עם Close */}
+            <div className="flex justify-between items-center p-3 bg-gray-100 border-b">
+                <DialogTitle as="h3" className="text-lg font-semibold text-gray-800">{name}</DialogTitle>
+                <button onClick={onClose} className="text-gray-500 hover:text-black p-1 rounded-full">
+                <X size={20} />
+                </button>
             </div>
+
+            {/* Scrollable Content Area */}
+            <div className="overflow-y-auto p-4 flex-grow">
+                {/* Image Section */}
+                {photos && photos.length > 0 && (
+                <div className="relative mb-4 rounded-lg overflow-hidden">
+                    <Image
+                    key={currentPhotoUrl}
+                    src={currentPhotoUrl || '/placeholder-image.png'}
+                    alt={`${name} photo ${currentPhotoIndex + 1}`}
+                    width={500}
+                    height={300}
+                    className="w-full h-48 object-cover"
+                    onError={(e) => {
+                        console.error("Image failed to load:", currentPhotoUrl);
+                        e.currentTarget.src = '/placeholder-image.png';
+                    }}
+                    unoptimized={process.env.NODE_ENV === 'development'}
+                    />
+                    {photos.length > 1 && (
+                    <>
+                        <button
+                        onClick={() => handlePhotoChange('prev')}
+                        className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-40 text-white p-1 rounded-full hover:bg-opacity-60"
+                        aria-label="Previous photo"
+                        >
+                        <ChevronLeft size={20} />
+                        </button>
+                        <button
+                        onClick={() => handlePhotoChange('next')}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-40 text-white p-1 rounded-full hover:bg-opacity-60"
+                        aria-label="Next photo"
+                        >
+                        <ChevronRight size={20} />
+                        </button>
+                        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white text-xs px-2 py-0.5 rounded-full">
+                        {currentPhotoIndex + 1} / {photos.length}
+                        </div>
+                    </>
+                    )}
+                </div>
+                )}
+
+                {!photos || photos.length === 0 && (
+                <div className="mb-4 p-4 bg-gray-100 rounded-lg text-center text-gray-500">
+                    <ImageIcon size={24} className="mx-auto mb-1" />
+                    No photos available.
+                </div>
+                )}
+
+                {/* Basic Info */}
+                <div className="space-y-2 text-sm mb-4">
+                {rating && total_ratings && (
+                    <div className="flex items-center text-yellow-500">
+                    <Star size={16} className="mr-1 fill-current" />
+                    <strong>{rating.toFixed(1)}</strong>
+                    <span className="text-gray-600 ml-1">({total_ratings} reviews)</span>
+                    </div>
+                )}
+                {address && (
+                    <div className="flex items-start">
+                    <MapPin size={16} className="mr-2 mt-0.5 text-gray-600 flex-shrink-0" />
+                    <span className="text-gray-800">{address}</span>
+                    <a
+                        href={mapLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-2 text-blue-600 hover:underline text-xs whitespace-nowrap"
+                        title="View on Google Maps"
+                    >
+                        (View Map)
+                    </a>
+                    </div>
+                )}
+                {phone && (
+                    <div className="flex items-center">
+                    <Phone size={16} className="mr-2 text-gray-600" />
+                    <a href={`tel:${phone}`} className="text-blue-600 hover:underline">{phone}</a>
+                    </div>
+                )}
+                {website && (
+                    <div className="flex items-center">
+                    <Globe size={16} className="mr-2 text-gray-600" />
+                    <a href={website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                        {website.replace(/^https?:\/\//, '')}
+                    </a>
+                    </div>
+                )}
+                </div>
+
+                {/* Opening Hours */}
+                {opening_hours && opening_hours.length > 0 && (
+                <div className="mb-4">
+                    <h4 className="font-semibold text-sm mb-1 flex items-center">
+                    <Clock size={16} className="mr-1 text-gray-600" /> Opening Hours
+                    </h4>
+                    <ul className="text-xs text-gray-700 list-disc list-inside pl-2 space-y-0.5">
+                    {opening_hours.map((line, index) => <li key={index}>{line}</li>)}
+                    </ul>
+                </div>
+                )}
+
+                {/* Reviews */}
+                {reviews && reviews.length > 0 && (
+                <div className="mb-4">
+                    <h4 className="font-semibold text-sm mb-2 flex items-center">
+                    <MessageSquare size={16} className="mr-1 text-gray-600" /> Reviews
+                    </h4>
+                    <div className="space-y-3">
+                    {reviews.map((review, index) => (
+                        <div key={index} className="border-t pt-2 text-xs">
+                        <div className="flex justify-between items-center mb-0.5">
+                            <span className="font-medium text-gray-800">{review.author_name}</span>
+                            <div className="flex items-center text-yellow-500">
+                            <Star size={12} className="mr-0.5 fill-current" /> {review.rating}/5
+                            </div>
+                        </div>
+                        <p className="text-gray-700 mb-1">{review.text}</p>
+                        <p className="text-gray-500 text-right text-[10px]">{review.time}</p>
+                        </div>
+                    ))}
+                    </div>
+                </div>
+                )}
+
+                {!reviews || reviews.length === 0 && (
+                <div className="text-center text-sm text-gray-500 py-2">No reviews available.</div>
+                )}
+            </div>
+            </DialogPanel>
         </div>
+        </div>
+    </Dialog>
     );
 };
-
 
 // --- Component: TripItinerary ---
 const TripItinerary: React.FC<Props> = ({ plan }) => {
@@ -443,7 +451,7 @@ const TripItinerary: React.FC<Props> = ({ plan }) => {
 
             {/* Save Button */}
             <div className="text-center mt-12">
-                <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-8 rounded-full shadow-lg text-base transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+                <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-8 rounded-full shadow-lg text-base transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
                     💾 Save to My Trips
                 </button>
             </div>

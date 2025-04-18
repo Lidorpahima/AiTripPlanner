@@ -1,0 +1,117 @@
+📄 .gitignore
+📄 README.md
+📄 Screenshot 2025-04-11 161510.png
+📁 backend
+  📄 .env
+  📄 Dockerfile
+  📁 api
+    📄 chat_request.py
+    📄 google_places_service.py
+    📁 migrations
+      📄 0001_initial.py
+      📄 __init__.py
+    📄 models.py
+    📄 serializers.py
+    📄 test.py
+    📄 urls.py
+    📁 utils
+      📄 redis_client.py
+    📄 views.py
+  📁 backend
+    📄 __init__.py
+    📄 asgi.py
+    📄 settings.py
+    📄 urls.py
+    📄 wsgi.py
+  📄 manage.py
+  📄 requirements.txt
+📄 docker-compose.yml
+📁 frontend
+  📄 .env.local
+  📄 .gitignore
+  📁 .vscode
+    📄 settings.json
+  📄 Dockerfile
+  📁 app
+    📁 (auth)
+      📁 about
+        📄 page.tsx
+      📁 context
+        📄 AuthContext.tsx
+      📄 layout.tsx
+      📁 reset-password
+        📄 page.tsx
+      📁 signin
+        📄 page.tsx
+      📁 signup
+        📄 page.tsx
+    📁 (default)
+      📄 layout.tsx
+      📄 page.tsx
+    📁 css
+      📁 additional-styles
+        📄 custom-fonts.css
+        📄 theme.css
+        📄 utility-patterns.css
+      📄 style.css
+    📁 fastplan
+      📄 layout.tsx
+      📄 page.tsx
+      📁 result
+        📄 page.tsx
+    📄 layout.tsx
+  📁 assets
+    📄 globe-animation.json
+  📁 components
+    📄 AnimatedWave.tsx
+    📄 Tripltinerary.tsx
+    📄 accordion.tsx
+    📄 banner.tsx
+    📄 business-categories.tsx
+    📄 cta.tsx
+    📄 features-planet.tsx
+    📄 hero-home.tsx
+    📄 large-testimonial.tsx
+    📄 page-illustration.tsx
+    📁 ui
+      📄 footer.tsx
+      📄 header.tsx
+      📄 logo.tsx
+  📄 middleware.ts
+  📄 next-env.d.ts
+  📄 next.config.js
+  📄 package-lock.json
+  📄 package.json
+  📄 pnpm-lock.yaml
+  📄 postcss.config.js
+  📁 public
+    📄 favicon.ico
+    📁 images
+      📄 auth-bg.svg
+      📁 destinations
+        📄 bali.jpg
+        📄 paris.jpg
+        📄 rome.jpg
+        📄 tokyo.jpg
+      📄 globe-traveler.svg
+      📄 globe-traveler1.svg
+      📄 large-testimonial.jpg
+      📄 logo-01.svg
+      📄 logo-02.svg
+      📄 logo-03.svg
+      📄 logo-04.svg
+      📄 logo-05.svg
+      📄 logo-06.svg
+      📄 logo-07.svg
+      📄 logo-08.svg
+      📄 logo-09.svg
+      📄 planet-overlay.svg
+      📄 planet.png
+      📄 stripes-dark.svg
+      📄 stripes.svg
+  📄 tsconfig.json
+📄 list_structure.py
+📄 logo.svg
+📄 package-lock.json
+📄 package.json
+📄 project_structure.txt
