@@ -84,11 +84,10 @@ class GooglePlacesService:
                     'text': review.get('text'),
                     'time': review.get('relative_time_description')
                 }
-                for review in reviews_data[:3]
+                for review in reviews_data
                 if isinstance(review, dict)
             ]
 
-        # **** הוספנו הדפסה כאן ****
         print("--- Processed Photo URLs --- \n", photo_urls, "\n--- End Processed Photos ---")
 
         return {
@@ -106,5 +105,4 @@ class GooglePlacesService:
         }
 
     def _get_photo_url(self, photo_reference):
-        """יצירת URL לתמונה"""
         return f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference={photo_reference}&key={settings.GOOGLE_API_KEY}"

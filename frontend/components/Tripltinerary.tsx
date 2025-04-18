@@ -405,7 +405,6 @@ const TripItinerary: React.FC<Props> = ({ plan }) => {
                             {day.activities.map((activity: Activity, activityIndex: number) => { 
                                 const key = `${dayIndex}-${activityIndex}`;
                                 const currentDetailState = placeDetails[key];
-                                // **** בדיקה אם אפשר לקבל פרטים ****
                                 const canFetchDetails = !!activity.place_name_for_lookup;
 
                                 return (
