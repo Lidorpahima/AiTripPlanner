@@ -1,8 +1,8 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from .serializers import RegisterSerializer ,  PlanTripSerializer ,UserProfileSerializer
+from .models import VisitedCountry
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.decorators import api_view
 from datetime import date
 import redis
 import json
@@ -16,6 +16,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated 
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
+from rest_framework import viewsets
+
 # ──────────────────────────────── Register ──────────────────────────────── #
 
 class RegisterView(generics.CreateAPIView):
@@ -50,7 +52,23 @@ class ProfileView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user.userprofile
+# ──────────────────────────────── Visited ──────────────────────────────── #
 
+@api_view(['GET'])
+def get_visited_countries(request):
+    countries = VisitedCountry.objects.filter(user=request.user).values_list('country_name', flat=True)
+    return Response({'countries': list(countries)})
+
+@api_view(['POST'])
+def add_visited_country(request):
+    country_name = request.data.get('countryName')
+    VisitedCountry.objects.create(user=request.user, country_name=country_name)
+    return Response({'status': 'success'})
+
+@api_view(['DELETE'])
+def remove_visited_country(request, country_name):
+    VisitedCountry.objects.filter(user=request.user, country_name=country_name).delete()
+    return Response({'status': 'success'})
 # ──────────────────────────────── Redis & Helper ──────────────────────────────── #
 
 redis_client = redis.StrictRedis.from_url(settings.REDIS_URL, decode_responses=True)
