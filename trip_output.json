@@ -1,0 +1,27 @@
+{
+  "summary": "A romantic two-day escape in Barcelona, highlighting the Liceu Opera and Gaudi's architectural wonders alongside vibrant local cuisine.",
+  "days": [
+    {
+      "title": "Day 1: Cultural Immersion & Evening Performance",
+      "activities": [
+        "08:30 - Breakfast at **La Cova del Drac** (La Rambla), known for traditional Catalan dishes like crema catalana",
+        "10:00 - Guided visit to **Sagrada Família** (including crypt and exterior views; reservation required)",
+        "12:30 - Lunch at **El Xamà** (Jardí Botànic), modern Barcelona dining with botanical garden views",
+        "15:00 - Art exploration at **MNAC** (Museu Nacional d'Art de Catalunya) showcasing Catalan art history",
+        "18:00 - Sunset stroll along **Passeig de Gràcia** to admire Gaudí's Casa Amatller and Casa Lleó Morera",
+        "19:30 - **Grand Tier Performance** at Gran Teatre del Liceu (book剧目 "Carmen" for an evening opera with Catalan heritage)"
+      ]
+    },
+    {
+      "title": "Day 2: Modern Architecture & Flamenco",
+      "activities": [
+        "09:00 - Panoramic visit to **Park Güell** (include early access option to avoid crowds) with guide",
+        "12:00 - Lunch at **Ca l'Isidre** (Barri Gòtic) for patés and vermouth culture",
+        "14:30 - Visit **Casa Batlló** (include terrrace access for rooftop photography)",
+        "16:30 - Art & Gaudí hybrid at **La Pedrera** (Casa Milà) urban gardens and roof terrace",
+        "19:00 - Sunset at **Mirador del Alcalde** (Barceloneta) with Mediterranean views",
+        "21:30 - Romantic **flamenco dinner show** at **Corral de la Morería** (pre-book private table)"
+      ]
+    }
+  ]
+}
