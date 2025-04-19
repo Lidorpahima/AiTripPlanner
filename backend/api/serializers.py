@@ -69,6 +69,13 @@ class LoginSerializer(serializers.ModelSerializer):
 
         return attrs
     
+class UserProfileSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(source='user.email', read_only=True)
+    username = serializers.CharField(source='user.username ', read_only=True)
+    class Meta:
+        model = UserProfile
+        fields = ('full_name',)
+    
 class PlanTripSerializer(serializers.Serializer):
     destination = serializers.CharField()
     startDate = serializers.DateField()

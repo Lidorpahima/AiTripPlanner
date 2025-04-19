@@ -1,149 +1,129 @@
 import requests
 import os
 import json
-from time import time
 from django.conf import settings
 import re
+import traceback 
+import google.generativeai as genai
 
 # ─────────────────────────── Environment Variables / Settings ─────────────────────────── #
 
-openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
-PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
+api_key = settings.GOOGLE_AI_API_KEY
+# --------------------------------------------------
 
-URL_OPENROUTER = os.getenv("OPENROUTER_URL", "https://openrouter.ai/api/v1/chat/completions")
-URL_PERPLEXITY = os.getenv("PERPLEXITY_URL", "https://api.perplexity.ai/chat/completions")
+if not api_key:
+    print("ERROR: API key string is empty.")
+    exit()
 
-# מודלים
-MODEL_OPENROUTER = os.getenv("OPENROUTER_MODEL", "sophosympatheia/rogue-rose-103b-v0.2:free") # או המודל החינמי שבחרת
-MODEL_SONAR = "sonar" # או "sonar-small-online" למהירות/עלות נמוכה יותר אם נתמך ומתאים
-
-# Timeout לבקשות רשת (בשניות)
-REQUEST_TIMEOUT = 120
-
-if not openrouter_api_key:
-    print("⚠️ Warning: OPENROUTER_API_KEY environment variable not set.")
-if not PERPLEXITY_API_KEY:
-    print("⚠️ Warning: PERPLEXITY_API_KEY environment variable not set.")
+try:
+    genai.configure(api_key=api_key)
+    print("API Key configured.")
+except Exception as config_error:
+    print(f"ERROR configuring API key: {config_error}")
+    print("Please ensure the API key is valid.")
+    exit()
 
 
-# ─────────────────────────── OpenRouter Model Function ─────────────────────────── #
+model_name = 'gemini-2.5-pro-exp-03-25'
+print(f"Using model: {model_name}")
 
-def ask_gpt_openrouter(message: str, model: str = MODEL_OPENROUTER) -> str | None:
-    """Sends a prompt to the specified OpenRouter model and returns the text response."""
-    if not openrouter_api_key:
-        print("❌ OpenRouter API Key is missing. Cannot make the request.")
-        return None
 
-    headers = {
-        "Authorization": f"Bearer {openrouter_api_key}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": settings.SITE_URL if hasattr(settings, 'SITE_URL') else "",
-        "X-Title": settings.SITE_NAME if hasattr(settings, 'SITE_NAME') else "",
-    }
-    data = {
-        "model": model,
-        "messages": [{"role": "user", "content": message}],
-
-    }
-
+# ─────────────────────────── GEMINI Model Function ─────────────────────────── #
+def ask_gemini(prompt: str, model_to_use: str) -> str | None:
+    """Sends a prompt to the specified Gemini model and returns the text response."""
+    print(f"\n🤖 Sending prompt to model: {model_to_use}...")
     try:
-        response = requests.post(
-            url=URL_OPENROUTER,
-            headers=headers,
-            data=json.dumps(data),
-            timeout=REQUEST_TIMEOUT
-        )
-
-        print(f"🔁 OpenRouter Status Code: {response.status_code}")
-
-        # בדוק אם הבקשה הצליחה
-        response.raise_for_status() # יזרוק שגיאה עבור 4xx/5xx
-
-        response_json = response.json()
-
-        if 'choices' in response_json and len(response_json['choices']) > 0:
-            content = response_json['choices'][0].get('message', {}).get('content')
-            if content:
-                return content.strip()
-            else:
-                print("❌ OpenRouter response missing content.")
-                return None
-        else:
-            print("❌ OpenRouter response missing choices.")
-            print("📥 Response Body:", response.text) # הדפס את גוף התשובה לדיבוג
-            return None
-
-    except requests.exceptions.Timeout:
-        print(f"❌ OpenRouter API Error: Request timed out after {REQUEST_TIMEOUT} seconds.")
-        return None
-    except requests.exceptions.RequestException as e:
-        # שגיאות רשת, שגיאות סטטוס (4xx, 5xx)
-        print(f"❌ OpenRouter API Error: {e}")
-
-        if hasattr(e, 'response') and e.response is not None:
-            print(f"📥 Response Body: {e.response.text}")
-        return None
-    except Exception as e:
-        # שגיאות לא צפויות אחרות (למשל, עיבוד JSON)
-        print(f"❌ Unexpected error in ask_gpt_openrouter: {e}")
-        return None
-
-
-# ─────────────────── Perplexity SONAR Model Function (for Research) ─────────────────── #
-
-def ask_gpt_sonar(prompt: str, model: str = MODEL_SONAR) -> str | None:
-    """Sends a prompt to the Perplexity SONAR model and returns the text response."""
-    if not PERPLEXITY_API_KEY:
-        print("❌ Perplexity API Key is missing. Cannot make the request.")
-        return None
-
-    headers = {
-        "Authorization": f"Bearer {PERPLEXITY_API_KEY}",
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-    }
-    data = {
-        "model": model,
-        "messages": [
-            {"role": "system", "content": "You are a helpful travel research assistant. Provide concise and relevant information based on the user's request."},
-            {"role": "user", "content": prompt}
+        model = genai.GenerativeModel(model_to_use)
+        safety_settings = [
+            {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+            {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+            {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+            {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
         ]
-    }
+        response = model.generate_content(prompt, safety_settings=safety_settings)
 
-    try:
-        response = requests.post(
-            url=URL_PERPLEXITY,
-            json=data,
-            headers=headers,
-            timeout=REQUEST_TIMEOUT
-        )
-        print(f"🔁 Perplexity Status Code: {response.status_code}")
-        response.raise_for_status() # זרוק שגיאה עבור 4xx/5xx
+        # 1. Check if prompt itself was blocked
+        # שימוש ב-getattr לגישה בטוחה למקרה שהמבנה שונה במקצת
+        prompt_feedback = getattr(response, 'prompt_feedback', None)
+        if prompt_feedback and getattr(prompt_feedback, 'block_reason', None):
+             block_reason_value = getattr(prompt_feedback, 'block_reason', 'UNKNOWN')
+             reason_name = getattr(block_reason_value, 'name', str(block_reason_value))
+             print(f"⚠️ Prompt blocked: {reason_name}")
+             safety_ratings = getattr(prompt_feedback, 'safety_ratings', [])
+             if safety_ratings:
+                  print(f"   Safety Ratings (Prompt): {safety_ratings}")
+             return None
 
-        response_json = response.json()
+        # 2. Check if there are any response candidates
+        if not response.candidates:
+            print("⚠️ No candidates returned in the response.")
+            # לפעמים אין candidates אבל יש טקסט ישיר (פחות נפוץ ב-API החדש)
+            # נבדוק אם יש טקסט ישיר כתכונה של response
+            if hasattr(response, 'text') and response.text:
+                 print("   ℹ️ Found text directly on response object.")
+                 return response.text
+            return None # אין תשובה
 
-        if 'choices' in response_json and len(response_json['choices']) > 0:
-            content = response_json['choices'][0].get('message', {}).get('content')
-            if content:
-                return content.strip()
+        # 3. Process the first candidate (most common case)
+        candidate = response.candidates[0]
+        finish_reason_value = getattr(candidate, 'finish_reason', None) # גישה בטוחה
+
+        if finish_reason_value == 1: # 1 typically means FINISH_REASON_STOP
+            content = getattr(candidate, 'content', None)
+            parts = getattr(content, 'parts', []) if content else []
+
+            if parts:
+                # Extract text from parts
+                full_text = "".join(part.text for part in parts if hasattr(part, 'text'))
+                print("   ✅ Model finished normally (STOP) and returned content.")
+                return full_text
             else:
-                print("❌ Perplexity response missing content.")
-                return None
-        else:
-            print("❌ Perplexity response missing choices.")
-            print("📥 Response Body:", response.text)
-            return None
+                # Stopped normally but no content (likely safety filtered or maybe recitation)
+                print("   ⚠️ Model finished normally (STOP) but returned no content parts.")
+                safety_ratings = getattr(candidate, 'safety_ratings', [])
+                if safety_ratings:
+                    print(f"   Safety Ratings (Response): {safety_ratings}")
+                # אם הסיבה היא RECITATION, גם אז לא יהיה תוכן
+                if finish_reason_value == 4: # 4 = FINISH_REASON_RECITATION
+                     print("   Reason details: FINISH_REASON_RECITATION")
+                return "" # Return empty string for empty but successful stop
 
-    except requests.exceptions.Timeout:
-        print(f"❌ Perplexity API Error: Request timed out after {REQUEST_TIMEOUT} seconds.")
-        return None
-    except requests.exceptions.RequestException as e:
-        print(f"❌ Perplexity API Error: {e}")
-        if hasattr(e, 'response') and e.response is not None:
-            print(f"📥 Response Body: {e.response.text}")
-        return None
+        else:
+            # Finished for another reason (SAFETY, MAX_TOKENS, RECITATION, OTHER, UNKNOWN/None)
+            reason_name = "UNKNOWN"
+            if finish_reason_value is not None:
+                 # נסה לקבל את השם של ה-enum אם הוא קיים, אחרת את הערך המספרי
+                 reason_name = getattr(genai.types.FinishReason(finish_reason_value), 'name', str(finish_reason_value))
+
+            print(f"⚠️ Model finished for reason: {reason_name} (Value: {finish_reason_value})")
+
+            safety_ratings = getattr(candidate, 'safety_ratings', [])
+            if safety_ratings:
+                print(f"   Safety Ratings (Response): {safety_ratings}")
+
+            # אם הסיבה היא SAFETY (ערך 2) או RECITATION (ערך 4), נציין זאת במפורש
+            if finish_reason_value == 2: # 2 = FINISH_REASON_SAFETY
+                 print("   Reason details: FINISH_REASON_SAFETY")
+            elif finish_reason_value == 4: # 4 = FINISH_REASON_RECITATION
+                 print("   Reason details: FINISH_REASON_RECITATION")
+            elif finish_reason_value == 3: # 3 = FINISH_REASON_MAX_TOKENS
+                 print("   Reason details: FINISH_REASON_MAX_TOKENS")
+
+
+            return None # Indicate failure or non-standard stop
+        # --- END OF CORRECTED FINISH REASON LOGIC ---
+
+    except AttributeError as ae:
+         # Specific check for the error we are seeing
+         print(f"❌ AttributeError during Gemini API processing: {ae}")
+         print(f"   This often means an incompatibility between the code and the installed library version regarding response structure.")
+         print("Traceback:")
+         traceback.print_exc()
+         return None
     except Exception as e:
-        print(f"❌ Unexpected error in ask_gpt_sonar: {e}")
+        print(f"❌ Unexpected error during Gemini API call: {e}")
+        print("Traceback:")
+        traceback.print_exc()
         return None
 
 
