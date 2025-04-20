@@ -1,7 +1,7 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from .serializers import RegisterSerializer ,  PlanTripSerializer ,UserProfileSerializer
-from .models import VisitedCountry
+from .models import VisitedCountry,UserProfile
 from rest_framework_simplejwt.tokens import RefreshToken
 from datetime import date
 import redis
@@ -17,6 +17,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from rest_framework import viewsets
+
 
 # ──────────────────────────────── Register ──────────────────────────────── #
 
@@ -45,36 +46,27 @@ class RegisterView(generics.CreateAPIView):
         headers = self.get_success_headers(serializer.data)
         return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
 # ──────────────────────────────── Profile ──────────────────────────────── #
-
-class ProfileView(generics.RetrieveAPIView):
+class ProfileRetrieveView(generics.RetrieveAPIView): 
     serializer_class = UserProfileSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
     def get_object(self):
-        return self.request.user.userprofile
-# ──────────────────────────────── Visited ──────────────────────────────── #
+        profile, created = UserProfile.objects.get_or_create(user=self.request.user)
+        return profile
 
-@api_view(['GET'])
-def get_visited_countries(request):
-    countries = VisitedCountry.objects.filter(user=request.user).values_list('country_name', flat=True)
-    return Response({'countries': list(countries)})
+class ProfileUpdateView(generics.UpdateAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = (permissions.IsAuthenticated,)
 
-@api_view(['POST'])
-def add_visited_country(request):
-    country_name = request.data.get('countryName')
-    VisitedCountry.objects.create(user=request.user, country_name=country_name)
-    return Response({'status': 'success'})
+    def get_object(self):
+        profile, created = UserProfile.objects.get_or_create(user=self.request.user)
+        return profile
 
-@api_view(['DELETE'])
-def remove_visited_country(request, country_name):
-    VisitedCountry.objects.filter(user=request.user, country_name=country_name).delete()
-    return Response({'status': 'success'})
 # ──────────────────────────────── Redis & Helper ──────────────────────────────── #
 
 redis_client = redis.StrictRedis.from_url(settings.REDIS_URL, decode_responses=True)
 
 def make_key(data):
-    # ודא שכל הערכים הם מחרוזות לפני join
     trip_style_str = ','.join(map(str, data.get('tripStyle', [])))
     interests_str = ','.join(map(str, data.get('interests', [])))
 
