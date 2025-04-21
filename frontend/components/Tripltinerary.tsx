@@ -5,7 +5,9 @@ import Image from "next/image";
 import { toast } from 'react-toastify';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { ChevronLeft, ChevronRight, MapPin, Star, Phone, Globe, Clock, MessageSquare, Image as ImageIcon, X, Info } from "lucide-react";
-// הגדרת כתובת ה-API
+import Cookies from 'js-cookie';
+import { useRouter } from 'next/navigation';
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY; // חשוב לשמור את המפתח כאן רק אם אין דרך אחרת והוא מיועד לשימוש בצד לקוח בלבד (כמו הצגת מפה סטטית). עדיף שה-Backend יטפל ביצירת URL-ים לתמונות.
 
@@ -45,23 +47,28 @@ type TripPlan = {
   days: DayPlan[];
 };
 
-interface Props {
-  plan: TripPlan;
-  // onRemoveActivity?: (dayIndex: number, activityIndex: number) => void; // אפשר להחזיר אם צריך
+interface OriginalRequestData {
+    destination: string;
+    startDate?: string | Date | null;
+    endDate?: string | Date | null;
 }
 
-// --- Helper Functions ---
+interface TripItineraryProps {
+    plan: TripPlan;                    
+    originalRequestData: OriginalRequestData;
+    onPlanNewTrip: () => void;         
+  }
 
 // --- Component: PlaceDetailsPopup ---
 interface PlaceDetailsPopupProps {
     details: PlaceDetailsData | 'loading' | 'error';
     onClose: () => void;
-    placeNameQuery: string; // שם המקום כפי שחיפשנו אותו
+    placeNameQuery: string;
 }
 
 const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose, placeNameQuery }) => {
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-
+    const router = useRouter();
     const handlePhotoChange = (direction: 'next' | 'prev') => {
         if (typeof details !== 'object' || !details.photos || details.photos.length === 0) return;
         setCurrentPhotoIndex(prev => {
@@ -266,13 +273,14 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
 };
 
 // --- Component: TripItinerary ---
-const TripItinerary: React.FC<Props> = ({ plan }) => {
-    // State to hold fetched details: key is "dayIndex-activityIndex", value is details object, 'loading', or 'error'
+const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData, onPlanNewTrip }) => {
+    const router = useRouter(); 
     const [placeDetails, setPlaceDetails] = useState<Record<string, PlaceDetailsData | 'loading' | 'error'>>({});
-    // State to track which popup is currently open (using the "dayIndex-activityIndex" key)
     const [activePopupKey, setActivePopupKey] = useState<string | null>(null);
-    // State to store the query used for the active popup (for display in loading/error states)
     const [activePopupQuery, setActivePopupQuery] = useState<string>("");
+    const [isSaving, setIsSaving] = useState<boolean>(false);
+    const [saveError, setSaveError] = useState<string | null>(null);
+    const [isSaved, setIsSaved] = useState<boolean>(false);
 
     // --- Fetching Logic (triggered by click) ---
     const handleClosePopup = useCallback(() => {
@@ -375,7 +383,84 @@ const TripItinerary: React.FC<Props> = ({ plan }) => {
         fetchPlaceDetails(key, placeNameLookup);
 
     }, [fetchPlaceDetails, setActivePopupQuery]); 
+    const handleSaveTrip = async () => {
+        const token = Cookies.get('access');
+        const csrfToken = Cookies.get('csrftoken'); 
+        if(!csrfToken) {
+            toast.error("CSRF token not found. Please log in again.");
+            return;
+        }
+        if (!token) {
+            toast.error("Please log in to save your trip.");
+            return;
+        }
+        if (isSaved) {
+            toast.info("Trip already saved!");
+            return;
+        }
+        setIsSaving(true);
+        setSaveError(null);
 
+        const formatDate = (date: string | Date | null | undefined): string | null => {
+            if (!date) return null;
+            try {
+                const dateObj = new Date(date);
+                if (isNaN(dateObj.getTime())) return null;
+                return dateObj.toISOString().split('T')[0];
+            } catch (e) { return null; }
+        };
+
+        const payload = {
+            destination: originalRequestData.destination,
+            start_date: formatDate(originalRequestData.startDate),
+            end_date: formatDate(originalRequestData.endDate),
+            plan_json: plan // The entire generated plan object
+        };
+        console.log("Saving trip with payload:", payload);
+        console.log("CSRF Token:", csrfToken);
+
+        try {
+            const response = await fetch(`${API_BASE}/api/trips/save/`, { 
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                    'X-CSRFToken': csrfToken, 
+                },
+                body: JSON.stringify(payload),
+                credentials: 'include'
+            });
+
+            let data = {};
+             if (response.status !== 204) { 
+               try {
+                   data = await response.json();
+               } catch (jsonError) {
+                   console.error("Could not parse JSON response even though status was not 204:", jsonError);
+                   if (!response.ok) throw new Error("Server returned non-JSON error response.");
+               }
+             }
+
+
+            if (response.ok) {
+                console.log("Trip saved successfully:", data);
+                toast.success('Trip saved successfully! 🎉');
+                setIsSaved(true);
+            } else {
+                console.error("Failed to save trip - API Error:", response.status, data);
+                const errorMessage = (data as any)?.detail || (data as any)?.error || `Failed to save (Status: ${response.status})`;
+                setSaveError(errorMessage);
+                toast.error(`Save failed: ${errorMessage}`);
+            }
+        } catch (err) {
+            console.error("Network error saving trip:", err);
+            const message = err instanceof Error ? err.message : "An unknown network error occurred.";
+            setSaveError(`Network error: ${message}`);
+            toast.error(`Network error: ${message}`);
+        } finally {
+            setIsSaving(false);
+        }
+    };
     // --- Component Render ---
     return (
         <div className="max-w-screen-2xl mx-auto px-4 pb-20">
@@ -415,26 +500,21 @@ const TripItinerary: React.FC<Props> = ({ plan }) => {
                                                 ? 'cursor-pointer bg-gray-50 hover:bg-indigo-50 hover:border-indigo-200' // סגנון לחיץ
                                                 : 'bg-gray-100 opacity-80' // סגנון לא לחיץ
                                         }`}
-                                        // **** קליק מותנה ****
                                         onClick={canFetchDetails ? () => handleActivityClick(dayIndex, activityIndex, activity.place_name_for_lookup) : undefined}
                                         title={canFetchDetails ? "Click for details" : "No specific location details available"}
                                     >
                                         <div className="flex items-center justify-between mb-1">
-                                            {/* **** שימוש ישיר ב-activity.time **** */}
                                             {activity.time && <span className="text-indigo-700 font-bold text-xs">{activity.time}</span>}
                                             <div className="ml-auto flex items-center space-x-1">
                                                 {/* Loading/Error Indicator */}
                                                 {currentDetailState === 'loading' && <span className="text-xs text-blue-500">Loading...</span>}
                                                 {currentDetailState === 'error' && <span className="text-xs text-red-500">Details unavailable</span>}
-                                                {/* **** אייקון לפריט לא לחיץ **** */}
                                                 {!canFetchDetails && <Info size={12} className="text-gray-400" />}
                                             </div>
                                         </div>
-                                        {/* **** שימוש ישיר ב-activity.description **** */}
                                         <span className={`text-gray-800 text-sm leading-normal ${!canFetchDetails ? 'text-gray-600' : ''}`}>
                                             {activity.description}
                                         </span>
-                                        {/* **** הצגת אייקון רק אם לחיץ **** */}
                                         {canFetchDetails && (
                                             <span className="absolute top-2 right-2 text-gray-400 group-hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <ImageIcon size={14}/>
@@ -450,17 +530,39 @@ const TripItinerary: React.FC<Props> = ({ plan }) => {
 
             {/* Save Button */}
             <div className="text-center mt-12">
-                <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-8 rounded-full shadow-lg text-base transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
-                    💾 Save to My Trips
+            <button
+                    onClick={handleSaveTrip} 
+                    disabled={isSaving || isSaved} 
+                    className={`
+                        text-white font-bold py-2.5 px-8 rounded-full shadow-lg text-base 
+                        transition duration-150 ease-in-out 
+                        focus:outline-none focus:ring-2 focus:ring-offset-2 
+                        ${isSaving ? 'bg-gray-400 cursor-not-allowed' : ''} 
+                        ${isSaved ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500 cursor-default' 
+                                  : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 hover:scale-105' 
+                        }
+                    `}
+                >
+                    {isSaving ? 'Saving...' : (isSaved ? '✓ Trip Saved' : '💾 Save to My Trips')}
+                </button>
+            </div>
+            <div className="text-center mt-4">
+                <button
+                    onClick={() => {
+                        router.push('/fastplan');
+                    }} 
+                    className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                    Plan Another Trip
                 </button>
             </div>
 
             {/* Render the Popup Conditionally */}
             {activePopupKey && (
                 <PlaceDetailsPopup
-                    details={placeDetails[activePopupKey] || 'loading'} // Pass current state
+                    details={placeDetails[activePopupKey] || 'loading'} 
                     onClose={handleClosePopup}
-                    placeNameQuery={activePopupQuery} // Pass the query used
+                    placeNameQuery={activePopupQuery} 
                 />
             )}
 

@@ -1,7 +1,7 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
-from .serializers import RegisterSerializer ,  PlanTripSerializer ,UserProfileSerializer
-from .models import VisitedCountry,UserProfile
+from .serializers import RegisterSerializer ,  PlanTripSerializer ,UserProfileSerializer,SavedTripSerializer 
+from .models import VisitedCountry,UserProfile,SavedTrip
 from rest_framework_simplejwt.tokens import RefreshToken
 from datetime import date
 import redis
@@ -17,8 +17,12 @@ from rest_framework.permissions import IsAuthenticated
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from rest_framework import viewsets
+from django.views.decorators.csrf import ensure_csrf_cookie
 
-
+# ──────────────────────────────── CSRF Token ──────────────────────────────── #
+@ensure_csrf_cookie
+def get_csrf_token(request):
+    return JsonResponse({"detail": "CSRF cookie set"})
 # ──────────────────────────────── Register ──────────────────────────────── #
 
 class RegisterView(generics.CreateAPIView):
@@ -309,3 +313,21 @@ def get_place_details_view(request):
     except Exception as e:
         print(f"❌ Unexpected error processing place details for query '{query}': {e}")
         return JsonResponse({"error": "An internal server error occurred."}, status=500)
+
+# ──────────────────────────────── SavedTrip ──────────────────────────────── #
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def save_trip_view(request):
+    print(f"***** Request type in save_trip_view: {type(request)} *****") 
+    serializer = SavedTripSerializer(data = request.data,context={'request': request})
+    if serializer.is_valid():
+        try:
+            saved_trip = serializer.save(user=request.user)
+            return Response(SavedTripSerializer(saved_trip).data, status=status.HTTP_201_CREATED)
+        
+        except Exception as e:
+            print (f"❌ Error saving trip: {e}")
+            return Response({"error": "Could not save trip due to an internal error."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    else:
+        print (f"❌ Error with serializer: {serializer.errors}")
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

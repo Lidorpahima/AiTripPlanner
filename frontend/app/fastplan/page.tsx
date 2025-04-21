@@ -113,11 +113,14 @@ export default function FastPlanPage() {
       const result = await response.json();
       console.log("Trip Plan Result:", result);
       sessionStorage.setItem("fastplan_result", JSON.stringify(result));
+      const originalRequest = {
+        destination: formData.destination,
+        startDate: formData.startDate,
+        endDate: formData.endDate
+    };
+    sessionStorage.setItem("fastplan_request", JSON.stringify(originalRequest));
       toast.success("Trip plan generated successfully!");
       router.push('/fastplan/result');
-      // כאן אפשר לשמור את התוצאה ב־state, או להפנות לדף אחר
-      // setTripResult(result);
-      // router.push(`/trips/results?id=${result.id}`);
   
     } catch (error) {
       console.error("Error generating trip:", error);
@@ -319,14 +322,14 @@ export default function FastPlanPage() {
                  <div className="mt-8 flex justify-between">
                      <button
                          type="button"
-                         onClick={prevStep} // Go back
+                         onClick={prevStep} 
                          className="btn rounded-lg bg-gray-300 px-6 py-3 text-lg font-semibold text-gray-700 shadow hover:bg-gray-400"
                      >
                          ← Back
                      </button>
                     <button
-                        type="button" // Changed from submit, calling function directly
-                        onClick={handleSubmit} // Call the final submit function
+                        type="button"
+                        onClick={handleSubmit} 
                         disabled={isLoading}
                         className={`btn rounded-lg px-8 py-4 text-xl font-bold text-white shadow-lg transition duration-300 ease-in-out ${
                           isLoading

@@ -34,7 +34,7 @@ export default function Header() {
                 </li>
                 <li>
                     <Link
-                      href="/trips"
+                      href="/mytrips"
                       className="text-sm font-medium text-gray-700 hover:text-gray-900"
                     >
                       My Trips

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import Link from "next/link";
 import { useAuth } from "@/app/(auth)/context/AuthContext"; 
-// Helper function to extract error messages (assuming it's correct)
+
 const extractErrorMessages = (data: any): string => {
   if (!data) return "An unexpected error occurred. Please try again.";
   if (typeof data === "string") return data;
@@ -50,42 +50,36 @@ export default function SignIn() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault(); 
     const payload = {
       username: formData.email,
       password: formData.password,
     };
 
     try {
-      // IMPORTANT: Verify this is the correct URL for your login API
       const res = await fetch("http://localhost:8000/api/login/ ", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      let data: any = {}; // Initialize data variable
+      let data: any = {}; 
 
       try {
-        // Attempt to parse the response body as JSON
         data = await res.json();
       } catch (jsonError) {
-        // Handle cases where response is not valid JSON
         console.error("Failed to parse JSON response:", jsonError);
         try {
-          const textResponse = await res.text(); // Attempt to read as text
+          const textResponse = await res.text(); 
           console.error("Raw text response:", textResponse);
         } catch (textError) {
           console.error("Failed to read response body as text:", textError);
         }
         toast.error(" Error processing server response.");
-        return; // Exit if JSON parsing fails
+        return; 
       }
-
-      // Check if the request was successful (status code 2xx)
       if (res.ok) {
-        // If successful, verify that the expected tokens are present
-        // Adjust 'access' and 'refresh' if your API uses different key names
+
         if (data && data.access && data.refresh) {
           toast.success(" Login successful! Redirecting...");
           setTimeout(() => {
@@ -93,25 +87,21 @@ export default function SignIn() {
             router.push("/");
           }, 2000); 
         } else {
-          // Edge case: Status OK but tokens/expected data missing
           console.error("Login successful (status OK) but tokens/data missing:", data);
           toast.error("Login seemed successful, but failed to retrieve necessary data.");
         }
       } else {
-        // If the request failed (status code not 2xx)
         const errorMessage = extractErrorMessages(data);
         console.error("Login Error Response:", data);
         toast.error(` ${errorMessage}`);
       }
     } catch (error) {
-      // Handle network errors (fetch itself failed)
       console.error("Network/Fetch Error:", error);
       toast.error(" Network error. Please check your connection or try again later.");
     }
   }
 
   return (
-    // Removed redundant outer Fragment
     <>
       <div className="mb-10">
         <h1 className="text-4xl font-bold">Sign in to your account</h1>
@@ -129,7 +119,7 @@ export default function SignIn() {
             </label>
             <input
               id="email"
-              name="email" // Ensure name matches state key
+              name="email" 
               value={formData.email}
               onChange={handleChange}
               className="form-input w-full py-2"
@@ -148,7 +138,7 @@ export default function SignIn() {
             </label>
             <input
               id="password"
-              name="password" // Ensure name matches state key
+              name="password"
               value={formData.password}
               onChange={handleChange}
               className="form-input w-full py-2"

@@ -1,13 +1,16 @@
 import Link from "next/link";
 import Logo from "./logo";
-
-export default function Footer({ border = false }: { border?: boolean }) {
+interface FooterProps {
+  border?: boolean;
+  showBigText?: boolean;
+}
+export default function Footer({ border = true, showBigText = true }: FooterProps) {
   return (
     <footer>
       <div className="mx-auto max-w-0xl px-4 sm:px-6">
         {/* Top area: Blocks */}
         <div
-          className={`grid gap-10 py-8 sm:grid-cols-12 md:py-12 ${border ? "border-t [border-image:linear-gradient(to_right,transparent,var(--color-slate-200),transparent)1]" : ""}`}
+          className={`grid gap-10 py-8 sm:grid-cols-12 md:py-3 ${border ? "border-t [border-image:linear-gradient(to_right,transparent,var(--color-slate-200),transparent)1]" : ""}`}
         >
           {/* 1st block */}
           <div className="space-y-2 sm:col-span-12 lg:col-span-4">
@@ -192,6 +195,7 @@ export default function Footer({ border = false }: { border?: boolean }) {
       </div>
 
       {/* Big text */}
+      {showBigText&&
       <div className="relative -mt-16 h-60 w-full" aria-hidden="true">
         <div className="pointer-events-none absolute left-1/2 -z-10 -translate-x-1/2 text-center text-[348px] font-bold leading-none before:bg-linear-to-b before:from-gray-200 before:to-gray-100/30 before:to-80% before:bg-clip-text before:text-transparent before:content-['AiTrip'] after:absolute after:inset-0 after:bg-gray-300/70 after:bg-clip-text after:text-transparent after:mix-blend-darken after:content-['AiTrip'] after:[text-shadow:0_1px_0_white]"></div>
         {/* Glow */}
@@ -202,6 +206,7 @@ export default function Footer({ border = false }: { border?: boolean }) {
           <div className="h-56 w-56 rounded-full border-[20px] border-blue-700 blur-[80px]"></div>
         </div>
       </div>
-    </footer>
+      }
+</footer>
   );
 }

@@ -1,10 +1,11 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import UserProfile
+from .models import UserProfile, VisitedCountry ,SavedTrip 
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db import transaction
 from rest_framework import serializers
+from django.db import transaction 
 
 class RegisterSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(required=True,write_only=True)
@@ -71,11 +72,49 @@ class LoginSerializer(serializers.ModelSerializer):
     
 class UserProfileSerializer(serializers.ModelSerializer):
     username_email = serializers.EmailField(source='user.username', read_only=True) 
-
+    visited_countries = serializers.ListField(child=serializers.CharField(max_length=100),required=False,write_only=False)
+    
     class Meta:
         model = UserProfile
-        fields = ['id', 'username_email', 'full_name']
+        fields = ['id', 'username_email', 'full_name','visited_countries']
         read_only_fields = ['id', 'username_email']
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        countries_queryset = VisitedCountry.objects.filter(user=instance.user).values_list('country_name', flat=True) 
+        representation['visited_countries'] = list(countries_queryset)
+        return representation
+    
+    @transaction.atomic 
+    def update(self, instance, validated_data):
+
+        instance.full_name = validated_data.get('full_name', instance.full_name) 
+        instance.save() 
+
+        visited_countries_data = validated_data.get('visited_countries', None) 
+
+        if visited_countries_data is not None:
+            user = instance.user 
+
+            current_countries = set(VisitedCountry.objects.filter(user=user).values_list('country_name', flat=True))
+            new_countries = set(visited_countries_data)
+
+            countries_to_delete = current_countries - new_countries
+            if countries_to_delete:
+                VisitedCountry.objects.filter(user=user, country_name__in=countries_to_delete).delete()
+                print(f"[DEBUG] Deleted countries for user {user.id}: {countries_to_delete}") 
+
+            countries_to_add = new_countries - current_countries
+            if countries_to_add:
+                visited_country_objects = [
+                    VisitedCountry(user=user, country_name=country) for country in countries_to_add
+                ]
+                VisitedCountry.objects.bulk_create(visited_country_objects)
+                print(f"[DEBUG] Added countries for user {user.id}: {countries_to_add}") 
+
+            final_countries = set(VisitedCountry.objects.filter(user=user).values_list('country_name', flat=True))
+            print(f"[DEBUG] Final countries for user {user.id}: {final_countries}") 
+
+        return instance 
     
 class PlanTripSerializer(serializers.Serializer):
     destination = serializers.CharField()
@@ -84,3 +123,20 @@ class PlanTripSerializer(serializers.Serializer):
     tripStyle = serializers.ListField(child=serializers.CharField())
     interests = serializers.ListField(child=serializers.CharField())
     pace = serializers.CharField()
+
+class SavedTripSerializer(serializers.ModelSerializer):
+    user_email = serializers.EmailField(source='user.username', read_only=True)
+    class Meta:
+        model = SavedTrip
+        fields = [
+            'id', 
+            'user', 
+            'user_email', 
+            'destination', 
+            'start_date', 
+            'end_date', 
+            'plan_json', 
+            'saved_at',
+            'title',
+        ]
+        read_only_fields = ['id', 'user', 'saved_at']

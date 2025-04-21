@@ -5,8 +5,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import MapChart from '@/components/MapChart';
 import Cookies from 'js-cookie';
-import { toast } from 'react-toastify'; // ודא שיש לך ToastContainer מוגדר ב layout.js או קובץ דומה
+import { toast,ToastContainer  } from 'react-toastify'; 
 import { useRouter } from 'next/navigation';
+import { useAuth } from "@/app/(auth)/context/AuthContext";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -20,8 +21,8 @@ export default function ProfilePage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
-    const [error, setError] = useState<string | null>(null); // נשאר כדי לאפשר הצגת שגיאה קבועה בדף
-
+    const [error, setError] = useState<string | null>(null);
+    const { logout } = useAuth();
     useEffect(() => {
       const fetchProfileData = async () => {
         setIsLoading(true);
@@ -29,13 +30,11 @@ export default function ProfilePage() {
 
         let token = Cookies.get('access');
 
-        // פונקציית עזר רקורסיבית לטיפול ב-fetch וברענון
         const tryFetch = async (tokenToUse: string | undefined): Promise<any> => {
-          // אם אין טוקן כלל (אפילו אחרי נסיון רענון), אין טעם להמשיך
           if (!tokenToUse) {
             toast.error("Authentication token missing. Please log in.");
-            router.push('/signin'); // *** שינוי: הפניה ללוגין אם אין טוקן כלל ***
-            throw new Error("Authentication token missing."); // זרוק שגיאה כדי לעצור את המשך הביצוע ב-catch
+            router.push('/signin'); 
+            throw new Error("Authentication token missing."); 
           }
 
           const response = await fetch(`${API_BASE}/api/profile/`, {
@@ -46,15 +45,14 @@ export default function ProfilePage() {
             },
           });
 
-          // אם קיבלנו שגיאת 401 – ננסה רענון
           if (response.status === 401) {
             console.log("Access token expired or invalid. Attempting refresh...");
             const refresh = Cookies.get('refresh');
 
             if (!refresh) {
-              // *** שינוי: הוספת toast והפניה ללוגין ***
-              toast.error("Session expired. Please log in again.");
-              router.push('/signin');
+                toast.error("Session expired. Please log in again.");
+                logout();
+                router.push('/signin');
               throw new Error("Session expired. Please log in again.");
             }
 
@@ -66,43 +64,32 @@ export default function ProfilePage() {
                 });
 
                 if (!refreshRes.ok) {
-                  // *** שינוי: הוספת toast והפניה ללוגין ***
-                  Cookies.remove('access'); // נקה טוקנים ישנים
-                  Cookies.remove('refresh');
-                  toast.error("Token refresh failed. Please log in again.");
-                  router.push('/signin');
-                  throw new Error("Token refresh failed. Please log in again.");
+                    logout();
+                    toast.error("Token refresh failed. Please log in again.");
+                    router.push('/signin');
+                    throw new Error("Token refresh failed. Please log in again.");
                 }
 
                 const refreshData = await refreshRes.json();
                 if (!refreshData.access) {
-                  // *** שינוי: הוספת toast והפניה ללוגין ***
-                  Cookies.remove('access');
-                  Cookies.remove('refresh');
-                  toast.error("Invalid refresh response. Please log in again.");
-                  router.push('/signin');
-                  throw new Error("Invalid refresh response. Please log in again.");
+                    logout();
+                    toast.error("Invalid refresh response. Please log in again.");
+                    router.push('/signin');
+                    throw new Error("Invalid refresh response. Please log in again.");
                 }
 
                 console.log("Token refreshed successfully.");
                 Cookies.set('access', refreshData.access);
-                // נסה שוב את הבקשה המקורית עם הטוקן החדש
                 return await tryFetch(refreshData.access);
 
             } catch (refreshErr: any) {
-                // אם גם בקשת הרענון נכשלה (למשל בעיית רשת)
-                console.error("Error during token refresh request:", refreshErr);
-                // *** שינוי: הוספת toast והפניה ללוגין ***
-                Cookies.remove('access');
-                Cookies.remove('refresh');
+                logout();
                 toast.error("Could not refresh session. Please log in again.");
                 router.push('/signin');
-                // זרוק את השגיאה המקורית או חדשה כדי שה-catch החיצוני יתפוס
                 throw new Error("Could not refresh session. Please log in again.");
             }
           }
 
-          // טיפול בשגיאות אחרות (לא 401)
           if (!response.ok) {
             let errorData;
             try {
@@ -110,41 +97,33 @@ export default function ProfilePage() {
             } catch (e) {
                 errorData = { detail: `Server error: ${response.status}` };
             }
-            // *** שינוי: השתמש ב-toast לשגיאות כלליות מה-API ***
             toast.error(errorData.detail || `Error fetching profile: ${response.status}`);
             throw new Error(errorData.detail || `Error ${response.status}`);
           }
 
-          // אם הכל תקין
           return await response.json();
         };
 
-        // --- התחלת התהליך ---
         try {
-          // אין צורך לבדוק שוב אם token קיים כאן, tryFetch עושה זאת
-          const data = await tryFetch(token); // נסה לקבל נתונים, הפונקציה תטפל ברענון או הפניה
+          const data = await tryFetch(token); 
           setProfileData({
             name: data.full_name || '',
-            email: data.email || '',
+            email: data.username_email || '',
             visitedCountries: data.visited_countries || [],
           });
+          console.log("Profile data fetched successfully:", data);
         } catch (err: any) {
-          // ה-catch הזה יתפוס שגיאות שלא טופלו עם הפניה (למשל, שגיאת 500 ראשונית)
-          // או שגיאות שהובילו להפניה אבל נזרקו בכל זאת
+
           console.error("Failed to fetch profile data after potentially trying refresh:", err);
-          // `toast.error` כבר נקרא בתוך tryFetch ברוב המקרים המובילים לכאן
-          // אבל נשאיר את `setError` למקרה שנרצה להציג הודעה קבועה בדף
+
           setError(err.message || "Failed to load profile data.");
-          // אין צורך ב-toast.error נוסף כאן, אלא אם כן רוצים הודעה כללית
         } finally {
           setIsLoading(false);
         }
       };
 
       fetchProfileData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // הוספתי השתקה ל-eslint כי router לא באמת צריך להיות תלות כאן
-
+    }, []); 
 
     const handleCountrySelect = (countryName: string) => {
         setProfileData(prevData => ({
@@ -159,9 +138,9 @@ export default function ProfilePage() {
         let token = Cookies.get('access');
 
         if (!token) {
-            // *** שינוי: שימוש ב-toast והפניה ללוגין ***
             toast.error("Authentication token not found. Please log in again.");
-            router.push('/signin'); // הפניה אם אין טוקן בזמן השמירה
+            logout();
+            router.push('/signin'); 
             return;
         }
 
@@ -181,7 +160,6 @@ export default function ProfilePage() {
                 })
             });
 
-            // *** שינוי: טיפול מפורש ב-401 גם בשמירה (אופציונלי אך מומלץ) ***
             if (response.status === 401) {
                 toast.error("Session expired during save. Please log in again.");
                 router.push('/signin');
@@ -191,15 +169,12 @@ export default function ProfilePage() {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ detail: 'Failed to parse error response' }));
-                // *** שינוי: שימוש ב-toast ***
                 toast.error(errorData.detail || `Failed to save changes (status: ${response.status})`);
                 throw new Error(errorData.detail || `Failed to save changes (status: ${response.status})`);
             }
             toast.success('Changes Saved Successfully!');
         } catch (error: any) {
             console.error('Error saving profile:', error);
-            // ה-toast כבר נקרא בתוך ה-try או בטיפול ב-401
-            // אם השגיאה היא אחרת (למשל שגיאת רשת), אפשר להוסיף toast כאן
             if (!String(error.message).includes("Failed to save changes") && !String(error.message).includes("Session expired")) {
                  toast.error(`Error saving changes: ${error.message}`);
             }
@@ -208,15 +183,11 @@ export default function ProfilePage() {
         }
     };
 
-    // --- רנדור ---
     if (isLoading) {
         return <div className="flex justify-center items-center h-screen">Loading profile data...</div>;
     }
 
-    // שים לב: אם ה-fetch נכשל והוביל להפניה ללוגין, הקומפוננטה הזו לא תגיע לכאן.
-    // ה-div הזה יוצג רק אם ה-fetch נכשל בשגיאה שלא גררה הפניה (למשל 500),
-    // או אם ה-fetch הצליח אבל משהו אחר השתבש (פחות סביר).
-    if (error && !profileData.email) { // הצג שגיאה רק אם באמת לא הצלחנו לטעון כלום
+    if (error && !profileData.email) { 
         return (
             <div className="flex flex-col justify-center items-center h-screen text-red-600">
                 <p>Error loading profile: {error}</p>
@@ -229,22 +200,32 @@ export default function ProfilePage() {
     }
 
 
-    // --- רנדור רגיל של הדף ---
     return (
-        <div className="max-w-4xl mx-auto p-6">
+        <div className="max-w-4xl mx-auto p-6 pt-25">
+          <ToastContainer
+            position="bottom-center"
+            autoClose={2000} 
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light" 
+          />
             <div className="bg-white rounded-lg shadow-md p-8">
-                {/* כותרת וברכה */}
+                {/* HEADLINE */}
                 <div className="flex items-center mb-8">
                     <div className="relative w-20 h-20 mr-4">
                         <Image
-                           src="/images/default-avatar.png" // ודא שהנתיב תקין
+                           src="/images/default-avatar.png" 
                            alt="Profile"
                            fill
                            className="rounded-full object-cover"
                            onError={(e) => {
-                             // נסה נתיב חלופי אם ברירת המחדל נכשלה
-                             e.currentTarget.onerror = null; // מנע לולאה אינסופית
-                             e.currentTarget.src = '/images/placeholder-avatar.png'; // ודא שהנתיב תקין
+
+                             e.currentTarget.onerror = null; 
+                             e.currentTarget.src = '/images/placeholder-avatar.png'; 
                            }}
                         />
                     </div>
@@ -254,7 +235,7 @@ export default function ProfilePage() {
                     </div>
                 </div>
 
-                {/* פרטי משתמש */}
+                {/* PROFILE INFO */}
                 <div className="space-y-6">
                     <div className="border-b pb-6">
                         <h2 className="text-xl font-semibold mb-4">Personal Details</h2>
@@ -275,9 +256,9 @@ export default function ProfilePage() {
                                     id="email"
                                     type="email"
                                     value={profileData.email}
-                                    disabled // בדרך כלל לא מאפשרים לשנות אימייל בפרופיל בקלות
+                                    disabled 
                                     className="w-full p-2 border rounded-md bg-gray-100"
-                                    readOnly // הוספתי למניעת אזהרות קונסול
+                                    readOnly
                                 />
                             </div>
                             <div>
@@ -288,7 +269,7 @@ export default function ProfilePage() {
                         </div>
                     </div>
 
-                    {/* מפת מדינות */}
+                    {/* COUNTRY MAP*/}
                     <div>
                         <h2 className="text-xl font-semibold mb-4">Countries I've Visited</h2>
                         <div className="border rounded-lg p-4 relative">
@@ -307,7 +288,7 @@ export default function ProfilePage() {
                         </div>
                     </div>
 
-                    {/* כפתור שמירה */}
+                    {/* SAVEBUTTOM*/}
                     <button
                         className={`bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
                         onClick={handleSaveChanges}
