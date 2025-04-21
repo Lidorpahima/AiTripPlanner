@@ -23,8 +23,8 @@ class SavedTrip (models.Model):
     plan_json = models.JSONField() 
     saved_at = models.DateTimeField(auto_now_add=True)
     title = models.CharField(max_length=255, default="")
-
-
+    destination_image_urls = models.JSONField(default=list, null=True, blank=True)
+    
     def __str__(self):
         return f"Trip to {self.destination} for {self.user.username}"
 

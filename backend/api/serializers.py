@@ -138,5 +138,6 @@ class SavedTripSerializer(serializers.ModelSerializer):
             'plan_json', 
             'saved_at',
             'title',
+            'destination_image_urls',
         ]
-        read_only_fields = ['id', 'user', 'saved_at']
+        read_only_fields = ['id', 'user', 'saved_at', 'user_email']

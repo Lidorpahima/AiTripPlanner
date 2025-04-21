@@ -14,11 +14,12 @@ import re
 from api.google_places_service import GooglePlacesService
 from rest_framework.decorators import api_view, permission_classes 
 from rest_framework.permissions import IsAuthenticated 
+from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from rest_framework import viewsets
 from django.views.decorators.csrf import ensure_csrf_cookie
-
+from rest_framework import generics
 # ──────────────────────────────── CSRF Token ──────────────────────────────── #
 @ensure_csrf_cookie
 def get_csrf_token(request):
@@ -204,10 +205,9 @@ model_name = 'gemini-2.5-pro-exp-03-25'
 def plan_trip_view(request):
     serializer = PlanTripSerializer(data=request.data)
     if serializer.is_valid():
-        data = serializer.validated_data # <-- קבל את הנתונים כאן
-        key = make_key(data)         # <-- צור את המפתח כאן
+        data = serializer.validated_data 
+        key = make_key(data)       
         print("DEBUG: Serializer is valid")
-        # --- בדיקת Cache ---
         try:
             ("DEBUG: Checked cache, proceeding...")
             cached = redis_client.get(key)
@@ -284,7 +284,6 @@ def plan_trip_view(request):
             traceback.print_exc()
             return Response({"error": f"An unexpected error occurred: {e}"}, status=500)
 
-    # --- אם ה-Serializer לא היה תקין מלכתחילה ---
     return Response(serializer.errors, status=400)
 
 # ──────────────────────────────── Image Search ──────────────────────────────── #
@@ -315,19 +314,74 @@ def get_place_details_view(request):
         return JsonResponse({"error": "An internal server error occurred."}, status=500)
 
 # ──────────────────────────────── SavedTrip ──────────────────────────────── #
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def save_trip_view(request):
-    print(f"***** Request type in save_trip_view: {type(request)} *****") 
-    serializer = SavedTripSerializer(data = request.data,context={'request': request})
-    if serializer.is_valid():
-        try:
-            saved_trip = serializer.save(user=request.user)
-            return Response(SavedTripSerializer(saved_trip).data, status=status.HTTP_201_CREATED)
+class SaveTripView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, format=None):
+        serializer = SavedTripSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            try:
+                destination_name = serializer.validated_data.get('destination')
+                image_urls = [] 
+                if destination_name:
+                    image_urls = get_pixabay_image_urls(destination_name, count=5) 
+                
+                saved_trip = serializer.save(user=request.user, destination_image_urls=image_urls) 
+                
+                return Response(SavedTripSerializer(saved_trip).data, status=status.HTTP_201_CREATED)
+            except Exception as e:
+                 print (f"❌ Error saving trip: {e}")
+                 return Response({"error": "Could not save trip due to an internal error."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            print (f"❌ Error with serializer: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+# ──────────────────────────────── SavedTrip List ──────────────────────────────── #
+class MyTripsListView(generics.ListAPIView):
+    serializer_class = SavedTripSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        user = self.request.user
+        return SavedTrip.objects.filter(user=self.request.user).order_by('-saved_at')  
+
+# ──────────────────────────────── SavedTrip Images ──────────────────────────────── #
+def get_pixabay_image_urls(query: str, count: int = 5) -> list[str]: 
+
+    api_key = settings.PIXABAY_API_KEY
+    if not api_key: return []
+
+    params = {
+        'key': api_key,
+        'q': query,
+        'image_type': 'photo',
+        'orientation': 'horizontal',
+        'category': 'places,travel,buildings',
+        'safesearch': 'true',
+        'per_page': count 
+    }
+    api_url = "https://pixabay.com/api/"
+    image_urls = [] 
+
+    try:
+        response = requests.get(api_url, params=params, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+
+        if data['hits']:
+            for hit in data['hits'][:count]: 
+                url = hit.get('webformatURL') or hit.get('largeImageURL')
+                if url:
+                    image_urls.append(url)
+            print(f"✅ Found {len(image_urls)} Pixabay images for '{query}'")
+        else:
+            print(f"ℹ️ No Pixabay image results found for query: '{query}'")
         
-        except Exception as e:
-            print (f"❌ Error saving trip: {e}")
-            return Response({"error": "Could not save trip due to an internal error."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    else:
-        print (f"❌ Error with serializer: {serializer.errors}")
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return image_urls 
+
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Error fetching from Pixabay API: {e}")
+        return [] 
+    except Exception as e:
+        print(f"❌ Unexpected error in get_pixabay_image_urls: {e}")
+        return [] 

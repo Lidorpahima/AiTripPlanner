@@ -1,14 +1,30 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {};
+// next.config.js
 
-// frontend/next.config.js
-module.exports = {
-    webpackDevMiddleware: config => {
-      config.watchOptions = {
-        poll: 500, // בדיקה כל שנייה
-        aggregateTimeout: 300,
-      };
-      return config;
-    },
-  };
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true, 
   
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https', 
+        hostname: 'pixabay.com', 
+        port: '', 
+        pathname: '/get/**', 
+      },
+    ],
+  },
+
+  webpack: (config, { isServer, dev }) => {
+    if (dev && !isServer) { 
+        config.watchOptions = {
+            poll: 500, 
+            aggregateTimeout: 300,
+        };
+    }
+    return config;
+  },
+
+}; 
+
+module.exports = nextConfig; 
