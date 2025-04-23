@@ -1,72 +1,111 @@
 import Image from "next/image";
-import PageIllustration from "@/components/page-illustration";
-import Avatar01 from "@/public/images/avatar-01.jpg";
-import Avatar02 from "@/public/images/avatar-02.jpg";
-import Avatar03 from "@/public/images/avatar-03.jpg";
-import Avatar04 from "@/public/images/avatar-04.jpg";
-import Avatar05 from "@/public/images/avatar-05.jpg";
-import Avatar06 from "@/public/images/avatar-06.jpg";
+// Removed Avatar imports as they are not used in the new structure
+// import Avatar01 from "@/public/images/avatar-01.jpg";
+// ... (keep other imports if needed later, like next/image)
+// Import the destination images
+import ImgTokyo from "@/public/images/destinations/tokyo.jpg";
+import ImgRome from "@/public/images/destinations/rome.jpg";
+import ImgParis from "@/public/images/destinations/paris.jpg";
+import ImgBali from "@/public/images/destinations/bali.jpg";
+
+import OrangeWorldMap from "@/public/image/earth.png";
 
 export default function HeroHome() {
   return (
-    <section className="relative">
-      <PageIllustration />
-      <div className="mx-auto max-w-0xl px-4 sm:px-6">
-        {/* Hero content */}
-        <div className="pb-12 pt-32 md:pb-20 md:pt-40">
-          {/* Section header */}
-          <div className="pb-12 text-center md:pb-16">
+    <section className="relative overflow-hidden">
+      {/* Container for absolutely positioned decorative elements */}
+      <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
+          {/* World Map - Behind left column text */}
+          <Image
+            src={OrangeWorldMap}
+            alt=""
+            width={700} // Adjust size as needed
+            className="absolute left-[10%] top-[60%] opacity-10"
+          />
+          {/* Blue Circle 1 (Large, bg-blue-500) - Moved to Bottom Right */}
+          <div className="absolute bottom-[-15%] right-[-10%] h-96 w-96 rounded-full bg-blue-500 opacity-20 blur-3xl" /> {/* Changed top/right to bottom/right */}
+          {/* Blue Circle 2 (Medium, bg-blue-400) - Moved to Top Left */}
+          <div className="absolute top-[-10%] left-[-5%] h-80 w-80 rounded-full bg-blue-400 opacity-20 blur-3xl" /> {/* Changed bottom/left to top/left */}
+      </div>
 
-            <h1
-              className="mb-6 border-y text-5xl font-bold [border-image:linear-gradient(to_right,transparent,--theme(--color-slate-300/.8),transparent)1] md:text-6xl"
-              data-aos="zoom-y-out"
-              data-aos-delay={150}
-            >
-              Your Smartest    <br className="max-lg:hidden" /> Travel Companion
-              
-            </h1>
-            <div className="mx-auto max-w-3xl">
-              <p
-                className="mb-8 text-lg text-gray-700"
-                data-aos="zoom-y-out"
-                data-aos-delay={300}
-              >
-                No more spreadsheets or chaos. Just smart, smooth travel planning.
-              </p>
-              <div className="relative before:absolute before:inset-0 before:border-y before:[border-image:linear-gradient(to_right,transparent,--theme(--color-slate-300/.8),transparent)1]">
-                <div
-                  className="mx-auto max-w-xs sm:flex sm:max-w-none sm:justify-center"
+      {/* Main content container */}
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="pb-12 pt-20 md:pb-20 md:pt-28">
+          {/* Adjusted flex container for single main column now */} 
+          <div className="flex flex-col items-center gap-8 lg:flex-row lg:gap-8">
+            {/* Left Column (Text Content) - Adjusted width */}
+            <div className="lg:w-1/2">
+              {/* Section header */}
+              <div className="pb-8 text-left md:pb-12">
+                <h1
+                  className="mb-6 border-y text-5xl font-bold [border-image:linear-gradient(to_right,transparent,--theme(--color-slate-300/.8),transparent)1] md:text-6xl"
                   data-aos="zoom-y-out"
-                  data-aos-delay={450}
+                  data-aos-delay={150}
                 >
-                  <a
-                    className="btn group mb-4 w-full bg-linear-to-t from-blue-600 to-blue-500 bg-[length:100%_100%] bg-[bottom] text-white shadow-sm hover:bg-[length:100%_150%] sm:mb-0 sm:w-auto"
-                    href="#0"
+                  Pick Your Dates, <br className="max-lg:hidden" /> We'll Plan the Rest.
+                </h1>
+                <div className="max-w-3xl">
+                  <p
+                    className="mb-8 text-lg text-gray-700"
+                    data-aos="zoom-y-out"
+                    data-aos-delay={300}
                   >
-                    <span className="relative inline-flex items-center">
-                      Start Free Trial{" "}
-                      <span className="ml-1 tracking-normal text-blue-300 transition-transform group-hover:translate-x-0.5">
-                        -&gt;
+                    Smart itineraries with routes, sights, and local events.
+                  </p>
+                  {/* Buttons */}
+                  <div
+                    className="max-w-xs sm:flex sm:max-w-none sm:justify-start"
+                    data-aos="zoom-y-out"
+                    data-aos-delay={450}
+                  >
+                    {/* Start Free Trial Button - Link to /login */}
+                    <a
+                      className="btn group mb-4 w-full bg-linear-to-t from-blue-600 to-blue-500 bg-[length:100%_100%] bg-[bottom] text-white shadow-sm hover:bg-[length:100%_150%] sm:mb-0 sm:w-auto"
+                      href="/fastplan" // Changed href to /login
+                    >
+                      <span className="relative inline-flex items-center">
+                        Plan Your Trip{" "}
+                        <span className="ml-1 tracking-normal text-blue-300 transition-transform group-hover:translate-x-0.5">
+                          -&gt;
+                        </span>
                       </span>
-                    </span>
-                  </a>
-                  <a
-                    className="btn w-full bg-white text-gray-800 shadow-sm hover:bg-gray-50 sm:ml-4 sm:w-auto"
-                    href="#0"
-                  >
-                    Learn More
-                  </a>
+                    </a>
+                    {/* Learn More Button - Changed to Watch Demo */}
+                    <a
+                      className="btn w-full bg-white text-gray-800 shadow-sm hover:bg-gray-50 sm:ml-4 sm:w-auto flex items-center justify-center" // Added flex, items-center, justify-center for icon alignment
+                      href="#" // Changed href to #
+                    >
+                       {/* Added Play Icon SVG */}
+                       <svg className="mr-2 h-4 w-4 shrink-0 fill-current text-gray-600" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                           <path d="M15.679 7.126a.998.998 0 0 0-.023-.113l-.002-.005a1.005 1.005 0 0 0-.144-.27L1.593.324A.999.999 0 0 0 .141.996v14.008a.999.999 0 0 0 1.452.874l13.918-6.409a1 1 0 0 0 .168-.873Z"/>
+                       </svg>
+                       <span>Watch Demo</span> {/* Changed text */}
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          {/* Hero image */}
-          <div
-            className="mx-auto max-w-3xl"
-            data-aos="zoom-y-out"
-            data-aos-delay={600}
-          >
-            
+
+            {/* Restore Right Column (Image Grid) */}
+            <div className="grid w-full grid-cols-3 grid-rows-2 gap-4 lg:w-1/2">
+                 {/* Tokyo: Takes more space top left */}
+                 <div className="col-span-2 row-span-1 overflow-hidden rounded-lg shadow-md">
+                     <Image className="h-full w-full object-cover" src={ImgTokyo} alt="Tokyo" priority />
+                 </div>
+                 {/* Paris: Small top right */}
+                 <div className="col-span-1 row-span-1 overflow-hidden rounded-lg shadow-md">
+                     <Image className="h-full w-full object-cover" src={ImgParis} alt="Paris" />
+                 </div>
+                 {/* Rome: Small bottom left */}
+                 <div className="col-span-1 row-span-1 overflow-hidden rounded-lg shadow-md">
+                     <Image className="h-full w-full object-cover" src={ImgRome} alt="Rome" />
+                 </div>
+                 {/* Bali: Larger bottom right */}
+                 <div className="col-span-2 row-span-1 overflow-hidden rounded-lg shadow-md">
+                     <Image className="h-full w-full object-cover" src={ImgBali} alt="Bali" />
+                 </div>
+             </div>
+
           </div>
         </div>
       </div>

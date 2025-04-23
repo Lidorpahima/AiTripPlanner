@@ -7,6 +7,10 @@ import "aos/dist/aos.css";
 
 import Header from "@/components/ui/header";
 import Footer from "@/components/ui/footer";
+// Remove imports for decorative background elements
+// import Image from "next/image";
+// import YellowX from "@/public/image/yellowx.png";
+// ... remove other decorative image imports
 
 export default function DefaultLayout({
   children,
@@ -27,7 +31,14 @@ export default function DefaultLayout({
     <>
       <Header />
 
-      <main className="grow">{children}</main>
+      {/* Reverted main element, removed relative positioning and decorative container */}
+      <main className="grow">
+
+        {/* Removed Decorative background container div and its contents */}
+
+        {children}
+
+      </main>
 
       <Footer border={true} />
     </>
