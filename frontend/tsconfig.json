@@ -1,5 +1,7 @@
+// tsconfig.json (inside frontend folder)
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "target": "es5",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,

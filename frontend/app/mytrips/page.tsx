@@ -1,5 +1,3 @@
-// app/my-trips/page.tsx
-
 'use client'; 
 
 import { useState, useEffect } from 'react';
@@ -9,13 +7,14 @@ import { toast } from 'react-toastify';
 import Link from 'next/link'; 
 import Image from 'next/image';
 import { useAuth } from '@/app/(auth)/context/AuthContext'; 
+import TripDetailModal from '@/components/TripDetailModal';
 import { Loader, AlertTriangle, List, MapPin, Calendar, Eye, ImageOff } from 'lucide-react'; 
 
 // Configuration
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
 // --- Type Definitions ---
-interface SavedTripData {
+export interface SavedTripData {
     id: number;
     destination: string;
     start_date: string | null;
@@ -34,6 +33,7 @@ export default function MyTripsPage() {
     const [trips, setTrips] = useState<SavedTripData[]>([]); 
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);   
+    const [selectedTrip, setSelectedTrip] = useState<SavedTripData | null>(null);
     const router = useRouter();
     const { isAuthenticated: isUserAuthenticated, logout } = useAuth(); 
 
@@ -161,7 +161,14 @@ export default function MyTripsPage() {
             </div>
         );
     }
+    const handleViewPlanClick = (trip: SavedTripData) => {
+        console.log("Opening modal for trip ID:", trip.id);
+        setSelectedTrip(trip);
+    };
 
+    const handleCloseModal = () => {
+        setSelectedTrip(null);
+    };
     // --- Display Trips List ---
     return (
         // Container for the main content when trips exist
@@ -240,9 +247,7 @@ export default function MyTripsPage() {
                              {/* View Plan Button (Functionality TBD) */}
                             <button
                                 onClick={() => {
-                                    console.log("View plan for trip ID:", trip.id, trip.plan_json);
-                                    // Placeholder for future action (e.g., open modal, navigate)
-                                    toast.info("Viewing full plan is not implemented yet.");
+                                    handleViewPlanClick(trip)
                                 }}
                                 className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center"
                             >
@@ -258,8 +263,13 @@ export default function MyTripsPage() {
 
             </div> 
             {/* End Grid layout */}
-
-        </div> 
+            {selectedTrip && (
+                <TripDetailModal
+                    trip={selectedTrip}
+                    onClose={handleCloseModal}
+                />
+            )}
+        </div>
         // End Main content container
     );
 }

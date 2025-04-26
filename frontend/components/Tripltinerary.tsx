@@ -9,8 +9,7 @@ import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
-const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY; // חשוב לשמור את המפתח כאן רק אם אין דרך אחרת והוא מיועד לשימוש בצד לקוח בלבד (כמו הצגת מפה סטטית). עדיף שה-Backend יטפל ביצירת URL-ים לתמונות.
-
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY; 
 // --- Types ---
 type Review = {
   author_name: string;
@@ -286,7 +285,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
     const handleClosePopup = useCallback(() => {
         setActivePopupKey(null);
         setActivePopupQuery("");
-    }, [setActivePopupKey, setActivePopupQuery]); // הוספנו תלויות אם משתמשים ב-ESLint hook rules
+    }, [setActivePopupKey, setActivePopupQuery]); 
 
     const fetchPlaceDetails = useCallback(async (key: string, placeQuery: string) => {
       if (placeDetails[key] && placeDetails[key] !== 'error') {
@@ -498,7 +497,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
                                         className={`flex flex-col group rounded-lg p-3 transition duration-200 ease-in-out border border-gray-200 relative ${
                                             canFetchDetails
                                                 ? 'cursor-pointer bg-gray-50 hover:bg-indigo-50 hover:border-indigo-200' // סגנון לחיץ
-                                                : 'bg-gray-100 opacity-80' // סגנון לא לחיץ
+                                                : 'bg-gray-100 opacity-80' 
                                         }`}
                                         onClick={canFetchDetails ? () => handleActivityClick(dayIndex, activityIndex, activity.place_name_for_lookup) : undefined}
                                         title={canFetchDetails ? "Click for details" : "No specific location details available"}

@@ -1,8 +1,5 @@
 import Image from "next/image";
-// Removed Avatar imports as they are not used in the new structure
-// import Avatar01 from "@/public/images/avatar-01.jpg";
-// ... (keep other imports if needed later, like next/image)
-// Import the destination images
+
 import ImgTokyo from "@/public/images/destinations/tokyo.jpg";
 import ImgRome from "@/public/images/destinations/rome.jpg";
 import ImgParis from "@/public/images/destinations/paris.jpg";

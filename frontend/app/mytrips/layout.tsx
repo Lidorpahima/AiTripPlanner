@@ -12,7 +12,7 @@ export default function MyTripsLayout({
   return (
     <div className="flex min-h-screen flex-col bg-gray-100"> 
       <Header />
-      <main className="flex-grow relative z-10 py-8 md:py-12"> 
+      <main className="flex-grow relative z-10 py-19 md:py-25"> 
         {children} 
       </main>
       <Footer showBigText={false} /> 
