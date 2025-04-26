@@ -261,7 +261,7 @@ def plan_trip_view(request):
                     return Response({"error": "The planning assistant returned data in an unexpected structure."}, status=500)
 
                 try:
-                    # השתמש ב-key שהוגדר למעלה
+                    # Use the key defined above
                     redis_client.setex(key, 3600 * 24 * 3, json.dumps(parsed_result))
                     print("💾 Successfully cached itinerary in Redis!")
                 except Exception as e:
@@ -385,3 +385,48 @@ def get_pixabay_image_urls(query: str, count: int = 5) -> list[str]:
     except Exception as e:
         print(f"❌ Unexpected error in get_pixabay_image_urls: {e}")
         return [] 
+
+#--────────────────────────────── Chat Replace Activity ──────────────────────────────── #
+from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+
+@api_view(['POST'])
+def chat_replace_activity(request):
+
+    try:
+        message = request.data.get('message')
+        day_index = request.data.get('dayIndex')
+        activity_index = request.data.get('activityIndex')
+        plan = request.data.get('plan')
+
+        if not message or day_index is None or activity_index is None or not plan:
+            return Response({"error": "Missing required fields."}, status=400)
+
+        prompt = (
+            f"You are an expert travel assistant. The user wants to replace an activity in their trip plan.\n"
+            f"User message: {message}\n"
+            f"Current day index: {day_index}, activity index: {activity_index}\n"
+            f"Here is the current plan (JSON):\n{json.dumps(plan)}\n"
+            f"Suggest a single new activity (in JSON) that fits the user's request and the schedule context. "
+            f"Return ONLY a JSON object with keys: time, description, place_name_for_lookup."
+        )
+
+        from .chat_request import ask_gemini, extract_json_from_response
+        model_name = 'gemini-2.5-pro-exp-03-25'
+        raw_response = ask_gemini(prompt, model_name)
+        if not raw_response:
+            return Response({"error": "No response from AI."}, status=500)
+
+        cleaned_json = extract_json_from_response(raw_response)
+        try:
+            activity = json.loads(cleaned_json)
+            if not all(k in activity for k in ("time", "description", "place_name_for_lookup")):
+                return Response({"error": "AI response missing required fields."}, status=500)
+            return Response({"activity": activity}, status=200)
+        except Exception as e:
+            return Response({"error": "Failed to parse AI response.", "details": str(e)}, status=500)
+
+    except Exception as e:
+        return Response({"error": "Internal server error.", "details": str(e)}, status=500)

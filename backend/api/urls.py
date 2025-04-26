@@ -9,7 +9,8 @@ from .views import (
     plan_trip_view, 
     SaveTripView, 
     MyTripsListView,
-    get_csrf_token 
+    get_csrf_token,
+    chat_replace_activity
 )
 urlpatterns = [
     path('csrf/', get_csrf_token, name='csrf'),
@@ -22,4 +23,5 @@ urlpatterns = [
     path('profile/update/', ProfileUpdateView.as_view(), name='profile-update'), 
     path('trips/save/', SaveTripView.as_view(), name='save_trip'),  
     path('my-trips/', MyTripsListView.as_view(), name='my_trips'),
+    path('chat-replace-activity/', chat_replace_activity, name='chat_replace_activity')
 ]

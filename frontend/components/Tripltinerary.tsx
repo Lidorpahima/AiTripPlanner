@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { toast } from 'react-toastify';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
-import { ChevronLeft, ChevronRight, MapPin, Star, Phone, Globe, Clock, MessageSquare, Image as ImageIcon, X, Info } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Star, Phone, Globe, Clock, MessageSquare, Image as ImageIcon, X, Info, Share2, Copy, Mail, MessageCircle } from "lucide-react";
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 
@@ -32,7 +32,7 @@ type PlaceDetailsData = {
   price_level?: number | null; 
   location: { lat: number; lng: number } | null; 
   photos: string[]; 
-  opening_hours: string[];
+  opening_hours: string[]; 
   reviews: Review[];
 };
 
@@ -143,14 +143,14 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
                 <div className="relative mb-4 rounded-lg overflow-hidden">
                     <Image
                     key={currentPhotoUrl}
-                    src={currentPhotoUrl || '/placeholder-image.png'}
+                    src={currentPhotoUrl || '/images/loading.gif'}
                     alt={`${name} photo ${currentPhotoIndex + 1}`}
                     width={500}
                     height={300}
                     className="w-full h-48 object-cover"
                     onError={(e) => {
                         console.error("Image failed to load:", currentPhotoUrl);
-                        e.currentTarget.src = '/placeholder-image.png';
+                        e.currentTarget.src = '/images/loading.gif';
                     }}
                     unoptimized={process.env.NODE_ENV === 'development'}
                     />
@@ -271,15 +271,178 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
     );
 };
 
+// Function to format the itinerary text
+function formatPlanText(plan: TripPlan): string {
+    let text = `🗓️ Trip Plan\n`;
+    text += plan.summary + "\n\n";
+    plan.days.forEach((day, i) => {
+        text += `Day ${i + 1}: ${day.title}\n`;
+        day.activities.forEach((act, j) => {
+            text += `  - ${act.time ? act.time + ' | ' : ''}${act.description}\n`;
+        });
+        text += "\n";
+    });
+    return text.trim();
+}
+
+// --- ChatBubble Component ---
+const ChatBubble: React.FC<{
+    isOpen: boolean;
+    anchorRef: React.RefObject<HTMLButtonElement>;
+    onClose: () => void;
+    onSubmit: (message: string) => void;
+    loading: boolean;
+}> = ({ isOpen, anchorRef, onClose, onSubmit, loading }) => {
+    const [message, setMessage] = useState("");
+    const bubbleRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (bubbleRef.current && !bubbleRef.current.contains(event.target as Node)) {
+                onClose();
+            }
+        }
+        if (isOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isOpen, onClose]);
+
+    if (!isOpen || !anchorRef.current) return null;
+    const rect = anchorRef.current.getBoundingClientRect();
+    const style: React.CSSProperties = {
+        position: "absolute",
+        top: rect.bottom + window.scrollY + 8,
+        left: rect.left + window.scrollX,
+        zIndex: 1000,
+        minWidth: 260,
+        maxWidth: 320,
+    };
+    return (
+        <div ref={bubbleRef} style={style} className="bg-white border shadow-lg rounded-xl p-4">
+            <textarea
+                className="w-full border rounded p-2 mb-2"
+                rows={3}
+                placeholder="What would you like to do instead?"
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                disabled={loading}
+                autoFocus
+            />
+            <div className="flex justify-end space-x-2">
+                <button onClick={onClose} className="text-gray-600 hover:text-black text-sm">Cancel</button>
+                <button
+                    onClick={() => { if (message.trim()) onSubmit(message); }}
+                    className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
+                    disabled={loading || !message.trim()}
+                >
+                    {loading ? 'Sending...' : 'Send'}
+                </button>
+            </div>
+        </div>
+    );
+};
+
+// --- ShareButton Component ---
+const ShareButton: React.FC<{ plan: TripPlan }> = ({ plan }) => {
+    const [open, setOpen] = useState(false);
+    const shareText = formatPlanText(plan);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    // Close menu on click outside
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setOpen(false);
+            }
+        }
+        if (open) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [open]);
+
+    const handleCopy = () => {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(shareText);
+            toast.success("Itinerary copied!");
+        }
+        setOpen(false);
+    };
+    const handleWhatsapp = () => {
+        window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`);
+        setOpen(false);
+    };
+    const handleEmail = () => {
+        window.open(`mailto:?subject=My Trip Itinerary&body=${encodeURIComponent(shareText)}`);
+        setOpen(false);
+    };
+    return (
+        <div className="relative inline-block text-left ml-2">
+            <button
+                className="p-2 rounded-full bg-blue-100 hover:bg-blue-200 border border-blue-300 shadow-md transition focus:outline-none focus:ring-2 focus:ring-blue-400"
+                onClick={() => setOpen((v) => !v)}
+                title="Share"
+                aria-label="Share itinerary"
+            >
+                <Share2 size={22} className="text-blue-600" />
+            </button>
+            {open && (
+                <div
+                    ref={menuRef}
+                    className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 animate-fade-in"
+                >
+                    <div className="px-4 py-3 border-b border-gray-100 font-semibold text-gray-700 text-sm flex items-center gap-2">
+                        <Share2 size={16} className="text-blue-500" /> Share this itinerary
+                    </div>
+                    <button
+                        onClick={handleCopy}
+                        className="flex items-center w-full px-4 py-3 hover:bg-gray-50 text-sm transition group"
+                    >
+                        <Copy size={18} className="mr-3 text-gray-500 group-hover:text-blue-600" />
+                        <span>Copy Itinerary</span>
+                    </button>
+                    <div className="border-t border-gray-100 mx-3" />
+                    <button
+                        onClick={handleWhatsapp}
+                        className="flex items-center w-full px-4 py-3 hover:bg-green-50 text-sm transition group"
+                    >
+                        <MessageCircle size={18} className="mr-3 text-green-500 group-hover:text-green-700" />
+                        <span className="text-green-700 group-hover:underline">Share on WhatsApp</span>
+                    </button>
+                    <div className="border-t border-gray-100 mx-3" />
+                    <button
+                        onClick={handleEmail}
+                        className="flex items-center w-full px-4 py-3 hover:bg-blue-50 text-sm transition group"
+                    >
+                        <Mail size={18} className="mr-3 text-blue-500 group-hover:text-blue-700" />
+                        <span className="text-blue-700 group-hover:underline">Send by Email</span>
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+};
+
 // --- Component: TripItinerary ---
 const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData, onPlanNewTrip }) => {
     const router = useRouter(); 
+    const [localPlan, setLocalPlan] = useState<TripPlan>(plan);
     const [placeDetails, setPlaceDetails] = useState<Record<string, PlaceDetailsData | 'loading' | 'error'>>({});
     const [activePopupKey, setActivePopupKey] = useState<string | null>(null);
     const [activePopupQuery, setActivePopupQuery] = useState<string>("");
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [saveError, setSaveError] = useState<string | null>(null);
     const [isSaved, setIsSaved] = useState<boolean>(false);
+    const [chatOpen, setChatOpen] = useState(false);
+    const [chatLoading, setChatLoading] = useState(false);
+    const [chatDayIdx, setChatDayIdx] = useState<number|null>(null);
+    const [chatActIdx, setChatActIdx] = useState<number|null>(null);
+    const [chatAnchor, setChatAnchor] = useState<React.RefObject<HTMLButtonElement> | null>(null);
 
     // --- Fetching Logic (triggered by click) ---
     const handleClosePopup = useCallback(() => {
@@ -382,6 +545,48 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
         fetchPlaceDetails(key, placeNameLookup);
 
     }, [fetchPlaceDetails, setActivePopupQuery]); 
+
+    // --- Chat Submit Handler ---
+    const handleChatSubmit = async (message: string) => {
+        if (chatDayIdx === null || chatActIdx === null) return;
+        setChatLoading(true);
+        try {
+            const response = await fetch(`${API_BASE}/api/chat-replace-activity/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message,
+                    dayIndex: chatDayIdx,
+                    activityIndex: chatActIdx,
+                    plan: localPlan
+                })
+            });
+            if (!response.ok) throw new Error('Server error');
+            const data = await response.json();
+            if (!data || !data.activity) throw new Error('No new activity received');
+            setLocalPlan(prevPlan => {
+                const updatedPlan = { ...prevPlan };
+                updatedPlan.days = [...prevPlan.days];
+                updatedPlan.days[chatDayIdx] = { ...prevPlan.days[chatDayIdx] };
+                updatedPlan.days[chatDayIdx].activities = [...prevPlan.days[chatDayIdx].activities];
+                updatedPlan.days[chatDayIdx].activities[chatActIdx] = data.activity;
+                return updatedPlan;
+            });
+            const key = `${chatDayIdx}-${chatActIdx}`;
+            setPlaceDetails(prev => {
+                const newDetails = { ...prev };
+                delete newDetails[key];
+                return newDetails;
+            });
+            toast.success('Activity replaced successfully!');
+        } catch (e: any) {
+            toast.error(e.message || 'An error occurred');
+        } finally {
+            setChatLoading(false);
+            setChatOpen(false);
+        }
+    };
+
     const handleSaveTrip = async () => {
         const token = Cookies.get('access');
         const csrfToken = Cookies.get('csrftoken'); 
@@ -413,7 +618,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
             destination: originalRequestData.destination,
             start_date: formatDate(originalRequestData.startDate),
             end_date: formatDate(originalRequestData.endDate),
-            plan_json: plan // The entire generated plan object
+            plan_json: localPlan // The entire generated plan object
         };
         console.log("Saving trip with payload:", payload);
         console.log("CSRF Token:", csrfToken);
@@ -464,9 +669,12 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
     return (
         <div className="max-w-screen-2xl mx-auto px-4 pb-20">
             {/* Header */}
-            <h1 className="text-4xl font-bold text-center mt-8 sm:mt-12 md:mt-16 mb-2">🗓️ Trip Plan</h1>
+            <div className="flex justify-center items-center mt-12 sm:mt-20 md:mt-25 mb-2">
+                <h1 className="text-4xl font-bold text-center">🗓️ Trip Plan</h1>
+                <ShareButton plan={localPlan} />
+            </div>
             <p className="text-lg sm:text-xl text-center text-gray-700 mt-0 mb-8 sm:mb-12 max-w-4xl mx-auto px-2">
-                {plan.summary}
+                {localPlan.summary}
             </p>
 
             {/* Itinerary Grid */}
@@ -474,7 +682,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
                 className="grid gap-6"
                 style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }} // Slightly wider minimum
             >
-                {plan.days.map((day, dayIndex) => (
+                {localPlan.days.map((day, dayIndex) => (
                     <div
                         key={dayIndex}
                         className="bg-white rounded-xl shadow-lg px-5 py-4 transition-shadow hover:shadow-xl duration-300 border border-gray-200 flex flex-col"
@@ -490,6 +698,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
                                 const key = `${dayIndex}-${activityIndex}`;
                                 const currentDetailState = placeDetails[key];
                                 const canFetchDetails = !!activity.place_name_for_lookup;
+                                const replaceBtnRef = useRef<HTMLButtonElement>(null);
 
                                 return (
                                     <li
@@ -509,6 +718,21 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
                                                 {currentDetailState === 'loading' && <span className="text-xs text-blue-500">Loading...</span>}
                                                 {currentDetailState === 'error' && <span className="text-xs text-red-500">Details unavailable</span>}
                                                 {!canFetchDetails && <Info size={12} className="text-gray-400" />}
+                                                {/* Replace Activity Button */}
+                                                <button
+                                                    type="button"
+                                                    ref={replaceBtnRef}
+                                                    className="ml-2 text-blue-500 hover:text-blue-700 text-xs border border-blue-200 rounded px-2 py-0.5"
+                                                    onClick={e => {
+                                                        e.stopPropagation();
+                                                        setChatDayIdx(dayIndex);
+                                                        setChatActIdx(activityIndex);
+                                                        setChatAnchor(replaceBtnRef);
+                                                        setChatOpen(true);
+                                                    }}
+                                                >
+                                                    Replace Activity
+                                                </button>
                                             </div>
                                         </div>
                                         <span className={`text-gray-800 text-sm leading-normal ${!canFetchDetails ? 'text-gray-600' : ''}`}>
@@ -565,6 +789,15 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
                 />
             )}
 
+            {chatAnchor && (
+                <ChatBubble
+                    isOpen={chatOpen}
+                    anchorRef={chatAnchor}
+                    onClose={() => setChatOpen(false)}
+                    onSubmit={handleChatSubmit}
+                    loading={chatLoading}
+                />
+            )}
         </div>
     );
 };
