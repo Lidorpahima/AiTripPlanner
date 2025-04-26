@@ -1,4 +1,5 @@
 📄 .gitignore
+📄 Procfile
 📄 README.md
 📄 Screenshot 2025-04-11 161510.png
 📁 backend
@@ -9,6 +10,10 @@
     📄 google_places_service.py
     📁 migrations
       📄 0001_initial.py
+      📄 0002_visitedcountry.py
+      📄 0003_savedtrip.py
+      📄 0004_savedtrip_title.py
+      📄 0005_savedtrip_destination_image_urls.py
       📄 __init__.py
     📄 models.py
     📄 serializers.py
@@ -27,15 +32,16 @@
   📄 requirements.txt
 📄 docker-compose.yml
 📁 frontend
+  📄 .dockerignore
   📄 .env.local
   📄 .gitignore
+  📄 .npmrc
   📁 .vscode
     📄 settings.json
   📄 Dockerfile
   📁 app
     📁 (auth)
       📁 about
-        📄 page.tsx
       📁 context
         📄 AuthContext.tsx
       📄 layout.tsx
@@ -46,8 +52,18 @@
       📁 signup
         📄 page.tsx
     📁 (default)
+      📁 about
+        📄 page.tsx
+      📁 blog
+        📁 [slug]
+          📄 page.tsx
+        📄 page.tsx
       📄 layout.tsx
       📄 page.tsx
+      📁 privacy
+        📄 page.tsx
+      📁 terms
+        📄 page.tsx
     📁 css
       📁 additional-styles
         📄 custom-fonts.css
@@ -59,11 +75,20 @@
       📄 page.tsx
       📁 result
         📄 page.tsx
+    📄 globals.css
     📄 layout.tsx
+    📁 mytrips
+      📄 layout.tsx
+      📄 page.tsx
+    📁 profile
+      📄 layout.tsx
+      📄 page.tsx
   📁 assets
     📄 globe-animation.json
   📁 components
     📄 AnimatedWave.tsx
+    📄 MapChart.tsx
+    📄 TripDetailModal.tsx
     📄 Tripltinerary.tsx
     📄 accordion.tsx
     📄 banner.tsx
@@ -77,6 +102,8 @@
       📄 footer.tsx
       📄 header.tsx
       📄 logo.tsx
+  📁 constants
+    📄 landing.ts
   📄 middleware.ts
   📄 next-env.d.ts
   📄 next.config.js
@@ -85,9 +112,44 @@
   📄 pnpm-lock.yaml
   📄 postcss.config.js
   📁 public
+    📁 data
+      📄 world-110m.json
     📄 favicon.ico
+    📁 image
+      📄 booking.png
+      📄 cloudy.png
+      📄 destination.png
+      📄 discount.png
+      📄 earth.png
+      📄 fb.png
+      📄 feature-object.png
+      📄 feature1.png
+      📄 feature2.png
+      📄 footer-object.png
+      📄 frame.png
+      📄 icon-feature.png
+      📄 icon-feature2.png
+      📄 icon-feature3.png
+      📄 icon-map.png
+      📄 icon-people.png
+      📄 icon-place.png
+      📄 icon1.png
+      📄 instagram.png
+      📄 location.png
+      📄 mountain.jpg
+      📄 newsletter-vector.png
+      📄 ocean.jpg
+      📄 orange-triangle.png
+      📄 play-circle.png
+      📄 star-yellow.png
+      📄 star.png
+      📄 travel-point-section.png
+      📄 travelpoin-object.png
+      📄 twitter.png
+      📄 yellowx.png
     📁 images
       📄 auth-bg.svg
+      📄 default-avatar.png
       📁 destinations
         📄 bali.jpg
         📄 paris.jpg
@@ -96,6 +158,7 @@
       📄 globe-traveler.svg
       📄 globe-traveler1.svg
       📄 large-testimonial.jpg
+      📄 loading.gif
       📄 logo-01.svg
       📄 logo-02.svg
       📄 logo-03.svg
@@ -109,9 +172,64 @@
       📄 planet.png
       📄 stripes-dark.svg
       📄 stripes.svg
+    📄 index.html
+    📁 landing
+      📄 beach.jpg
+      📄 beach2.jpg
+      📄 bg-testimonial.png
+      📄 boat.jpg
+      📄 booking.png
+      📄 cloudy.png
+      📄 destination.png
+      📄 discount.png
+      📄 earth.png
+      📄 fb.png
+      📄 feature-object.png
+      📄 feature1.png
+      📄 feature2.png
+      📄 fish.jpg
+      📄 footer-object.png
+      📄 frame.png
+      📄 fullpage.png
+      📄 header-travlog.png
+      📄 icon-feature.png
+      📄 icon-feature2.png
+      📄 icon-feature3.png
+      📄 icon-map.png
+      📄 icon-people.png
+      📄 icon-place.png
+      📄 icon1.png
+      📄 instagram.png
+      📄 location.png
+      📄 mountain.jpg
+      📄 newsletter-vector.png
+      📄 next.svg
+      📄 ocean.jpg
+      📄 orange-triangle.png
+      📄 person.png
+      📄 play-circle.png
+      📄 profile1.jpg
+      📄 profile2.jpg
+      📄 profile3.jpg
+      📄 snorkeling.jpg
+      📄 sponsor1.png
+      📄 sponsor2.png
+      📄 sponsor3.png
+      📄 sponsor4.png
+      📄 sponsor5.png
+      📄 star-yellow.png
+      📄 star.png
+      📄 travel-point-section.png
+      📄 travelpoin-object.png
+      📄 travlog_logo.svg
+      📄 twitter.png
+      📄 vercel.svg
+      📄 yellowx.png
+  📄 tailwind.config.js
   📄 tsconfig.json
 📄 list_structure.py
 📄 logo.svg
 📄 package-lock.json
 📄 package.json
 📄 project_structure.txt
+📄 trip_output.json
