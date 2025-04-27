@@ -3,7 +3,7 @@
     "command": "npm install && npm run build"
   },
   "deploy": {
-    "startCommand": "npm run start",
+    "startCommand": "node .next/standalone/server.js",
     "preDeployCommand": "npm install && npm run build"
   }
 }
