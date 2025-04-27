@@ -8,7 +8,7 @@ import { ChevronLeft, ChevronRight, MapPin, Star, Phone, Globe, Clock, MessageSq
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY; 
 // --- Types ---
 type Review = {
