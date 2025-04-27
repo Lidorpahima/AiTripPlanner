@@ -127,11 +127,13 @@ export function generateStaticParams() {
   return posts.map((post) => ({ slug: post.slug }));
 }
 
-export default function PostPage({ params }: { params: { slug: string } }) {
+export default async function PostPage({ params }: { params: { slug: string } }) {
   const post = posts.find((p) => p.slug === params.slug);
+  
   if (!post) {
     notFound();
   }
+
   return (
     <section className="relative bg-white py-8">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -156,4 +158,4 @@ export default function PostPage({ params }: { params: { slug: string } }) {
       </div>
     </section>
   );
-} 
+}
