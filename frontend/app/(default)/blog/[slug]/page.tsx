@@ -127,13 +127,13 @@ export async function generateStaticParams() {
   return posts.map((post) => ({ slug: post.slug }));
 }
 
-interface PageProps {
+interface PostPageProps  {
   params: {
     slug: string;
   };
 }
 
-export default async function PostPage({ params }: PageProps) {
+export default async function PostPage({ params }: PostPageProps ) {
   const post = posts.find((p) => p.slug === params.slug);
 
   if (!post) {
