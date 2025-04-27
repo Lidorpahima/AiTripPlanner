@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -9,11 +9,16 @@ COPY . .
 
 RUN npm run build
 
-WORKDIR /app/.next/standalone
+# Second stage: runtime
+FROM node:20-alpine AS runtime
 
-COPY --from=0 /app/public /app/.next/standalone/public
-COPY --from=0 /app/.next/static /app/.next/standalone/.next/static
+WORKDIR /app
 
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/static ./.next/static
+
+# Expose both ports
 EXPOSE 3000 8080
 
 CMD ["node", "server.js"]
