@@ -123,7 +123,7 @@ const posts = [
 ];
 
 // Generate static pages for each slug
-export function generateStaticParams() {
+export async function generateStaticParams() {
   return posts.map((post) => ({ slug: post.slug }));
 }
 
