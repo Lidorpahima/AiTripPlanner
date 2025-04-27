@@ -1,9 +1,9 @@
 {
-    "build": {
-      "command": "npm install && npm run build"
-    },
-    "deploy": {
-      "startCommand": "npm run start"
-    }
+  "build": {
+    "command": "npm install && npm run build"
+  },
+  "deploy": {
+    "startCommand": "npm run start",
+    "preDeployCommand": "npm install && npm run build"
   }
-  
+}
