@@ -15,7 +15,6 @@ import os
 from dotenv import load_dotenv
 import dj_database_url
 
-load_dotenv() 
 
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 MODEL = os.getenv("MODEL")
