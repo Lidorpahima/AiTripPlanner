@@ -5,6 +5,8 @@ import { toast } from 'react-toastify'
 import Cookies from 'js-cookie'
 import { useAuth } from '@/app/(auth)/context/AuthContext' 
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 const extractErrorMessages = (data: any): string => {
   if (!data) return 'An unexpected error occurred. Please try again.';
   if (typeof data === 'string') return data; // Simple string error
@@ -62,14 +64,14 @@ export default function SignUp() {
       }
 
       try {
-        const res = await fetch('http://localhost:8000/api/register/', { 
+        const res = await fetch(`${API_BASE}/api/register/`, { 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         })
 
 
-        let data: any = {}; e
+        let data: any = {};  // תיקון שגיאת התחביר - הסרת האות 'e'
 
         try {
             data = await res.json();
