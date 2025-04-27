@@ -15,9 +15,9 @@ app.prepare().then(() => {
     const parsedUrl = parse(req.url, true);
     handle(req, res, parsedUrl);
   })
-  .listen(port, (err) => {
+  .listen(port, '0.0.0.0', (err) => {
     if (err) throw err;
-    console.log(`> Ready on http://localhost:${port}`);
+    console.log(`> Ready on http://0.0.0.0:${port}`);
     console.log(`> Environment: ${process.env.NODE_ENV}`);
     console.log(`> Using PORT: ${port}`);
   });
