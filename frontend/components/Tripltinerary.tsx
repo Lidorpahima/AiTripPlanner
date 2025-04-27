@@ -288,11 +288,11 @@ function formatPlanText(plan: TripPlan): string {
 // --- ChatBubble Component ---
 const ChatBubble: React.FC<{
     isOpen: boolean;
-    anchorRef: React.RefObject<HTMLButtonElement>;
+    anchorRef: React.RefObject<HTMLButtonElement | null>;
     onClose: () => void;
     onSubmit: (message: string) => void;
     loading: boolean;
-}> = ({ isOpen, anchorRef, onClose, onSubmit, loading }) => {
+  }> = ({ isOpen, anchorRef, onClose, onSubmit, loading }) => {
     const [message, setMessage] = useState("");
     const bubbleRef = useRef<HTMLDivElement>(null);
 
@@ -442,7 +442,8 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
     const [chatLoading, setChatLoading] = useState(false);
     const [chatDayIdx, setChatDayIdx] = useState<number|null>(null);
     const [chatActIdx, setChatActIdx] = useState<number|null>(null);
-    const [chatAnchor, setChatAnchor] = useState<React.RefObject<HTMLButtonElement> | null>(null);
+    const [chatAnchor, setChatAnchor] = useState<React.RefObject<HTMLButtonElement | null> | null>(null);
+
 
     // --- Fetching Logic (triggered by click) ---
     const handleClosePopup = useCallback(() => {
