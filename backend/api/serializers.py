@@ -118,11 +118,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
     
 class PlanTripSerializer(serializers.Serializer):
     destination = serializers.CharField()
-    startDate = serializers.DateField()
-    endDate = serializers.DateField()
-    tripStyle = serializers.ListField(child=serializers.CharField())
-    interests = serializers.ListField(child=serializers.CharField())
-    pace = serializers.CharField()
+    startDate = serializers.DateField(required=False, allow_null=True)
+    endDate = serializers.DateField(required=False, allow_null=True)
+    tripStyle = serializers.ListField(child=serializers.CharField(), required=False, default=list)
+    interests = serializers.ListField(child=serializers.CharField(), required=False, default=list)
+    pace = serializers.CharField(required=False, default="moderate")
+    budget = serializers.CharField(required=False, default="Mid-range")
+    accommodation = serializers.CharField(required=False, allow_blank=True, default="")
+    localExperiences = serializers.ListField(child=serializers.CharField(), required=False, default=list)
+    travelWith = serializers.ListField(child=serializers.CharField(), required=False, default=list)
 
 class SavedTripSerializer(serializers.ModelSerializer):
     user_email = serializers.EmailField(source='user.username', read_only=True)

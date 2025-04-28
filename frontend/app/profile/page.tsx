@@ -1,15 +1,27 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import MapChart from '@/components/MapChart';
+import dynamic from 'next/dynamic';
 import Cookies from 'js-cookie';
-import { toast,ToastContainer  } from 'react-toastify'; 
+import { toast } from 'react-toastify'; 
 import { useRouter } from 'next/navigation';
 import { useAuth } from "@/app/(auth)/context/AuthContext";
 
+const MapChart = dynamic(() => import('@/components/MapChart'), {
+  loading: () => (
+    <div className="w-full h-[400px] bg-gray-100 animate-pulse flex items-center justify-center">
+      <p className="text-gray-500">Loading Map...</p>
+    </div>
+  ),
+  ssr: false 
+});
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+
+const CACHE_KEY = 'profile_data_cache';
+const CACHE_EXPIRY = 5 * 60 * 1000; 
 
 export default function ProfilePage() {
     const [profileData, setProfileData] = useState<{
@@ -23,10 +35,32 @@ export default function ProfilePage() {
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const { logout } = useAuth();
+
     useEffect(() => {
       const fetchProfileData = async () => {
         setIsLoading(true);
         setError(null);
+        
+        const cachedData = sessionStorage.getItem(CACHE_KEY);
+        if (cachedData) {
+          try {
+            const { data, timestamp } = JSON.parse(cachedData);
+            const now = new Date().getTime();
+            
+            if (now - timestamp < CACHE_EXPIRY) {
+              console.log("Using cached profile data");
+              setProfileData({
+                name: data.name || '',
+                email: data.email || '',
+                visitedCountries: data.visitedCountries || [],
+              });
+              setIsLoading(false);
+              return;
+            }
+          } catch (e) {
+            console.error("Error parsing cached data:", e);
+          }
+        }
 
         let token = Cookies.get('access');
 
@@ -106,16 +140,23 @@ export default function ProfilePage() {
 
         try {
           const data = await tryFetch(token); 
-          setProfileData({
+          const profileData = {
             name: data.full_name || '',
             email: data.username_email || '',
             visitedCountries: data.visited_countries || [],
-          });
+          };
+          
+          setProfileData(profileData);
+          
+          // שמירה במטמון
+          sessionStorage.setItem(CACHE_KEY, JSON.stringify({
+            data: profileData,
+            timestamp: new Date().getTime()
+          }));
+          
           console.log("Profile data fetched successfully:", data);
         } catch (err: any) {
-
           console.error("Failed to fetch profile data after potentially trying refresh:", err);
-
           setError(err.message || "Failed to load profile data.");
         } finally {
           setIsLoading(false);
@@ -123,7 +164,7 @@ export default function ProfilePage() {
       };
 
       fetchProfileData();
-    }, []); 
+    }, [router, logout]); 
 
     const handleCountrySelect = (countryName: string) => {
         setProfileData(prevData => ({
@@ -199,20 +240,8 @@ export default function ProfilePage() {
         );
     }
 
-
     return (
         <div className="max-w-4xl mx-auto p-6 pt-25">
-          <ToastContainer
-            position="bottom-center"
-            autoClose={2000} 
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="light" 
-          />
             <div className="bg-white rounded-lg shadow-md p-8">
                 {/* HEADLINE */}
                 <div className="flex items-center mb-8">
@@ -220,10 +249,14 @@ export default function ProfilePage() {
                         <Image
                            src="/images/default-avatar.png" 
                            alt="Profile"
-                           fill
+                           width={80}
+                           height={80}
                            className="rounded-full object-cover"
+                           priority={false}
+                           loading="lazy"
+                           placeholder="blur"
+                           blurDataURL="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Ccircle cx='40' cy='40' r='40' fill='%23f3f4f6'/%3E%3C/svg%3E"
                            onError={(e) => {
-
                              e.currentTarget.onerror = null; 
                              e.currentTarget.src = '/images/placeholder-avatar.png'; 
                            }}
@@ -273,10 +306,16 @@ export default function ProfilePage() {
                     <div>
                         <h2 className="text-xl font-semibold mb-4">Countries I've Visited</h2>
                         <div className="border rounded-lg p-4 relative">
-                            <MapChart
-                                visitedCountries={profileData.visitedCountries}
-                                onCountrySelect={handleCountrySelect}
-                            />
+                            <Suspense fallback={
+                              <div className="w-full h-[400px] bg-gray-100 flex items-center justify-center">
+                                <p className="text-gray-500">Loading map ...</p>
+                              </div>
+                            }>
+                              <MapChart
+                                  visitedCountries={profileData.visitedCountries}
+                                  onCountrySelect={handleCountrySelect}
+                              />
+                            </Suspense>
                             <div className="mt-4">
                                 <p className="text-gray-700 mb-2">Number of countries visited: {profileData.visitedCountries.length}</p>
                                 <div className="flex flex-wrap gap-2">

@@ -107,14 +107,14 @@ export default function Footer({ border = true, showBigText = true }: FooterProp
 
       {/* Big text */}
       {showBigText&&
-      <div className="relative -mt-16 h-60 w-full" aria-hidden="true">
-        <div className="pointer-events-none absolute left-1/2 -z-10 -translate-x-1/2 text-center text-[348px] font-bold leading-none before:bg-linear-to-b before:from-gray-200 before:to-gray-100/30 before:to-80% before:bg-clip-text before:text-transparent before:content-['AiTrip'] after:absolute after:inset-0 after:bg-gray-300/70 after:bg-clip-text after:text-transparent after:mix-blend-darken after:content-['AiTrip'] after:[text-shadow:0_1px_0_white]"></div>
+      <div className="relative -mt-10 h-32 sm:h-40 md:h-60 w-full" aria-hidden="true">
+        <div className="pointer-events-none absolute left-1/2 -z-10 -translate-x-1/2 text-center font-bold leading-none text-[80px] sm:text-[150px] md:text-[250px] lg:text-[348px] before:bg-linear-to-b before:from-gray-200 before:to-gray-100/30 before:to-80% before:bg-clip-text before:text-transparent before:content-['AiTrip'] after:absolute after:inset-0 after:bg-gray-300/70 after:bg-clip-text after:text-transparent after:mix-blend-darken after:content-['AiTrip'] after:[text-shadow:0_1px_0_white]"></div>
         {/* Glow */}
         <div
-          className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-2/3"
+          className="absolute bottom-4 sm:bottom-0 left-1/2 -translate-x-1/2"
           aria-hidden="true"
         >
-          <div className="h-56 w-56 rounded-full border-[20px] border-blue-700 blur-[80px]"></div>
+          <div className="h-24 w-24 sm:h-40 sm:w-40 md:h-56 md:w-56 rounded-full border-[10px] sm:border-[20px] border-blue-700 blur-[40px] sm:blur-[80px]"></div>
         </div>
       </div>
       }

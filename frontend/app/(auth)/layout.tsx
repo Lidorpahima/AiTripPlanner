@@ -41,34 +41,49 @@ export default function AuthLayout({
           </div>
         </div>
 
-        <>
-          {/* Right side */}
-          <div className="relative my-6 mr-6 hidden w-[572px] shrink-0 overflow-hidden rounded-2xl lg:block">
-            {/* Background */}
-            <div
-              className="pointer-events-none absolute left-1/2 top-1/2 -z-10 -ml-24 -translate-x-1/2 -translate-y-1/2 bg-blue-50"
-              aria-hidden="true"
-            >
+        {/* Right side */}
+        <div className="relative hidden w-1/2 bg-gradient-to-br from-blue-50 to-blue-100 lg:block">
+          {/* Background with gradient */}
+          <div className="absolute inset-0 overflow-hidden">
+            <Image
+              src="/images/auth-bg.svg"
+              fill
+              alt="Background pattern"
+              className="object-cover opacity-50"
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-100/90 via-blue-50/80 to-blue-100/90"></div>
+          </div>
+          
+          {/* Main illustration */}
+          <div className="absolute inset-0 flex items-center justify-center z-10">
+            <div className="max-w-[80%] max-h-[80%] relative">
               <Image
-                src={AuthBg}
-                className="max-w-none"
-                width={1290}
-                height={1684}
-                alt="Auth bg"
+                src="/images/globe-traveler.svg"
+                width={500} 
+                height={500} 
+                alt="Trip planner illustration"
+                className="object-contain" 
+                priority
               />
             </div>
-            {/* Illustration */}
-            <div className="absolute inset-0 flex items-center justify-center z-10">
-                    <Image
-                        src="../images/globe-traveler.svg"
-                        width={550} 
-                        height={400} 
-                        alt="Traveler with globe illustration"
-                        className="max-w-full max-h-full object-contain" 
-                    />
-            </div>
           </div>
-        </>
+          
+          {/* Earth background element */}
+          <div className="absolute bottom-10 right-10 w-64 h-64 opacity-40 z-0">
+            <Image 
+              src="/images/earth.png"
+              width={256}
+              height={256}
+              alt="Earth"
+              className="object-contain opacity-50"
+            />
+          </div>
+          
+          {/* Bottom glow effect */}
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/4">
+            <div className="h-56 w-56 rounded-full border-[20px] border-blue-600/30 blur-[80px]"></div>
+          </div>
+        </div>
       </main>
       <ToastContainer
           position="bottom-center"

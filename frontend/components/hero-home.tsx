@@ -5,7 +5,7 @@ import ImgRome from "@/public/images/destinations/rome.jpg";
 import ImgParis from "@/public/images/destinations/paris.jpg";
 import ImgBali from "@/public/images/destinations/bali.jpg";
 
-import OrangeWorldMap from "@/public/image/earth.png";
+import OrangeWorldMap from "@/public/images/earth.png";
 
 export default function HeroHome() {
   return (

@@ -67,12 +67,12 @@ const TripDetailModal: React.FC<TripDetailModalProps> = ({ trip, onClose }) => {
     return (
         // --- Modal Overlay ---
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-60 backdrop-blur-sm pt-10"
             onClick={onClose} // Close modal on overlay click
         >
             {/* --- Modal Content --- */}
             <div
-                className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto p-6 m-4 relative"
+                className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto p-6 m-4 relative pt"
                 onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside content
             >
                 {/* Close Button */}

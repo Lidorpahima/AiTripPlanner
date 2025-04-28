@@ -93,6 +93,10 @@ def generate_trip_prompt(form_data: dict) -> str:
     interests = ', '.join(interests_list) or "general travel interests"
     trip_style = ', '.join(form_data.get("tripStyle", [])) or "standard"
     pace = form_data.get("pace", "moderate")
+    budget = form_data.get("budget", "Mid-range")
+    accommodation = form_data.get("accommodation", "")
+    local_experiences = ', '.join(form_data.get("localExperiences", [])) or "various experiences"
+    travel_with = ', '.join(form_data.get("travelWith", [])) or "solo traveler"
 
     # stringify safely
     start_date_str = start_date_obj.isoformat() if isinstance(start_date_obj, date) else str(start_date_obj or "")
@@ -123,21 +127,66 @@ You are an expert travel planner and researcher AI assistant. Your task is to cr
 - Traveler Interests: {interests}
 - Trip Style: {trip_style}
 - Pace: {pace}
+- Budget Level: {budget}
+- Preferred Accommodation: {accommodation}
+- Desired Local Experiences: {local_experiences}
+- Travel Companions: {travel_with}
 
 **Your Combined Task & Output Requirements:**
 
 1.  **Implicit Research:** Based *only* on the preferences above, identify key attractions, activities, relevant food/cafe types/locations, and any specific real-world events (concerts, festivals, markets, etc.) occurring in {destination} during the specified dates ({date_range_str}) that align with the traveler's interests ({interests}) and style ({trip_style}). Use your internal knowledge and search capabilities for this. **Do not show the research findings separately.**
 2.  **Directly Create JSON Itinerary:** Use the information gathered (implicitly) to construct a day-by-day travel itinerary.
 3.  **Strict JSON Output Format:** Format the *entire* output **strictly** as a single JSON object adhering precisely to the format specified below. **ABSOLUTELY NO TEXT BEFORE OR AFTER THE JSON OBJECT.** Your entire response must start with `{{` and end with `}}`.
-4.  **Activity Object Details:** For each activity within the `activities` array in the JSON, include:
+4.  **Currency Standardization:** For all cost estimates, use USD (US Dollars) as the standard currency, regardless of the destination country. This makes it easier for travelers to compare costs.
+5.  **Activity Object Details:** For each activity within the `activities` array in the JSON, include:
     *   `time` (string): Approximate start time in HH:MM format (e.g., "09:00", "13:30"). Be logical with timing.
     *   `description` (string): User-friendly description using specific names of places/events found during your internal research (e.g., "Visit Kinkaku-ji (Golden Pavilion)", "Lunch exploring Nishiki Market", "Evening stroll in Gion district looking for Geiko/Maiko", "Attend the Gion Matsuri parade (specific date if applicable)").
     *   `place_name_for_lookup` (string or null): The specific, **searchable name** of the physical location (e.g., "Kinkaku-ji", "Nishiki Market", "Gion Corner", "Fushimi Inari Shrine", "Arashiyama Bamboo Grove"). Use the most common English name suitable for map lookups. Set to `null` or an empty string (`""`) ONLY for general activities like "Breakfast at Hotel", "Free time", or generic neighborhood explorations without a single point of interest (e.g., "Explore the charming streets of Higashiyama District").
-5.  **Event Integration:** If your research finds relevant specific events (festivals, concerts, markets) happening during the trip dates, integrate them logically into the schedule as activities. Ensure `description` mentions the event and `place_name_for_lookup` is the venue name (if known and searchable).
-6.  **Pace Adherence:** Ensure the number and density of activities per day reflect the requested pace ('{pace}'). A 'relaxed' pace should have fewer scheduled items than 'moderate' or 'fast-paced'. Include buffer time or 'Free time' entries for relaxed paces.
-7.  **Summary Field:** Include a short, engaging `summary` field within the JSON object (1-2 sentences).
-8.  **Day Titles:** Provide a meaningful `title` for each day reflecting the main theme or area (e.g., "Day 1: Arrival and Golden Exploration", "Day 2: Temples, Shrines, and Bamboo").
-9.  **CRITICAL OUTPUT CONSTRAINT:** Output **ONLY the raw JSON object**. Do not include markdown formatting like ```json ... ```. Do not include any introductory or concluding sentences like "Here is your itinerary:". Your response must be *only* the JSON.
+    *   `place_details` (object or null, optional): If available, include additional details about the place:
+      * `name` (string): Official name of the location
+      * `category` (string): Category like "restaurant", "attraction", "museum", "cafe", etc. 
+      * `price_level` (number, optional): Price level on a scale of 1-4 (1 being least expensive)
+    *   `cost_estimate` (object, optional): Include cost estimate for the activity:
+      * `min` (number): Minimum estimated cost in USD
+      * `max` (number): Maximum estimated cost in USD
+      * `currency` (string): Always set to "USD"
+6.  **Event Integration:** If your research finds relevant specific events (festivals, concerts, markets) happening during the trip dates, integrate them logically into the schedule as activities. Ensure `description` mentions the event and `place_name_for_lookup` is the venue name (if known and searchable).
+7.  **Pace Adherence:** Ensure the number and density of activities per day reflect the requested pace ('{pace}'). A 'relaxed' pace should have fewer scheduled items than 'moderate' or 'fast-paced'. Include buffer time or 'Free time' entries for relaxed paces.
+8.  **Cost Estimates at Day Level:** For each day, include a `day_cost_estimate` object with `min`, `max`, and `currency` properties (always in USD).
+9.  **Overall Cost Breakdown:** Include a `total_cost_estimate` object in the root of the JSON with the following structure:
+    * `min` (number): Minimum estimated total cost for the entire trip in USD
+    * `max` (number): Maximum estimated total cost for the entire trip in USD
+    * `currency` (string): Always "USD"
+    * `accommodations` (object): Sub-object with `min` and `max` properties in USD
+    * `food` (object): Sub-object with `min` and `max` properties in USD
+    * `attractions` (object): Sub-object with `min` and `max` properties in USD
+    * `transportation` (object): Sub-object with `min` and `max` properties in USD
+    * `other` (object): Sub-object with `min` and `max` properties in USD
+10.  **Destination Information:** Include a `destination_info` object in the root of the JSON with:
+    * `country` (string): Country of the destination
+    * `city` (string): City/locality name
+    * `language` (string): Primary language(s) spoken
+    * `currency` (string): Local currency code
+    * `exchange_rate` (number): Exchange rate from local currency to USD (e.g. how many local currency units equal 1 USD)
+    * `budget_tips` (array of strings): List of money-saving tips for the destination
+    * `transportation_options` (array of objects): List of transportation options, each with:
+      * `name` (string): Name of transportation option (e.g., "Metro", "Bus", "Taxi")
+      * `description` (string): Brief description
+      * `cost_range` (string): Text describing typical costs in USD (e.g., "$1-3 per ride")
+      * `app_name` (string, optional): Relevant app for this transportation method
+      * `app_link` (string, optional): URL to download/access the app
+    * `discount_options` (array of objects): List of money-saving passes/discounts:
+      * `name` (string): Name of the discount pass/option
+      * `description` (string): What it includes and why it's valuable
+      * `price` (string): Approximate cost in USD
+      * `link` (string, optional): Where to purchase/learn more
+    * `emergency_info` (object, optional): Emergency contact numbers:
+      * `police` (string): Local police number
+      * `ambulance` (string): Local emergency medical number
+      * `tourist_police` (string, optional): Tourist police if applicable
+11. **Summary Field:** Include a short, engaging `summary` field within the JSON object (1-2 sentences).
+12. **Day Titles:** Provide a meaningful `title` for each day reflecting the main theme or area (e.g., "Day 1: Arrival and Golden Exploration", "Day 2: Temples, Shrines, and Bamboo").
+13. **CRITICAL OUTPUT CONSTRAINT:** Output **ONLY the raw JSON object**. Do not include markdown formatting like ```json ... ```. Do not include any introductory or concluding sentences like "Here is your itinerary:". Your response must be *only* the JSON.
 
 **Required JSON Output Format Example:**
 ```json
@@ -150,53 +199,91 @@ You are an expert travel planner and researcher AI assistant. Your task is to cr
         {{
         "time": "09:00",
         "description": "Breakfast near the hotel",
-        "place_name_for_lookup": null
+        "place_name_for_lookup": null,
+        "cost_estimate": {{
+          "min": 10,
+          "max": 20,
+          "currency": "USD"
+        }}
         }},
         {{
         "time": "10:00",
         "description": "Visit the stunning Kinkaku-ji (Golden Pavilion)",
-        "place_name_for_lookup": "Kinkaku-ji"
+        "place_name_for_lookup": "Kinkaku-ji",
+        "place_details": {{
+          "name": "Kinkaku-ji Temple",
+          "category": "attraction",
+          "price_level": 2
         }},
-        {{
-        "time": "11:30",
-        "description": "Explore the serene Ryoan-ji Temple Zen Garden",
-        "place_name_for_lookup": "Ryoan-ji Temple"
-        }},
-        {{
-        "time": "13:00",
-        "description": "Lunch featuring Kyoto specialties",
-        "place_name_for_lookup": "Nishiki Market"
-        }},
-        {{
-        "time": "14:30",
-        "description": "Free time for shopping or relaxing",
-        "place_name_for_lookup": null
-        }},
-        {{
-        "time": "19:00",
-        "description": "Dinner in the Pontocho Alley area",
-        "place_name_for_lookup": "Pontocho Alley"
+        "cost_estimate": {{
+          "min": 5,
+          "max": 10,
+          "currency": "USD"
         }}
-    ]
-    }},
-    {{
-    "title": "Day 2: Iconic Shrines & Geisha District",
-    "activities": [
-        {{
-        "time": "10:00",
-        "description": "Walk through thousands of red gates at Fushimi Inari Shrine",
-        "place_name_for_lookup": "Fushimi Inari Shrine"
-        }},
-        {{
-        "time": "18:00",
-        "description": "Evening stroll in Gion, hoping to spot Geiko or Maiko",
-        "place_name_for_lookup": "Gion Corner"
         }}
-    ]
+    ],
+    "day_cost_estimate": {{
+      "min": 50,
+      "max": 100,
+      "currency": "USD"
     }}
-]
+    }}
+],
+"destination_info": {{
+  "country": "Japan",
+  "city": "Kyoto",
+  "language": "Japanese",
+  "currency": "JPY",
+  "exchange_rate": 110.5,
+  "budget_tips": [
+    "Purchase a 1-day bus pass for unlimited travel",
+    "Many temples have free areas you can visit without paying entrance fees"
+  ],
+  "transportation_options": [
+    {{
+      "name": "City Bus",
+      "description": "Extensive network covering most tourist sites",
+      "cost_range": "$2-3 per ride, $5 for day pass",
+      "app_name": "Kyoto Bus Navi",
+      "app_link": "https://www2.city.kyoto.lg.jp/kotsu/webguide/en/"
+    }}
+  ],
+  "discount_options": [
+    {{
+      "name": "Kyoto Sightseeing Pass",
+      "description": "Unlimited bus and subway travel within Kyoto",
+      "price": "$8 for 1-day pass"
+    }}
+  ]
+}},
+"total_cost_estimate": {{
+  "min": 800,
+  "max": 1200,
+  "currency": "USD",
+  "accommodations": {{
+    "min": 400,
+    "max": 600
+  }},
+  "food": {{
+    "min": 150,
+    "max": 250
+  }},
+  "attractions": {{
+    "min": 100,
+    "max": 150
+  }},
+  "transportation": {{
+    "min": 50,
+    "max": 100
+  }},
+  "other": {{
+    "min": 100,
+    "max": 100
+  }}
 }}
-Now, generate ONLY the JSON itinerary based on the user preferences and your research. Remember the strict output constraint.
+}}
+```
+Now, generate ONLY the JSON itinerary based on the user preferences and your research. Remember the strict output constraint and ensure all cost estimates are in USD.
 """
     return prompt.strip()
 # ──────────────────────────────── Plan Trip View (Main Logic) ──────────────────────────────── #
@@ -404,13 +491,34 @@ def chat_replace_activity(request):
         if not message or day_index is None or activity_index is None or not plan:
             return Response({"error": "Missing required fields."}, status=400)
 
+        # Get current location, budget, etc. for context
+        destination_info = plan.get('destination_info', {})
+        destination = destination_info.get('city', 'the destination')
+        country = destination_info.get('country', '')
+        currency = destination_info.get('currency', 'USD')
+        current_activity = plan['days'][day_index]['activities'][activity_index] if day_index < len(plan['days']) and activity_index < len(plan['days'][day_index]['activities']) else {}
+        budget_level = "Mid-range"  # Default if not specified
+        
+        # Extract the time from the current activity to maintain schedule
+        current_time = current_activity.get('time', '')
+
         prompt = (
-            f"You are an expert travel assistant. The user wants to replace an activity in their trip plan.\n"
+            f"You are an expert travel assistant. The user wants to replace an activity in their trip plan for {destination}, {country}.\n"
             f"User message: {message}\n"
             f"Current day index: {day_index}, activity index: {activity_index}\n"
-            f"Here is the current plan (JSON):\n{json.dumps(plan)}\n"
-            f"Suggest a single new activity (in JSON) that fits the user's request and the schedule context. "
-            f"Return ONLY a JSON object with keys: time, description, place_name_for_lookup."
+            f"The current activity details are: {json.dumps(current_activity)}\n"
+            f"Here is relevant context from the trip plan:\n"
+            f"- Location: {destination}, {country}\n"
+            f"- Local currency: {currency}\n"
+            f"- Budget level: {budget_level}\n\n"
+            f"Suggest a single new activity (in JSON) that fits the user's request and maintains the time from the original schedule."
+            f"Include cost estimates based on the destination and budget level.\n\n"
+            f"Return ONLY a JSON object with these keys:\n"
+            f"- time: (same time as original activity to maintain schedule)\n"
+            f"- description: (detailed description of the new activity)\n"
+            f"- place_name_for_lookup: (specific location name for map lookup, or null if not applicable)\n"
+            f"- place_details: (object with name, category, and optional price_level properties)\n"
+            f"- cost_estimate: (object with min, max, and currency properties)"
         )
 
         from .chat_request import ask_gemini, extract_json_from_response
@@ -422,8 +530,31 @@ def chat_replace_activity(request):
         cleaned_json = extract_json_from_response(raw_response)
         try:
             activity = json.loads(cleaned_json)
-            if not all(k in activity for k in ("time", "description", "place_name_for_lookup")):
-                return Response({"error": "AI response missing required fields."}, status=500)
+            required_fields = ["time", "description", "place_name_for_lookup"]
+            if not all(k in activity for k in required_fields):
+                # If some fields are missing, add defaults
+                if "time" not in activity:
+                    activity["time"] = current_time
+                if "description" not in activity:
+                    return Response({"error": "AI response missing required 'description' field."}, status=500)
+                if "place_name_for_lookup" not in activity:
+                    activity["place_name_for_lookup"] = None
+            
+            # Ensure cost_estimate is present
+            if "cost_estimate" not in activity:
+                activity["cost_estimate"] = {
+                    "min": 10,
+                    "max": 50,
+                    "currency": currency
+                }
+            
+            # Ensure place_details is present
+            if "place_details" not in activity and activity.get("place_name_for_lookup"):
+                activity["place_details"] = {
+                    "name": activity["place_name_for_lookup"],
+                    "category": "attraction"  # Default category
+                }
+            
             return Response({"activity": activity}, status=200)
         except Exception as e:
             return Response({"error": "Failed to parse AI response.", "details": str(e)}, status=500)

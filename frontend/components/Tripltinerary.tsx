@@ -671,86 +671,12 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
         <div className="max-w-screen-2xl mx-auto px-4 pb-20">
             {/* Header */}
             <div className="flex justify-center items-center mt-12 sm:mt-20 md:mt-25 mb-2">
-                <h1 className="text-4xl font-bold text-center">🗓️ Trip Plan</h1>
                 <ShareButton plan={localPlan} />
             </div>
-            <p className="text-lg sm:text-xl text-center text-gray-700 mt-0 mb-8 sm:mb-12 max-w-4xl mx-auto px-2">
-                {localPlan.summary}
-            </p>
+
 
             {/* Itinerary Grid */}
-            <div
-                className="grid gap-6"
-                style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }} // Slightly wider minimum
-            >
-                {localPlan.days.map((day, dayIndex) => (
-                    <div
-                        key={dayIndex}
-                        className="bg-white rounded-xl shadow-lg px-5 py-4 transition-shadow hover:shadow-xl duration-300 border border-gray-200 flex flex-col"
-                    >
-                        {/* Day Title */}
-                        <h2 className="text-lg font-semibold mb-4 text-center border-b pb-2 text-indigo-800">
-                            {day.title}
-                        </h2>
 
-                        {/* Activities List */}
-                        <ul className="space-y-3 flex-grow">
-                            {day.activities.map((activity: Activity, activityIndex: number) => { 
-                                const key = `${dayIndex}-${activityIndex}`;
-                                const currentDetailState = placeDetails[key];
-                                const canFetchDetails = !!activity.place_name_for_lookup;
-                                const replaceBtnRef = useRef<HTMLButtonElement>(null);
-
-                                return (
-                                    <li
-                                        key={key}
-                                        className={`flex flex-col group rounded-lg p-3 transition duration-200 ease-in-out border border-gray-200 relative ${
-                                            canFetchDetails
-                                                ? 'cursor-pointer bg-gray-50 hover:bg-indigo-50 hover:border-indigo-200' // סגנון לחיץ
-                                                : 'bg-gray-100 opacity-80' 
-                                        }`}
-                                        onClick={canFetchDetails ? () => handleActivityClick(dayIndex, activityIndex, activity.place_name_for_lookup) : undefined}
-                                        title={canFetchDetails ? "Click for details" : "No specific location details available"}
-                                    >
-                                        <div className="flex items-center justify-between mb-1">
-                                            {activity.time && <span className="text-indigo-700 font-bold text-xs">{activity.time}</span>}
-                                            <div className="ml-auto flex items-center space-x-1">
-                                                {/* Loading/Error Indicator */}
-                                                {currentDetailState === 'loading' && <span className="text-xs text-blue-500">Loading...</span>}
-                                                {currentDetailState === 'error' && <span className="text-xs text-red-500">Details unavailable</span>}
-                                                {!canFetchDetails && <Info size={12} className="text-gray-400" />}
-                                                {/* Replace Activity Button */}
-                                                <button
-                                                    type="button"
-                                                    ref={replaceBtnRef}
-                                                    className="ml-2 text-blue-500 hover:text-blue-700 text-xs border border-blue-200 rounded px-2 py-0.5"
-                                                    onClick={e => {
-                                                        e.stopPropagation();
-                                                        setChatDayIdx(dayIndex);
-                                                        setChatActIdx(activityIndex);
-                                                        setChatAnchor(replaceBtnRef);
-                                                        setChatOpen(true);
-                                                    }}
-                                                >
-                                                    Replace Activity
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <span className={`text-gray-800 text-sm leading-normal ${!canFetchDetails ? 'text-gray-600' : ''}`}>
-                                            {activity.description}
-                                        </span>
-                                        {canFetchDetails && (
-                                            <span className="absolute top-2 right-2 text-gray-400 group-hover:text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <ImageIcon size={14}/>
-                                            </span>
-                                        )}
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    </div>
-                ))}
-            </div>
 
             {/* Save Button */}
             <div className="text-center mt-12">

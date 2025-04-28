@@ -1,18 +1,50 @@
-// components/MapChart.tsx (או .jsx)
 'use client';
-import React, { memo, useState } from 'react';
-import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simple-maps';
-import { Tooltip as ReactTooltip } from 'react-tooltip' 
+import React, { memo, useState, useEffect } from 'react';
+import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
+import { Tooltip as ReactTooltip } from 'react-tooltip';
 
-const geoUrl = "/data/world-110m.json";
+const geoUrl = process.env.NODE_ENV === 'production' 
+  ? "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json"
+  : "/data/world-110m.json";
 
 interface MapChartProps {
   visitedCountries: string[];
   onCountrySelect: (countryName: string) => void;
 }
 
+let cachedGeoData: any = null;
+
 const MapChart: React.FC<MapChartProps> = ({ visitedCountries, onCountrySelect }) => {
   const [tooltipContent, setTooltipContent] = useState('');
+  const [isMapReady, setIsMapReady] = useState(false);
+  
+  useEffect(() => {
+    if (!cachedGeoData) {
+      fetch(geoUrl)
+        .then(res => res.json())
+        .then(data => {
+          cachedGeoData = data;
+          setIsMapReady(true);
+        })
+        .catch(err => {
+          console.error("Error loading map data:", err);
+          setIsMapReady(true); 
+        });
+    } else {
+      setIsMapReady(true);
+    }
+  }, []);
+
+  if (!isMapReady && !cachedGeoData) {
+    return (
+      <div className="w-full h-[400px] flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-t-transparent border-blue-500 rounded-full animate-spin mx-auto mb-2"></div>
+          <p className="text-gray-500">Loading map data...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleCountryClick = (geo: any) => {
      const countryName = geo.properties.name;
@@ -25,9 +57,14 @@ const MapChart: React.FC<MapChartProps> = ({ visitedCountries, onCountrySelect }
 
   return (
     <>
-      <ComposableMap data-tooltip-id="map-tooltip" projectionConfig={{ scale: 155 }} >
-
-          <Geographies geography={geoUrl}>
+      <ComposableMap 
+        data-tooltip-id="map-tooltip" 
+        projectionConfig={{ scale: 155 }}
+        width={800}
+        height={400}
+        style={{ width: "100%", height: "auto" }}
+      >
+          <Geographies geography={cachedGeoData || geoUrl}>
             {({ geographies }) =>
               geographies.map((geo) => {
                 const countryName = geo.properties.name;
