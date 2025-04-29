@@ -65,7 +65,7 @@ export default function Header() {
           
           <div className="flex-shrink-0">
             <Link href="/" aria-label="Home">
-              <Logo />
+              <Logo skipLink={true} />
             </Link>
           </div>
 

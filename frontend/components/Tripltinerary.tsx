@@ -669,13 +669,6 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
     // --- Component Render ---
     return (
         <div className="max-w-screen-2xl mx-auto px-4 pb-20">
-            {/* Header */}
-            <div className="flex justify-center items-center mt-12 sm:mt-20 md:mt-25 mb-2">
-                <ShareButton plan={localPlan} />
-            </div>
-
-
-            {/* Itinerary Grid */}
 
 
             {/* Save Button */}

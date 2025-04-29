@@ -1,12 +1,16 @@
 'use client';
 
-import { useEffect, useState, useRef } from "react";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import TripItinerary from "@/components/Tripltinerary"; 
 import { toast } from "react-toastify";
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { Clock, Coins, Star, DollarSign, Bus, Map, Calendar, CalendarCheck, Wallet, TicketIcon, Utensils, Coffee, Bed, Car, Train, Plane, Info, ShoppingBag, Gift, Navigation, Globe, ScrollText, Landmark, Share2, Copy, Mail, MessageCircle } from 'lucide-react';
+import { Clock, Coins, Star, DollarSign, Bus, Map, Calendar, CalendarCheck, Wallet, TicketIcon, Utensils, Coffee, Bed, Car, Train, Plane, Info, ShoppingBag, Gift, Navigation, Globe, ScrollText, Landmark, Share2, Copy, Mail, MessageCircle, X, ChevronLeft, ChevronRight, ImageIcon, MapPin, Phone, MessageSquare } from 'lucide-react';
+import { Dialog } from '@headlessui/react';
 
 // Function to format the itinerary text - copied from TripItinerary
 function formatPlanText(plan: TripPlan): string {
@@ -106,6 +110,277 @@ const ShareButton: React.FC<{ plan: TripPlan }> = ({ plan }) => {
     );
 };
 
+// --- ChatBubble Component ---
+const ChatBubble: React.FC<{
+    isOpen: boolean;
+    anchorRef: React.RefObject<HTMLButtonElement | null>;
+    onClose: () => void;
+    onSubmit: (message: string) => void;
+    loading: boolean;
+}> = ({ isOpen, anchorRef, onClose, onSubmit, loading }) => {
+    const [message, setMessage] = useState("");
+    const bubbleRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (bubbleRef.current && !bubbleRef.current.contains(event.target as Node)) {
+                onClose();
+            }
+        }
+        if (isOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isOpen, onClose]);
+
+    if (!isOpen || !anchorRef.current) return null;
+    const rect = anchorRef.current.getBoundingClientRect();
+    const style: React.CSSProperties = {
+        position: "absolute",
+        top: rect.bottom + window.scrollY + 8,
+        left: rect.left + window.scrollX,
+        zIndex: 1000,
+        minWidth: 260,
+        maxWidth: 320,
+    };
+    return (
+        <div ref={bubbleRef} style={style} className="bg-white border shadow-lg rounded-xl p-4">
+            <textarea
+                className="w-full border rounded p-2 mb-2"
+                rows={3}
+                placeholder="What would you like to do instead?"
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                disabled={loading}
+                autoFocus
+            />
+            <div className="flex justify-end space-x-2">
+                <button onClick={onClose} className="text-gray-600 hover:text-black text-sm">Cancel</button>
+                <button
+                    onClick={() => { if (message.trim()) onSubmit(message); }}
+                    className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
+                    disabled={loading || !message.trim()}
+                >
+                    {loading ? 'Sending...' : 'Send'}
+                </button>
+            </div>
+        </div>
+    );
+};
+
+// --- Component: PlaceDetailsPopup ---
+interface PlaceDetailsPopupProps {
+    details: PlaceDetailsData | 'loading' | 'error';
+    onClose: () => void;
+    placeNameQuery: string;
+}
+
+const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose, placeNameQuery }) => {
+    const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+    const router = useRouter();
+    const handlePhotoChange = (direction: 'next' | 'prev') => {
+        if (typeof details !== 'object' || !details.photos || details.photos.length === 0) return;
+        setCurrentPhotoIndex(prev => {
+            const newIndex = direction === 'next' ? prev + 1 : prev - 1;
+            if (newIndex >= details.photos.length) return 0;
+            if (newIndex < 0) return details.photos.length - 1;
+            return newIndex;
+        });
+    };
+
+    useEffect(() => {
+        // Reset photo index when details change
+        setCurrentPhotoIndex(0);
+    }, [details]);
+
+    // Handle loading and error states
+    if (details === 'loading') {
+        return (
+            <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in">
+                <div className="bg-white p-6 rounded-lg shadow-xl text-center">
+                    <p className="font-semibold">Loading details for {placeNameQuery}...</p>
+                    {/* Add a simple spinner */}
+                    <div className="mt-4 w-8 h-8 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin mx-auto"></div>
+                    <button onClick={onClose} className="mt-4 text-sm text-gray-600 hover:text-black">Cancel</button>
+                </div>
+            </div>
+        );
+    }
+
+    if (details === 'error') {
+        return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in">
+                <div className="bg-white p-6 rounded-lg shadow-xl text-center">
+                    <p className="font-semibold text-red-600">Could not load details</p>
+                    <p className="text-sm text-gray-700 mb-4">Failed to fetch details for "{placeNameQuery}". The place might not be found on Google Maps or there was a network issue.</p>
+                    <button onClick={onClose} className="bg-gray-200 hover:bg-gray-300 px-4 py-1 rounded text-sm">Close</button>
+                </div>
+            </div>
+        );
+    }
+
+    // --- Render successful details ---
+    const { name, address, rating, total_ratings, phone, website, photos, opening_hours, reviews, location } = details;
+    const currentPhotoUrl = photos?.[currentPhotoIndex];
+    // Map Link (using coordinates if available, otherwise address)
+    const mapLink = location
+        ? `https://www.google.com/maps/search/?api=1&query=${location.lat},${location.lng}`
+        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address || name)}`;
+
+    return (
+    <Dialog open={true} onClose={onClose} className="relative z-50">
+        {/* רקע כהה עם blur */}
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" aria-hidden="true" />
+
+        <div className="fixed inset-0 overflow-y-auto">
+        <div className="flex min-h-full items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-2xl overflow-hidden max-w-lg w-full max-h-[90vh] flex flex-col">
+
+            {/* Header עם Close */}
+            <div className="flex justify-between items-center p-3 bg-gray-100 border-b">
+                <h3 className="text-lg font-semibold text-gray-800">{name}</h3>
+                <button onClick={onClose} className="text-gray-500 hover:text-black p-1 rounded-full">
+                <X size={20} />
+                </button>
+            </div>
+
+            {/* Scrollable Content Area */}
+            <div className="overflow-y-auto p-4 flex-grow">
+                {/* Image Section */}
+                {photos && photos.length > 0 && (
+                <div className="relative mb-4 rounded-lg overflow-hidden">
+                    <Image
+                    key={currentPhotoUrl}
+                    src={currentPhotoUrl || '/images/loading.gif'}
+                    alt={`${name} photo ${currentPhotoIndex + 1}`}
+                    width={500}
+                    height={300}
+                    className="w-full h-48 object-cover"
+                    onError={(e) => {
+                        console.error("Image failed to load:", currentPhotoUrl);
+                        e.currentTarget.src = '/images/loading.gif';
+                    }}
+                    unoptimized={process.env.NODE_ENV === 'development'}
+                    />
+                    {photos.length > 1 && (
+                    <>
+                        <button
+                        onClick={() => handlePhotoChange('prev')}
+                        className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-40 text-white p-1 rounded-full hover:bg-opacity-60"
+                        aria-label="Previous photo"
+                        >
+                        <ChevronLeft size={20} />
+                        </button>
+                        <button
+                        onClick={() => handlePhotoChange('next')}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-40 text-white p-1 rounded-full hover:bg-opacity-60"
+                        aria-label="Next photo"
+                        >
+                        <ChevronRight size={20} />
+                        </button>
+                        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white text-xs px-2 py-0.5 rounded-full">
+                        {currentPhotoIndex + 1} / {photos.length}
+                        </div>
+                    </>
+                    )}
+                </div>
+                )}
+
+                {!photos || photos.length === 0 && (
+                <div className="mb-4 p-4 bg-gray-100 rounded-lg text-center text-gray-500">
+                    <ImageIcon size={24} className="mx-auto mb-1" />
+                    No photos available.
+                </div>
+                )}
+
+                {/* Basic Info */}
+                <div className="space-y-2 text-sm mb-4">
+                {rating && total_ratings && (
+                    <div className="flex items-center text-yellow-500">
+                    <Star size={16} className="mr-1 fill-current" />
+                    <strong>{rating.toFixed(1)}</strong>
+                    <span className="text-gray-600 ml-1">({total_ratings} reviews)</span>
+                    </div>
+                )}
+                {address && (
+                    <div className="flex items-start">
+                    <MapPin size={16} className="mr-2 mt-0.5 text-gray-600 flex-shrink-0" />
+                    <span className="text-gray-800">{address}</span>
+                    <a
+                        href={mapLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-2 text-blue-600 hover:underline text-xs whitespace-nowrap"
+                        title="View on Google Maps"
+                    >
+                        (View Map)
+                    </a>
+                    </div>
+                )}
+                {phone && (
+                    <div className="flex items-center">
+                    <Phone size={16} className="mr-2 text-gray-600" />
+                    <a href={`tel:${phone}`} className="text-blue-600 hover:underline">{phone}</a>
+                    </div>
+                )}
+                {website && (
+                    <div className="flex items-center">
+                    <Globe size={16} className="mr-2 text-gray-600" />
+                    <a href={website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                        {website.replace(/^https?:\/\//, '')}
+                    </a>
+                    </div>
+                )}
+                </div>
+
+                {/* Opening Hours */}
+                {opening_hours && opening_hours.length > 0 && (
+                <div className="mb-4">
+                    <h4 className="font-semibold text-sm mb-1 flex items-center">
+                    <Clock size={16} className="mr-1 text-gray-600" /> Opening Hours
+                    </h4>
+                    <ul className="text-xs text-gray-700 list-disc list-inside pl-2 space-y-0.5">
+                    {opening_hours.map((line, index) => <li key={index}>{line}</li>)}
+                    </ul>
+                </div>
+                )}
+
+                {/* Reviews */}
+                {reviews && reviews.length > 0 && (
+                <div className="mb-4">
+                    <h4 className="font-semibold text-sm mb-2 flex items-center">
+                    <MessageSquare size={16} className="mr-1 text-gray-600" /> Reviews
+                    </h4>
+                    <div className="space-y-3">
+                    {reviews.map((review, index) => (
+                        <div key={index} className="border-t pt-2 text-xs">
+                        <div className="flex justify-between items-center mb-0.5">
+                            <span className="font-medium text-gray-800">{review.author_name}</span>
+                            <div className="flex items-center text-yellow-500">
+                            <Star size={12} className="mr-0.5 fill-current" /> {review.rating}/5
+                            </div>
+                        </div>
+                        <p className="text-gray-700 mb-1">{review.text}</p>
+                        <p className="text-gray-500 text-right text-[10px]">{review.time}</p>
+                        </div>
+                    ))}
+                    </div>
+                </div>
+                )}
+
+                {!reviews || reviews.length === 0 && (
+                <div className="text-center text-sm text-gray-500 py-2">No reviews available.</div>
+                )}
+            </div>
+            </div>
+        </div>
+        </div>
+    </Dialog>
+    );
+};
+
 interface OriginalRequestData {
     destination: string;
     startDate?: string | Date | null;
@@ -113,6 +388,27 @@ interface OriginalRequestData {
     tripStyle?: string[];
     budget?: string;
 }
+
+interface Review {
+  author_name: string;
+  rating: number;
+  text: string;
+  time: string;
+};
+
+interface PlaceDetailsData {
+  name: string;
+  address: string | null; 
+  rating?: number | null; 
+  total_ratings?: number | null;
+  phone?: string | null;
+  website?: string | null; 
+  price_level?: number | null; 
+  location: { lat: number; lng: number } | null; 
+  photos: string[]; 
+  opening_hours: string[]; 
+  reviews: Review[];
+};
 
 interface PlaceDetails {
   name: string;
@@ -246,6 +542,19 @@ export default function TripResultPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadingError, setLoadingError] = useState<string | null>(null); 
   const [activeTab, setActiveTab] = useState('itinerary');
+  
+  // Place details state
+  const [placeDetails, setPlaceDetails] = useState<Record<string, PlaceDetailsData | 'loading' | 'error'>>({});
+  const [activePopupKey, setActivePopupKey] = useState<string | null>(null);
+  const [activePopupQuery, setActivePopupQuery] = useState<string>("");
+
+  // Chat state for activity replacement
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatDayIdx, setChatDayIdx] = useState<number|null>(null);
+  const [chatActIdx, setChatActIdx] = useState<number|null>(null);
+  const [chatAnchor, setChatAnchor] = useState<React.RefObject<HTMLButtonElement | null> | null>(null);
+  
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -449,6 +758,155 @@ export default function TripResultPage() {
     });
   };
 
+  // Function to handle location click and fetch place details
+  const handlePlaceClick = useCallback(async (dayIndex: number, activityIndex: number, placeNameLookup: string | null | undefined) => {
+    // Check if there's a place name to look up
+    if (!placeNameLookup) {
+      console.log("No place name provided for lookup for this activity.");
+      toast.info("Detailed information not available for this activity.", { autoClose: 2000 });
+      return;
+    }
+
+    const key = `${dayIndex}-${activityIndex}`;
+    setActivePopupQuery(placeNameLookup);
+    
+    // If we already have the details, just show the popup
+    if (placeDetails[key] && placeDetails[key] !== 'error') {
+      console.log(`Details for '${placeNameLookup}' (key: ${key}) already available or loading.`);
+      setActivePopupKey(key);
+      return;
+    }
+
+    console.log(`Fetching details for: "${placeNameLookup}" (key: ${key}`);
+    setPlaceDetails(prev => ({ ...prev, [key]: 'loading' }));
+    setActivePopupKey(key);
+
+    // Construct the URL with query parameters
+    const url = new URL(`${API_BASE}/api/place-details/`);
+    url.searchParams.append('query', placeNameLookup);
+
+    try {
+      const response = await fetch(url.toString());
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.warn(`[fetchPlaceDetails Error] Place not found (404) for query: ${placeNameLookup}`);
+          toast.error(`Place details not found for "${placeNameLookup}" on Google Maps.`);
+        } else {
+          console.error(`[fetchPlaceDetails Error] HTTP error ${response.status}: ${response.statusText}`);
+          let serverErrorMessage = `HTTP error ${response.status}`;
+          try {
+            const errorBody = await response.json();
+            serverErrorMessage = errorBody?.error || errorBody?.message || serverErrorMessage;
+          } catch (parseError) {
+            // Ignore if error body isn't valid JSON
+          }
+          toast.error(`Failed to get details: ${serverErrorMessage}`);
+        }
+        throw new Error(`HTTP error ${response.status}`);
+      }
+
+      const data: PlaceDetailsData = await response.json();
+
+      if (!data || typeof data !== 'object' || !data.name) {
+        console.error("[fetchPlaceDetails Error] Invalid data received from API:", data);
+        throw new Error("Invalid data format received from server.");
+      }
+
+      setPlaceDetails(prev => ({ ...prev, [key]: data }));
+    } catch (err) {
+      console.error(`[fetchPlaceDetails Error] Failed for query "${placeNameLookup}":`, err);
+      setPlaceDetails(prev => ({ ...prev, [key]: 'error' }));
+
+      if (err instanceof Error && !toast.isActive(`error-${key}`)) {
+        if (err.message.includes("Failed to fetch")) {
+          toast.error(`Network error. Could not connect to the server.`, { toastId: `error-${key}`});
+        } else if (!err.message.startsWith("HTTP error")) {
+          toast.error(`An unexpected error occurred: ${err.message}`, { toastId: `error-${key}`});
+        }
+      } else if (!toast.isActive(`error-${key}`)) {
+        toast.error('An unexpected and unknown error occurred.', { toastId: `error-${key}`});
+      }
+    }
+  }, [placeDetails, setActivePopupKey, setActivePopupQuery, API_BASE]);
+
+  const handleOpenInMaps = useCallback((placeNameLookup: string | null | undefined) => {
+    if (!placeNameLookup) {
+      console.log("No place name provided for map lookup.");
+      toast.info("Location information not available for this activity.", { autoClose: 2000 });
+      return;
+    }
+
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(placeNameLookup)}`;
+    
+    window.open(googleMapsUrl, '_blank');
+  }, []);
+
+  // Function to handle closing the place details popup
+  const handleClosePopup = useCallback(() => {
+    setActivePopupKey(null);
+    setActivePopupQuery("");
+  }, []);
+
+  // Function to handle chat request for activity replacement
+  const handleChatRequest = useCallback((dayIndex: number, activityIndex: number, buttonRef: HTMLButtonElement) => {
+    setChatDayIdx(dayIndex);
+    setChatActIdx(activityIndex);
+    setChatAnchor({ current: buttonRef });
+    setChatOpen(true);
+  }, []);
+
+  // Function to handle chat submission for activity replacement
+  const handleChatSubmit = async (message: string) => {
+    if (chatDayIdx === null || chatActIdx === null || !plan) return;
+    
+    setChatLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/api/chat-replace-activity/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message,
+          dayIndex: chatDayIdx,
+          activityIndex: chatActIdx,
+          plan: plan
+        })
+      });
+      
+      if (!response.ok) throw new Error('Server error');
+      
+      const data = await response.json();
+      if (!data || !data.activity) throw new Error('No new activity received');
+      
+      // Update the plan with the new activity
+      setPlan(prevPlan => {
+        if (!prevPlan) return prevPlan;
+        
+        const updatedPlan = { ...prevPlan };
+        updatedPlan.days = [...prevPlan.days];
+        updatedPlan.days[chatDayIdx] = { ...prevPlan.days[chatDayIdx] };
+        updatedPlan.days[chatDayIdx].activities = [...prevPlan.days[chatDayIdx].activities];
+        updatedPlan.days[chatDayIdx].activities[chatActIdx] = data.activity;
+        return updatedPlan;
+      });
+      
+      // Remove any cached place details for this activity
+      const key = `${chatDayIdx}-${chatActIdx}`;
+      setPlaceDetails(prev => {
+        const newDetails = { ...prev };
+        delete newDetails[key];
+        return newDetails;
+      });
+      
+      toast.success('Activity replaced successfully!');
+    } catch (e: any) {
+      toast.error(e.message || 'An error occurred');
+    } finally {
+      setChatLoading(false);
+      setChatOpen(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col items-center justify-center p-4">
@@ -638,7 +1096,34 @@ export default function TripResultPage() {
                               <div className="mr-2 mt-0.5">
                                 {getCategoryIcon(activity.place_details?.category)}
                               </div>
-                              <p className="text-sm text-gray-800">{activity.description}</p>
+                              <div className="flex-grow">
+                                <p className="text-sm text-gray-800">{activity.description}</p>
+                                <div className="mt-2 flex space-x-2">
+                                  {activity.place_name_for_lookup && (
+                                    <button
+                                      onClick={() => handlePlaceClick(dayIndex, activityIndex, activity.place_name_for_lookup)}
+                                      className="text-xs text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+                                    >
+                                      <ImageIcon size={12} /> Details
+                                    </button>
+                                  )}
+                                  <button
+                                    id={`chat-button-${dayIndex}-${activityIndex}`}
+                                    onClick={(e) => handleChatRequest(dayIndex, activityIndex, e.currentTarget)}
+                                    className="text-xs text-green-600 hover:text-green-800 hover:underline flex items-center gap-1"
+                                  >
+                                    <MessageSquare size={12} /> Suggest Alternative
+                                  </button>
+                                  {activity.place_name_for_lookup && (
+                                    <button
+                                      onClick={() => handleOpenInMaps(activity.place_name_for_lookup)}
+                                      className="text-xs text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+                                    >
+                                      <MapPin size={12} /> View Location
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -987,6 +1472,20 @@ export default function TripResultPage() {
           />
         </div>
       </div>
+      {activePopupKey && activePopupQuery && (
+        <PlaceDetailsPopup
+          details={placeDetails[activePopupKey]}
+          onClose={handleClosePopup}
+          placeNameQuery={activePopupQuery}
+        />
+      )}
+      <ChatBubble
+        isOpen={chatOpen}
+        anchorRef={chatAnchor}
+        onClose={() => setChatOpen(false)}
+        onSubmit={handleChatSubmit}
+        loading={chatLoading}
+      />
     </div>
   );
 }
