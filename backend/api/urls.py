@@ -10,7 +10,8 @@ from .views import (
     SaveTripView, 
     MyTripsListView,
     get_csrf_token,
-    chat_replace_activity
+    chat_replace_activity,
+    proxy_place_photo
 )
 urlpatterns = [
     path('csrf/', get_csrf_token, name='csrf'),
@@ -19,6 +20,7 @@ urlpatterns = [
     path('token/refresh/', TokenObtainPairView.as_view(), name='token_refresh'),
     path('plantrip/', plan_trip_view, name='plan_trip'),
     path('place-details/',get_place_details_view , name='place_details'),
+    path('place-photo/', proxy_place_photo, name='place_photo'),
     path('profile/', ProfileRetrieveView.as_view(), name='profile-retrieve'),
     path('profile/update/', ProfileUpdateView.as_view(), name='profile-update'), 
     path('trips/save/', SaveTripView.as_view(), name='save_trip'),  

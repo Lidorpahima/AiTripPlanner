@@ -4,6 +4,8 @@ import Image from "next/image";
 import { Dialog } from '@headlessui/react';
 import { X, ChevronLeft, ChevronRight, ImageIcon, MapPin, Phone, Globe, Clock, Star, MessageSquare } from 'lucide-react';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 interface PlaceDetailsPopupProps {
     details: PlaceDetailsData | 'loading' | 'error';
     onClose: () => void;
@@ -34,6 +36,26 @@ interface PlaceDetailsData {
 const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose, placeNameQuery }) => {
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
     const router = useRouter();
+    
+    // Extract photo reference from Google Maps URL
+    const getPhotoReference = (url: string): string | null => {
+        if (!url) return null;
+        try {
+            const urlObj = new URL(url);
+            return urlObj.searchParams.get('photoreference');
+        } catch (e) {
+            console.error("Invalid URL:", e);
+            return null;
+        }
+    };
+    
+    // Create a proxied URL for the photo
+    const getProxiedPhotoUrl = (googlePhotoUrl: string): string => {
+        const photoRef = getPhotoReference(googlePhotoUrl);
+        if (!photoRef) return '/images/loading.gif';
+        return `${API_BASE}/api/place-photo/?photo_reference=${photoRef}&maxwidth=800`;
+    };
+    
     const handlePhotoChange = (direction: 'next' | 'prev') => {
         if (typeof details !== 'object' || !details.photos || details.photos.length === 0) return;
         setCurrentPhotoIndex(prev => {
@@ -74,6 +96,7 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
 
     const { name, address, rating, total_ratings, phone, website, photos, opening_hours, reviews, location } = details;
     const currentPhotoUrl = photos?.[currentPhotoIndex];
+    const proxiedPhotoUrl = currentPhotoUrl ? getProxiedPhotoUrl(currentPhotoUrl) : null;
     const mapLink = location
         ? `https://www.google.com/maps/search/?api=1&query=${location.lat},${location.lng}`
         : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address || name)}`;
@@ -94,14 +117,14 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
                 {photos && photos.length > 0 && (
                 <div className="relative mb-4 rounded-lg overflow-hidden">
                     <Image
-                    key={currentPhotoUrl}
-                    src={currentPhotoUrl || '/images/loading.gif'}
+                    key={proxiedPhotoUrl}
+                    src={proxiedPhotoUrl || '/images/loading.gif'}
                     alt={`${name} photo ${currentPhotoIndex + 1}`}
                     width={500}
                     height={300}
                     className="w-full h-48 object-cover"
                     onError={(e) => {
-                        console.error("Image failed to load:", currentPhotoUrl);
+                        console.error("Image failed to load:", proxiedPhotoUrl);
                         e.currentTarget.src = '/images/loading.gif';
                     }}
                     unoptimized={process.env.NODE_ENV === 'development'}

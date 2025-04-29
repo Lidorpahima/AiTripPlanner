@@ -164,7 +164,7 @@ You are an expert travel planner and researcher AI assistant. Your task is to cr
     * `other` (object): Sub-object with `min` and `max` properties in USD
 10.  **Destination Information:** Include a `destination_info` object in the root of the JSON with:
     * `country` (string): Country of the destination
-    * `city` (string): City/locality name
+    * `city` (string/locality name)
     * `language` (string): Primary language(s) spoken
     * `currency` (string): Local currency code
     * `exchange_rate` (number): Exchange rate from local currency to USD (e.g. how many local currency units equal 1 USD)
@@ -399,6 +399,38 @@ def get_place_details_view(request):
     except Exception as e:
         print(f"❌ Unexpected error processing place details for query '{query}': {e}")
         return JsonResponse({"error": "An internal server error occurred."}, status=500)
+
+@require_GET
+def proxy_place_photo(request):
+    """
+    Proxy endpoint for Google Places photos to avoid CORS issues.
+    """
+    photo_reference = request.GET.get('photo_reference')
+    max_width = request.GET.get('maxwidth', 800)
+    
+    if not photo_reference:
+        return JsonResponse({"error": "Missing photo_reference parameter"}, status=400)
+        
+    try:
+        # Build the photo URL
+        google_url = f"https://maps.googleapis.com/maps/api/place/photo?maxwidth={max_width}&photoreference={photo_reference}&key={settings.GOOGLE_API_KEY}"
+        
+        # Fetch the image from Google
+        import requests
+        response = requests.get(google_url, stream=True)
+        
+        if not response.ok:
+            return JsonResponse({"error": "Failed to fetch image from Google"}, status=response.status_code)
+            
+        # Return the image with appropriate content type
+        from django.http import HttpResponse
+        return HttpResponse(
+            response.content,
+            content_type=response.headers.get('Content-Type', 'image/jpeg')
+        )
+    except Exception as e:
+        print(f"❌ Error proxying photo: {str(e)}")
+        return JsonResponse({"error": "Internal server error"}, status=500)
 
 # ──────────────────────────────── SavedTrip ──────────────────────────────── #
 class SaveTripView(APIView):
