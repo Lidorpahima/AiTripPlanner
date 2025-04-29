@@ -6,11 +6,19 @@ const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import TripItinerary from "@/components/Tripltinerary"; 
+import PlaceDetailsPopup from "@/components/PlaceDetailsPopup";
+import ShareButton from "@/components/ShareButton";
+import ChatBubble from "@/components/ChatBubble";
+import ActivityCard from "@/components/ActivityCard";
+import DayCard from "@/components/DayCard";
+import NavigationTabs from "@/components/NavigationTabs";
+import CostBreakdownCard from "@/components/CostBreakdownCard";
 import { toast } from "react-toastify";
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { Clock, Coins, Star, DollarSign, Bus, Map, Calendar, CalendarCheck, Wallet, TicketIcon, Utensils, Coffee, Bed, Car, Train, Plane, Info, ShoppingBag, Gift, Navigation, Globe, ScrollText, Landmark, Share2, Copy, Mail, MessageCircle, X, ChevronLeft, ChevronRight, ImageIcon, MapPin, Phone, MessageSquare } from 'lucide-react';
 import { Dialog } from '@headlessui/react';
+import { Activity, DayPlan, PlaceDetailsData, TripPlan, OriginalRequestData, Review } from "@/constants/planTypes";
 
 // Function to format the itinerary text - copied from TripItinerary
 function formatPlanText(plan: TripPlan): string {
@@ -24,479 +32,6 @@ function formatPlanText(plan: TripPlan): string {
         text += "\n";
     });
     return text.trim();
-}
-
-// --- ShareButton Component ---
-const ShareButton: React.FC<{ plan: TripPlan }> = ({ plan }) => {
-    const [open, setOpen] = useState(false);
-    const shareText = formatPlanText(plan);
-    const menuRef = useRef<HTMLDivElement>(null);
-
-    // Close menu on click outside
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setOpen(false);
-            }
-        }
-        if (open) {
-            document.addEventListener("mousedown", handleClickOutside);
-        }
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [open]);
-
-    const handleCopy = () => {
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(shareText);
-            toast.success("Itinerary copied!");
-        }
-        setOpen(false);
-    };
-    const handleWhatsapp = () => {
-        window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`);
-        setOpen(false);
-    };
-    const handleEmail = () => {
-        window.open(`mailto:?subject=My Trip Itinerary&body=${encodeURIComponent(shareText)}`);
-        setOpen(false);
-    };
-    return (
-        <div className="relative inline-block text-left ml-2">
-            <button
-                className="p-2 rounded-full bg-blue-100 hover:bg-blue-200 border border-blue-300 shadow-md transition focus:outline-none focus:ring-2 focus:ring-blue-400"
-                onClick={() => setOpen((v) => !v)}
-                title="Share"
-                aria-label="Share itinerary"
-            >
-                <Share2 size={22} className="text-blue-600" />
-            </button>
-            
-            {open && (
-                <div
-                    ref={menuRef}
-                    className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 animate-fade-in"
-                >
-                    <div className="px-4 py-3 border-b border-gray-100 font-semibold text-gray-700 text-sm flex items-center gap-2">
-                        <Share2 size={16} className="text-blue-500" /> Share this itinerary
-                    </div>
-                    <button
-                        onClick={handleCopy}
-                        className="flex items-center w-full px-4 py-3 hover:bg-gray-50 text-sm transition group"
-                    >
-                        <Copy size={18} className="mr-3 text-gray-500 group-hover:text-blue-600" />
-                        <span>Copy Itinerary</span>
-                    </button>
-                    <div className="border-t border-gray-100 mx-3" />
-                    <button
-                        onClick={handleWhatsapp}
-                        className="flex items-center w-full px-4 py-3 hover:bg-green-50 text-sm transition group"
-                    >
-                        <MessageCircle size={18} className="mr-3 text-green-500 group-hover:text-green-700" />
-                        <span className="text-green-700 group-hover:underline">Share on WhatsApp</span>
-                    </button>
-                    <div className="border-t border-gray-100 mx-3" />
-                    <button
-                        onClick={handleEmail}
-                        className="flex items-center w-full px-4 py-3 hover:bg-blue-50 text-sm transition group"
-                    >
-                        <Mail size={18} className="mr-3 text-blue-500 group-hover:text-blue-700" />
-                        <span className="text-blue-700 group-hover:underline">Send by Email</span>
-                    </button>
-                </div>
-            )}
-        </div>
-    );
-};
-
-// --- ChatBubble Component ---
-const ChatBubble: React.FC<{
-    isOpen: boolean;
-    anchorRef: React.RefObject<HTMLButtonElement | null>;
-    onClose: () => void;
-    onSubmit: (message: string) => void;
-    loading: boolean;
-}> = ({ isOpen, anchorRef, onClose, onSubmit, loading }) => {
-    const [message, setMessage] = useState("");
-    const bubbleRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (bubbleRef.current && !bubbleRef.current.contains(event.target as Node)) {
-                onClose();
-            }
-        }
-        if (isOpen) {
-            document.addEventListener("mousedown", handleClickOutside);
-        }
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [isOpen, onClose]);
-
-    if (!isOpen || !anchorRef.current) return null;
-    const rect = anchorRef.current.getBoundingClientRect();
-    const style: React.CSSProperties = {
-        position: "absolute",
-        top: rect.bottom + window.scrollY + 8,
-        left: rect.left + window.scrollX,
-        zIndex: 1000,
-        minWidth: 260,
-        maxWidth: 320,
-    };
-    return (
-        <div ref={bubbleRef} style={style} className="bg-white border shadow-lg rounded-xl p-4">
-            <textarea
-                className="w-full border rounded p-2 mb-2"
-                rows={3}
-                placeholder="What would you like to do instead?"
-                value={message}
-                onChange={e => setMessage(e.target.value)}
-                disabled={loading}
-                autoFocus
-            />
-            <div className="flex justify-end space-x-2">
-                <button onClick={onClose} className="text-gray-600 hover:text-black text-sm">Cancel</button>
-                <button
-                    onClick={() => { if (message.trim()) onSubmit(message); }}
-                    className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
-                    disabled={loading || !message.trim()}
-                >
-                    {loading ? 'Sending...' : 'Send'}
-                </button>
-            </div>
-        </div>
-    );
-};
-
-// --- Component: PlaceDetailsPopup ---
-interface PlaceDetailsPopupProps {
-    details: PlaceDetailsData | 'loading' | 'error';
-    onClose: () => void;
-    placeNameQuery: string;
-}
-
-const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose, placeNameQuery }) => {
-    const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-    const router = useRouter();
-    const handlePhotoChange = (direction: 'next' | 'prev') => {
-        if (typeof details !== 'object' || !details.photos || details.photos.length === 0) return;
-        setCurrentPhotoIndex(prev => {
-            const newIndex = direction === 'next' ? prev + 1 : prev - 1;
-            if (newIndex >= details.photos.length) return 0;
-            if (newIndex < 0) return details.photos.length - 1;
-            return newIndex;
-        });
-    };
-
-    useEffect(() => {
-        // Reset photo index when details change
-        setCurrentPhotoIndex(0);
-    }, [details]);
-
-    // Handle loading and error states
-    if (details === 'loading') {
-        return (
-            <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in">
-                <div className="bg-white p-6 rounded-lg shadow-xl text-center">
-                    <p className="font-semibold">Loading details for {placeNameQuery}...</p>
-                    {/* Add a simple spinner */}
-                    <div className="mt-4 w-8 h-8 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin mx-auto"></div>
-                    <button onClick={onClose} className="mt-4 text-sm text-gray-600 hover:text-black">Cancel</button>
-                </div>
-            </div>
-        );
-    }
-
-    if (details === 'error') {
-        return (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in">
-                <div className="bg-white p-6 rounded-lg shadow-xl text-center">
-                    <p className="font-semibold text-red-600">Could not load details</p>
-                    <p className="text-sm text-gray-700 mb-4">Failed to fetch details for "{placeNameQuery}". The place might not be found on Google Maps or there was a network issue.</p>
-                    <button onClick={onClose} className="bg-gray-200 hover:bg-gray-300 px-4 py-1 rounded text-sm">Close</button>
-                </div>
-            </div>
-        );
-    }
-
-    // --- Render successful details ---
-    const { name, address, rating, total_ratings, phone, website, photos, opening_hours, reviews, location } = details;
-    const currentPhotoUrl = photos?.[currentPhotoIndex];
-    // Map Link (using coordinates if available, otherwise address)
-    const mapLink = location
-        ? `https://www.google.com/maps/search/?api=1&query=${location.lat},${location.lng}`
-        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address || name)}`;
-
-    return (
-    <Dialog open={true} onClose={onClose} className="relative z-50">
-        {/* רקע כהה עם blur */}
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" aria-hidden="true" />
-
-        <div className="fixed inset-0 overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-2xl overflow-hidden max-w-lg w-full max-h-[90vh] flex flex-col">
-
-            {/* Header עם Close */}
-            <div className="flex justify-between items-center p-3 bg-gray-100 border-b">
-                <h3 className="text-lg font-semibold text-gray-800">{name}</h3>
-                <button onClick={onClose} className="text-gray-500 hover:text-black p-1 rounded-full">
-                <X size={20} />
-                </button>
-            </div>
-
-            {/* Scrollable Content Area */}
-            <div className="overflow-y-auto p-4 flex-grow">
-                {/* Image Section */}
-                {photos && photos.length > 0 && (
-                <div className="relative mb-4 rounded-lg overflow-hidden">
-                    <Image
-                    key={currentPhotoUrl}
-                    src={currentPhotoUrl || '/images/loading.gif'}
-                    alt={`${name} photo ${currentPhotoIndex + 1}`}
-                    width={500}
-                    height={300}
-                    className="w-full h-48 object-cover"
-                    onError={(e) => {
-                        console.error("Image failed to load:", currentPhotoUrl);
-                        e.currentTarget.src = '/images/loading.gif';
-                    }}
-                    unoptimized={process.env.NODE_ENV === 'development'}
-                    />
-                    {photos.length > 1 && (
-                    <>
-                        <button
-                        onClick={() => handlePhotoChange('prev')}
-                        className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-40 text-white p-1 rounded-full hover:bg-opacity-60"
-                        aria-label="Previous photo"
-                        >
-                        <ChevronLeft size={20} />
-                        </button>
-                        <button
-                        onClick={() => handlePhotoChange('next')}
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-40 text-white p-1 rounded-full hover:bg-opacity-60"
-                        aria-label="Next photo"
-                        >
-                        <ChevronRight size={20} />
-                        </button>
-                        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white text-xs px-2 py-0.5 rounded-full">
-                        {currentPhotoIndex + 1} / {photos.length}
-                        </div>
-                    </>
-                    )}
-                </div>
-                )}
-
-                {!photos || photos.length === 0 && (
-                <div className="mb-4 p-4 bg-gray-100 rounded-lg text-center text-gray-500">
-                    <ImageIcon size={24} className="mx-auto mb-1" />
-                    No photos available.
-                </div>
-                )}
-
-                {/* Basic Info */}
-                <div className="space-y-2 text-sm mb-4">
-                {rating && total_ratings && (
-                    <div className="flex items-center text-yellow-500">
-                    <Star size={16} className="mr-1 fill-current" />
-                    <strong>{rating.toFixed(1)}</strong>
-                    <span className="text-gray-600 ml-1">({total_ratings} reviews)</span>
-                    </div>
-                )}
-                {address && (
-                    <div className="flex items-start">
-                    <MapPin size={16} className="mr-2 mt-0.5 text-gray-600 flex-shrink-0" />
-                    <span className="text-gray-800">{address}</span>
-                    <a
-                        href={mapLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="ml-2 text-blue-600 hover:underline text-xs whitespace-nowrap"
-                        title="View on Google Maps"
-                    >
-                        (View Map)
-                    </a>
-                    </div>
-                )}
-                {phone && (
-                    <div className="flex items-center">
-                    <Phone size={16} className="mr-2 text-gray-600" />
-                    <a href={`tel:${phone}`} className="text-blue-600 hover:underline">{phone}</a>
-                    </div>
-                )}
-                {website && (
-                    <div className="flex items-center">
-                    <Globe size={16} className="mr-2 text-gray-600" />
-                    <a href={website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
-                        {website.replace(/^https?:\/\//, '')}
-                    </a>
-                    </div>
-                )}
-                </div>
-
-                {/* Opening Hours */}
-                {opening_hours && opening_hours.length > 0 && (
-                <div className="mb-4">
-                    <h4 className="font-semibold text-sm mb-1 flex items-center">
-                    <Clock size={16} className="mr-1 text-gray-600" /> Opening Hours
-                    </h4>
-                    <ul className="text-xs text-gray-700 list-disc list-inside pl-2 space-y-0.5">
-                    {opening_hours.map((line, index) => <li key={index}>{line}</li>)}
-                    </ul>
-                </div>
-                )}
-
-                {/* Reviews */}
-                {reviews && reviews.length > 0 && (
-                <div className="mb-4">
-                    <h4 className="font-semibold text-sm mb-2 flex items-center">
-                    <MessageSquare size={16} className="mr-1 text-gray-600" /> Reviews
-                    </h4>
-                    <div className="space-y-3">
-                    {reviews.map((review, index) => (
-                        <div key={index} className="border-t pt-2 text-xs">
-                        <div className="flex justify-between items-center mb-0.5">
-                            <span className="font-medium text-gray-800">{review.author_name}</span>
-                            <div className="flex items-center text-yellow-500">
-                            <Star size={12} className="mr-0.5 fill-current" /> {review.rating}/5
-                            </div>
-                        </div>
-                        <p className="text-gray-700 mb-1">{review.text}</p>
-                        <p className="text-gray-500 text-right text-[10px]">{review.time}</p>
-                        </div>
-                    ))}
-                    </div>
-                </div>
-                )}
-
-                {!reviews || reviews.length === 0 && (
-                <div className="text-center text-sm text-gray-500 py-2">No reviews available.</div>
-                )}
-            </div>
-            </div>
-        </div>
-        </div>
-    </Dialog>
-    );
-};
-
-interface OriginalRequestData {
-    destination: string;
-    startDate?: string | Date | null;
-    endDate?: string | Date | null;
-    tripStyle?: string[];
-    budget?: string;
-}
-
-interface Review {
-  author_name: string;
-  rating: number;
-  text: string;
-  time: string;
-};
-
-interface PlaceDetailsData {
-  name: string;
-  address: string | null; 
-  rating?: number | null; 
-  total_ratings?: number | null;
-  phone?: string | null;
-  website?: string | null; 
-  price_level?: number | null; 
-  location: { lat: number; lng: number } | null; 
-  photos: string[]; 
-  opening_hours: string[]; 
-  reviews: Review[];
-};
-
-interface PlaceDetails {
-  name: string;
-  price_level?: number;
-  category?: string;
-  estimated_cost?: {
-    min: number;
-    max: number;
-    currency: string;
-  };
-}
-
-interface Activity {
-  time: string;
-  description: string;
-  place_name_for_lookup: string | null;
-  place_details?: PlaceDetails;
-  cost_estimate?: {
-    min: number;
-    max: number;
-    currency: string;
-  };
-}
-
-interface DayPlan {
-  title: string;
-  activities: Activity[];
-  day_cost_estimate?: {
-    min: number;
-    max: number;
-    currency: string;
-  };
-}
-
-interface TripPlan {
-  summary: string;
-  days: DayPlan[];
-  destination_info?: {
-    country: string;
-    city: string;
-    language: string;
-    currency: string;
-    exchange_rate?: number;
-    budget_tips?: string[];
-    transportation_options?: {
-      name: string;
-      description: string;
-      cost_range?: string;
-      app_link?: string;
-      app_name?: string;
-    }[];
-    discount_options?: {
-      name: string;
-      description: string;
-      price?: string;
-      link?: string;
-    }[];
-    emergency_info?: {
-      police: string;
-      ambulance: string;
-      tourist_police?: string;
-    };
-  };
-  total_cost_estimate?: {
-    min: number;
-    max: number;
-    currency: string;
-    accommodations?: {
-      min: number;
-      max: number;
-    };
-    food?: {
-      min: number;
-      max: number;
-    };
-    attractions?: {
-      min: number;
-      max: number;
-    };
-    transportation?: {
-      min: number;
-      max: number;
-    };
-    other?: {
-      min: number;
-      max: number;
-    };
-  };
 }
 
 // Animation variants
@@ -1002,34 +537,7 @@ export default function TripResultPage() {
         </motion.div>
         
         {/* Navigation Tabs */}
-        <div className="flex justify-center mb-8">
-          <div className="bg-white rounded-full shadow-md p-1 border border-gray-200 flex">
-            <button 
-              className={`px-6 py-2 rounded-full transition-all font-medium text-sm ${
-                activeTab === 'itinerary' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
-              }`}
-              onClick={() => setActiveTab('itinerary')}
-            >
-              Itinerary
-            </button>
-            <button 
-              className={`px-6 py-2 rounded-full transition-all font-medium text-sm ${
-                activeTab === 'costs' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
-              }`}
-              onClick={() => setActiveTab('costs')}
-            >
-              Cost Breakdown
-            </button>
-            <button 
-              className={`px-6 py-2 rounded-full transition-all font-medium text-sm ${
-                activeTab === 'tips' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
-              }`}
-              onClick={() => setActiveTab('tips')}
-            >
-              Local Tips
-            </button>
-          </div>
-        </div>
+        <NavigationTabs activeTab={activeTab} setActiveTab={setActiveTab} />
         
         {/* Content based on active tab */}
         <div className="mb-12">
@@ -1042,82 +550,16 @@ export default function TripResultPage() {
             >
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {plan.days.map((day, dayIndex) => (
-                  <div key={dayIndex} className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-                    <div className="bg-blue-600 py-3 px-4">
-                      <h2 className="text-white font-bold text-lg">{day.title}</h2>
-                    </div>
-                    
-                    <div className="p-4">
-                      <div className="mb-4">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-500 flex items-center">
-                            <Coins className="h-4 w-4 mr-1" />
-                            Estimated Cost:
-                          </span>
-                          <span className="font-semibold text-blue-700">
-                            {day.day_cost_estimate ? 
-                              `${formatCurrency(day.day_cost_estimate.min)} - ${formatCurrency(day.day_cost_estimate.max)}` : 
-                              'Varies'}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-4">
-                        {day.activities.map((activity, activityIndex) => (
-                          <div 
-                            key={activityIndex}
-                            className="border border-gray-100 rounded-lg p-3 hover:bg-blue-50 hover:border-blue-200 transition-all"
-                          >
-                            <div className="flex justify-between items-start">
-                              {activity.time && (
-                                <span className="text-blue-700 font-bold text-xs bg-blue-50 px-2 py-0.5 rounded">
-                                  {activity.time}
-                                </span>
-                              )}
-                              {activity.cost_estimate && (
-                                <span className="text-gray-700 text-xs font-medium">
-                                  {formatCurrency(activity.cost_estimate.min)} - {formatCurrency(activity.cost_estimate.max)}
-                                </span>
-                              )}
-                            </div>
-                            <div className="mt-2 flex">
-                              <div className="mr-2 mt-0.5">
-                                {getCategoryIcon(activity.place_details?.category)}
-                              </div>
-                              <div className="flex-grow">
-                                <p className="text-sm text-gray-800">{activity.description}</p>
-                                <div className="mt-2 flex space-x-2">
-                                  {activity.place_name_for_lookup && (
-                                    <button
-                                      onClick={() => handlePlaceClick(dayIndex, activityIndex, activity.place_name_for_lookup)}
-                                      className="text-xs text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
-                                    >
-                                      <ImageIcon size={12} /> Details
-                                    </button>
-                                  )}
-                                  <button
-                                    id={`chat-button-${dayIndex}-${activityIndex}`}
-                                    onClick={(e) => handleChatRequest(dayIndex, activityIndex, e.currentTarget)}
-                                    className="text-xs text-green-600 hover:text-green-800 hover:underline flex items-center gap-1"
-                                  >
-                                    <MessageSquare size={12} /> Suggest Alternative
-                                  </button>
-                                  {activity.place_name_for_lookup && (
-                                    <button
-                                      onClick={() => handleOpenInMaps(activity.place_name_for_lookup)}
-                                      className="text-xs text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
-                                    >
-                                      <MapPin size={12} /> View Location
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+                  <DayCard
+                    key={dayIndex}
+                    day={day}
+                    dayIndex={dayIndex}
+                    formatCurrency={formatCurrency}
+                    handlePlaceClick={handlePlaceClick}
+                    handleChatRequest={handleChatRequest}
+                    handleOpenInMaps={handleOpenInMaps}
+                    getCategoryIcon={getCategoryIcon}
+                  />
                 ))}
               </div>
             </motion.div>
@@ -1155,102 +597,56 @@ export default function TripResultPage() {
                   {/* Cost Breakdown Chart */}
                   <div className="p-6">
                     <h3 className="text-lg font-bold text-gray-800 mb-4">Cost Breakdown</h3>
-                    
                     {plan.total_cost_estimate.accommodations && (
-                      <div className="mb-4">
-                        <div className="flex justify-between mb-1">
-                          <span className="text-gray-700 flex items-center">
-                            <Bed className="w-4 h-4 mr-2" /> Accommodations
-                          </span>
-                          <span className="font-medium">
-                            {formatCurrency(plan.total_cost_estimate.accommodations.min)} - {formatCurrency(plan.total_cost_estimate.accommodations.max)}
-                          </span>
-                        </div>
-                        <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-blue-600 rounded-full" 
-                            style={{ width: `${(plan.total_cost_estimate.accommodations.min + plan.total_cost_estimate.accommodations.max) / 2 / plan.total_cost_estimate.max * 100}%` }}
-                          ></div>
-                        </div>
-                      </div>
+                      <CostBreakdownCard
+                        icon={<Bed className="w-4 h-4 mr-2" />}
+                        label="Accommodations"
+                        min={plan.total_cost_estimate.accommodations.min}
+                        max={plan.total_cost_estimate.accommodations.max}
+                        formatCurrency={formatCurrency}
+                        colorClass="bg-blue-600"
+                      />
                     )}
-                    
                     {plan.total_cost_estimate.food && (
-                      <div className="mb-4">
-                        <div className="flex justify-between mb-1">
-                          <span className="text-gray-700 flex items-center">
-                            <Utensils className="w-4 h-4 mr-2" /> Food & Drinks
-                          </span>
-                          <span className="font-medium">
-                            {formatCurrency(plan.total_cost_estimate.food.min)} - {formatCurrency(plan.total_cost_estimate.food.max)}
-                          </span>
-                        </div>
-                        <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-green-600 rounded-full" 
-                            style={{ width: `${(plan.total_cost_estimate.food.min + plan.total_cost_estimate.food.max) / 2 / plan.total_cost_estimate.max * 100}%` }}
-                          ></div>
-                        </div>
-                      </div>
+                      <CostBreakdownCard
+                        icon={<Utensils className="w-4 h-4 mr-2" />}
+                        label="Food & Drinks"
+                        min={plan.total_cost_estimate.food.min}
+                        max={plan.total_cost_estimate.food.max}
+                        formatCurrency={formatCurrency}
+                        colorClass="bg-green-600"
+                      />
                     )}
-                    
                     {plan.total_cost_estimate.attractions && (
-                      <div className="mb-4">
-                        <div className="flex justify-between mb-1">
-                          <span className="text-gray-700 flex items-center">
-                            <TicketIcon className="w-4 h-4 mr-2" /> Attractions & Activities
-                          </span>
-                          <span className="font-medium">
-                            {formatCurrency(plan.total_cost_estimate.attractions.min)} - {formatCurrency(plan.total_cost_estimate.attractions.max)}
-                          </span>
-                        </div>
-                        <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-purple-600 rounded-full" 
-                            style={{ width: `${(plan.total_cost_estimate.attractions.min + plan.total_cost_estimate.attractions.max) / 2 / plan.total_cost_estimate.max * 100}%` }}
-                          ></div>
-                        </div>
-                      </div>
+                      <CostBreakdownCard
+                        icon={<TicketIcon className="w-4 h-4 mr-2" />}
+                        label="Attractions & Activities"
+                        min={plan.total_cost_estimate.attractions.min}
+                        max={plan.total_cost_estimate.attractions.max}
+                        formatCurrency={formatCurrency}
+                        colorClass="bg-purple-600"
+                      />
                     )}
-                    
                     {plan.total_cost_estimate.transportation && (
-                      <div className="mb-4">
-                        <div className="flex justify-between mb-1">
-                          <span className="text-gray-700 flex items-center">
-                            <Bus className="w-4 h-4 mr-2" /> Local Transportation
-                          </span>
-                          <span className="font-medium">
-                            {formatCurrency(plan.total_cost_estimate.transportation.min)} - {formatCurrency(plan.total_cost_estimate.transportation.max)}
-                          </span>
-                        </div>
-                        <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-yellow-500 rounded-full" 
-                            style={{ width: `${(plan.total_cost_estimate.transportation.min + plan.total_cost_estimate.transportation.max) / 2 / plan.total_cost_estimate.max * 100}%` }}
-                          ></div>
-                        </div>
-                      </div>
+                      <CostBreakdownCard
+                        icon={<Bus className="w-4 h-4 mr-2" />}
+                        label="Local Transportation"
+                        min={plan.total_cost_estimate.transportation.min}
+                        max={plan.total_cost_estimate.transportation.max}
+                        formatCurrency={formatCurrency}
+                        colorClass="bg-yellow-500"
+                      />
                     )}
-                    
                     {plan.total_cost_estimate.other && (
-                      <div className="mb-4">
-                        <div className="flex justify-between mb-1">
-                          <span className="text-gray-700 flex items-center">
-                            <ShoppingBag className="w-4 h-4 mr-2" /> Souvenirs & Miscellaneous
-                          </span>
-                          <span className="font-medium">
-                            {formatCurrency(plan.total_cost_estimate.other.min)} - {formatCurrency(plan.total_cost_estimate.other.max)}
-                          </span>
-                        </div>
-                        <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-red-500 rounded-full" 
-                            style={{ width: `${(plan.total_cost_estimate.other.min + plan.total_cost_estimate.other.max) / 2 / plan.total_cost_estimate.max * 100}%` }}
-                          ></div>
-                        </div>
-                      </div>
+                      <CostBreakdownCard
+                        icon={<ShoppingBag className="w-4 h-4 mr-2" />}
+                        label="Souvenirs & Miscellaneous"
+                        min={plan.total_cost_estimate.other.min}
+                        max={plan.total_cost_estimate.other.max}
+                        formatCurrency={formatCurrency}
+                        colorClass="bg-red-500"
+                      />
                     )}
-                    
                     <div className="mt-8 p-4 bg-blue-50 rounded-lg">
                       <h4 className="font-medium text-blue-800 flex items-center mb-2">
                         <Info className="w-4 h-4 mr-2" /> About These Estimates
