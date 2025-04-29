@@ -553,7 +553,7 @@ export default function TripResultPage() {
   const [chatLoading, setChatLoading] = useState(false);
   const [chatDayIdx, setChatDayIdx] = useState<number|null>(null);
   const [chatActIdx, setChatActIdx] = useState<number|null>(null);
-  const [chatAnchor, setChatAnchor] = useState<React.RefObject<HTMLButtonElement | null> | null>(null);
+  const chatAnchor = useRef<HTMLButtonElement | null>(null);
   
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -758,66 +758,66 @@ export default function TripResultPage() {
     });
   };
 
-  // Function to handle location click and fetch place details
+  // פונקציה ליצירת מחרוזת חיפוש מלאה (מקום + עיר + מדינה) - עכשיו בתוך הקומפוננטה
+  function getFullPlaceQuery(placeName: string | null | undefined) {
+    if (!placeName) return '';
+    const city = plan?.destination_info?.city || '';
+    const country = plan?.destination_info?.country || '';
+    return [placeName, city, country].filter(Boolean).join(' ');
+  }
+
+  // עדכון handleOpenInMaps
+  const handleOpenInMaps = useCallback((placeNameLookup: string | null | undefined) => {
+    const fullQuery = getFullPlaceQuery(placeNameLookup);
+    if (!fullQuery) {
+      console.log("No place name provided for map lookup.");
+      toast.info("Location information not available for this activity.", { autoClose: 2000 });
+      return;
+    }
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullQuery)}`;
+    window.open(googleMapsUrl, '_blank');
+  }, [plan]);
+
+  // עדכון handlePlaceClick
   const handlePlaceClick = useCallback(async (dayIndex: number, activityIndex: number, placeNameLookup: string | null | undefined) => {
-    // Check if there's a place name to look up
-    if (!placeNameLookup) {
+    const fullQuery = getFullPlaceQuery(placeNameLookup);
+    if (!fullQuery) {
       console.log("No place name provided for lookup for this activity.");
       toast.info("Detailed information not available for this activity.", { autoClose: 2000 });
       return;
     }
-
     const key = `${dayIndex}-${activityIndex}`;
-    setActivePopupQuery(placeNameLookup);
-    
-    // If we already have the details, just show the popup
+    setActivePopupQuery(fullQuery);
     if (placeDetails[key] && placeDetails[key] !== 'error') {
-      console.log(`Details for '${placeNameLookup}' (key: ${key}) already available or loading.`);
       setActivePopupKey(key);
       return;
     }
-
-    console.log(`Fetching details for: "${placeNameLookup}" (key: ${key}`);
     setPlaceDetails(prev => ({ ...prev, [key]: 'loading' }));
     setActivePopupKey(key);
-
-    // Construct the URL with query parameters
     const url = new URL(`${API_BASE}/api/place-details/`);
-    url.searchParams.append('query', placeNameLookup);
-
+    url.searchParams.append('query', fullQuery);
     try {
       const response = await fetch(url.toString());
-
       if (!response.ok) {
         if (response.status === 404) {
-          console.warn(`[fetchPlaceDetails Error] Place not found (404) for query: ${placeNameLookup}`);
-          toast.error(`Place details not found for "${placeNameLookup}" on Google Maps.`);
+          toast.error(`Place details not found for "${fullQuery}" on Google Maps.`);
         } else {
-          console.error(`[fetchPlaceDetails Error] HTTP error ${response.status}: ${response.statusText}`);
           let serverErrorMessage = `HTTP error ${response.status}`;
           try {
             const errorBody = await response.json();
             serverErrorMessage = errorBody?.error || errorBody?.message || serverErrorMessage;
-          } catch (parseError) {
-            // Ignore if error body isn't valid JSON
-          }
+          } catch (parseError) {}
           toast.error(`Failed to get details: ${serverErrorMessage}`);
         }
         throw new Error(`HTTP error ${response.status}`);
       }
-
       const data: PlaceDetailsData = await response.json();
-
       if (!data || typeof data !== 'object' || !data.name) {
-        console.error("[fetchPlaceDetails Error] Invalid data received from API:", data);
         throw new Error("Invalid data format received from server.");
       }
-
       setPlaceDetails(prev => ({ ...prev, [key]: data }));
     } catch (err) {
-      console.error(`[fetchPlaceDetails Error] Failed for query "${placeNameLookup}":`, err);
       setPlaceDetails(prev => ({ ...prev, [key]: 'error' }));
-
       if (err instanceof Error && !toast.isActive(`error-${key}`)) {
         if (err.message.includes("Failed to fetch")) {
           toast.error(`Network error. Could not connect to the server.`, { toastId: `error-${key}`});
@@ -828,19 +828,7 @@ export default function TripResultPage() {
         toast.error('An unexpected and unknown error occurred.', { toastId: `error-${key}`});
       }
     }
-  }, [placeDetails, setActivePopupKey, setActivePopupQuery, API_BASE]);
-
-  const handleOpenInMaps = useCallback((placeNameLookup: string | null | undefined) => {
-    if (!placeNameLookup) {
-      console.log("No place name provided for map lookup.");
-      toast.info("Location information not available for this activity.", { autoClose: 2000 });
-      return;
-    }
-
-    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(placeNameLookup)}`;
-    
-    window.open(googleMapsUrl, '_blank');
-  }, []);
+  }, [plan, placeDetails, setActivePopupKey, setActivePopupQuery, API_BASE]);
 
   // Function to handle closing the place details popup
   const handleClosePopup = useCallback(() => {
@@ -852,7 +840,7 @@ export default function TripResultPage() {
   const handleChatRequest = useCallback((dayIndex: number, activityIndex: number, buttonRef: HTMLButtonElement) => {
     setChatDayIdx(dayIndex);
     setChatActIdx(activityIndex);
-    setChatAnchor({ current: buttonRef });
+    chatAnchor.current = buttonRef;
     setChatOpen(true);
   }, []);
 
