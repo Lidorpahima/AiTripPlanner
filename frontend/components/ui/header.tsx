@@ -1,87 +1,192 @@
 'use client';
+import { useState, useEffect } from 'react';
 import Link from "next/link";
 import Logo from "./logo";
 import { useAuth } from "@/app/(auth)/context/AuthContext";
+import { motion, AnimatePresence } from "framer-motion";
+import { User, LogOut, LogIn, UserPlus, Plane, LayoutList, Menu, X } from "lucide-react";
 
 export default function Header() {
   const { isAuthenticated, logout, isLoading } = useAuth();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setMobileNavOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (mobileNavOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileNavOpen]);
+
+  const navLinkClasses = "relative group text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md transition-colors duration-150 ease-in-out flex items-center gap-1.5";
+  const mobileNavLinkClasses = "text-lg font-medium text-gray-700 hover:text-blue-600 py-2 flex items-center gap-2";
+  const actionButtonClasses = "btn-sm text-gray-700 bg-white hover:bg-gray-100 shadow-sm border border-gray-200 transition-all duration-150 ease-in-out flex items-center gap-1.5";
+  const primaryButtonClasses = "btn-sm bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md hover:shadow-lg hover:scale-[1.03] transition-all duration-200 ease-in-out flex items-center gap-1.5";
+  const logoutButtonClasses = "btn-sm text-red-600 bg-white hover:bg-red-50 border border-red-200 shadow-sm transition-all duration-150 ease-in-out flex items-center gap-1.5";
+
+  const headerMotionProps = {
+    initial: { opacity: 0, y: -20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.5, ease: "easeOut" },
+  };
+
+  const itemMotionProps = {
+    whileHover: { scale: 1.05 },
+    whileTap: { scale: 0.95 },
+  };
+
+  const mobileNavMotionProps = {
+    initial: { opacity: 0, y: -20 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -20 },
+    transition: { duration: 0.3, ease: "easeInOut" },
+  };
 
   return (
-    <header className="fixed top-2 z-30 w-full md:top-6">
+    <motion.header 
+      className="fixed top-3 z-50 w-full sm:top-4 md:top-5"
+      {...headerMotionProps}
+    >
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="relative flex h-14 items-center justify-between gap-3 rounded-2xl bg-white/90 px-3 shadow-lg shadow-black/[0.03] backdrop-blur-xs before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:border before:border-transparent before:[background:linear-gradient(var(--color-gray-100),var(--color-gray-200))_border-box] before:[mask-composite:exclude_!important] before:[mask:linear-gradient(white_0_0)_padding-box,_linear-gradient(white_0_0)]">
-          {/* Site branding */}
-          <div className="flex items-center"> {/* Removed flex-1 */}
-            <Logo />
+        <div className="relative flex h-14 items-center justify-between gap-4 rounded-full bg-white/90 px-4 shadow-lg shadow-black/[0.07] backdrop-blur-xl border border-white/50">
+          
+          <div className="flex-shrink-0">
+            <Link href="/" aria-label="Home">
+              <Logo />
+            </Link>
           </div>
 
-          {/* Desktop sign in links */}
-          <ul className="flex items-center justify-end gap-3">
-            {
-              isLoading ? (
-                // Placeholder while loading auth state
-                <li className="h-8 w-20 animate-pulse rounded bg-gray-200"></li>
-              ) : isAuthenticated ? (
-                // User is logged in - Show Logout button
-                <>
-                <li>
-                    <Link
-                      href="/profile"
-                      className="text-sm font-medium text-gray-700 hover:text-gray-900"
-                    >
-                      Profile
-                    </Link>
-                </li>
-                <li>
-                    <Link
-                      href="/mytrips"
-                      className="text-sm font-medium text-gray-700 hover:text-gray-900"
-                    >
-                      My Trips
-                    </Link>
-                </li>
-                <li>
-                    <Link
-                      href="/fastplan"
-                      className="btn-sm bg-blue-600 text-white shadow-sm hover:bg-blue-700"
-                    >
-                      Plan a Trip
-                    </Link>
-                </li>
-                <li>
-                    <button
-                      onClick={logout} // Call the logout function from context
-                      className="btn-sm bg-red-600 text-white shadow-sm hover:bg-red-700"
-                    >
-                      Logout
-                    </button>
-                </li>
-                </>
-              ) : (
-                // User is not logged in - Show Login and Register links
-                <> {/* Use Fragment to group multiple list items */}
-                  <li>
-                    <Link
-                      href="/signin"
-                      className="btn-sm bg-white text-gray-800 shadow-sm hover:bg-gray-50"
-                    >
-                      Login
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/signup"
-                      className="btn-sm bg-gray-800 text-gray-200 shadow-sm hover:bg-gray-900"
-                    >
-                      Register
-                    </Link>
-                  </li>
-                </>
-              )
-            }
-          </ul>
+          <nav className="hidden md:flex md:flex-grow md:justify-center">
+            <ul className="flex flex-wrap items-center justify-center gap-1">
+              <motion.li {...itemMotionProps}>
+                <Link href="/" className={navLinkClasses}>
+                  Home
+                  <span className="absolute bottom-0.5 left-0 h-0.5 w-full bg-blue-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out origin-left"></span>
+                </Link>
+              </motion.li>
+              <motion.li {...itemMotionProps}>
+                <Link href="/about" className={navLinkClasses}>
+                  About
+                  <span className="absolute bottom-0.5 left-0 h-0.5 w-full bg-blue-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out origin-left"></span>
+                </Link>
+              </motion.li>
+              <motion.li {...itemMotionProps}>
+                <Link href="/blog" className={navLinkClasses}>
+                  Blog
+                  <span className="absolute bottom-0.5 left-0 h-0.5 w-full bg-blue-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out origin-left"></span>
+                </Link>
+              </motion.li>
+            </ul>
+          </nav>
+
+          <div className="flex flex-shrink-0 items-center justify-end">
+            <ul className="hidden md:flex items-center justify-end gap-2 sm:gap-3">
+              {
+                isLoading ? (
+                  <li className="h-8 w-20 animate-pulse rounded-full bg-gray-200"></li>
+                ) : isAuthenticated ? (
+                  <>
+                    <motion.li {...itemMotionProps}>
+                      <Link href="/profile" className={navLinkClasses}>
+                        <User size={16} /> Profile
+                      </Link>
+                    </motion.li>
+                    <motion.li {...itemMotionProps}>
+                      <Link href="/mytrips" className={navLinkClasses}>
+                        <LayoutList size={16} /> My Trips
+                      </Link>
+                    </motion.li>
+                    <motion.li {...itemMotionProps}>
+                      <Link href="/fastplan" className={primaryButtonClasses}>
+                        <Plane size={16} /> Plan a Trip
+                      </Link>
+                    </motion.li>
+                    <motion.li {...itemMotionProps}>
+                      <button onClick={logout} className={logoutButtonClasses}>
+                        <LogOut size={16} /> Sign Out
+                      </button>
+                    </motion.li>
+                  </>
+                ) : (
+                  <>
+                    <motion.li {...itemMotionProps}>
+                      <Link href="/signin" className={actionButtonClasses}>
+                        <LogIn size={16} /> Sign In
+                      </Link>
+                    </motion.li>
+                    <motion.li {...itemMotionProps}>
+                      <Link href="/signup" className={primaryButtonClasses}>
+                        <UserPlus size={16} /> Sign Up Free
+                      </Link>
+                    </motion.li>
+                  </>
+                )
+              }
+            </ul>
+
+            <div className="flex md:hidden ml-3">
+              <button 
+                onClick={() => setMobileNavOpen(!mobileNavOpen)}
+                className="inline-flex items-center justify-center rounded-md p-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                aria-controls="mobile-menu"
+                aria-expanded={mobileNavOpen}
+              >
+                <span className="sr-only">Open main menu</span>
+                {mobileNavOpen ? <X className="block h-6 w-6" aria-hidden="true" /> : <Menu className="block h-6 w-6" aria-hidden="true" />}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-    </header>
+
+      <AnimatePresence>
+        {mobileNavOpen && (
+          <motion.div 
+            id="mobile-menu"
+            className="absolute inset-x-0 top-full mt-2 mx-4 rounded-xl shadow-xl bg-white p-6 border border-gray-200 md:hidden"
+            {...mobileNavMotionProps}
+          >
+            <nav className="flex flex-col space-y-4">
+              <Link href="/" className={mobileNavLinkClasses} onClick={() => setMobileNavOpen(false)}>Home</Link>
+              <Link href="/about" className={mobileNavLinkClasses} onClick={() => setMobileNavOpen(false)}>About</Link>
+              <Link href="/blog" className={mobileNavLinkClasses} onClick={() => setMobileNavOpen(false)}>Blog</Link>
+              
+              <hr className="my-4 border-gray-200" />
+
+              {
+                isLoading ? (
+                  <div className="h-8 w-full animate-pulse rounded bg-gray-200"></div>
+                ) : isAuthenticated ? (
+                  <>
+                    <Link href="/profile" className={mobileNavLinkClasses} onClick={() => setMobileNavOpen(false)}><User size={18} /> Profile</Link>
+                    <Link href="/mytrips" className={mobileNavLinkClasses} onClick={() => setMobileNavOpen(false)}><LayoutList size={18} /> My Trips</Link>
+                    <Link href="/fastplan" className={`${primaryButtonClasses} w-full justify-center mt-2`} onClick={() => setMobileNavOpen(false)}><Plane size={16} /> Plan a Trip</Link>
+                    <button onClick={() => { logout(); setMobileNavOpen(false); }} className={`${logoutButtonClasses} w-full justify-center mt-2`}><LogOut size={16} /> Sign Out</button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/signin" className={`${actionButtonClasses} w-full justify-center`} onClick={() => setMobileNavOpen(false)}><LogIn size={16} /> Sign In</Link>
+                    <Link href="/signup" className={`${primaryButtonClasses} w-full justify-center mt-2`} onClick={() => setMobileNavOpen(false)}><UserPlus size={16} /> Sign Up Free</Link>
+                  </>
+                )
+              }
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.header>
   );
 }

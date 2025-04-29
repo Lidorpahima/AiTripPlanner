@@ -71,7 +71,7 @@ export default function Footer({ border = true, showBigText = true }: FooterProp
           </div>
 
           {/* 4th block (Connect) */}
-          <div className="space-y-2 sm:col-span-12 md:col-span-3 lg:col-span-4 lg:justify-self-end">
+          <div className="space-y-2 sm:col-span-12 md:col-span-3 lg:col-span-4 lg:justify-self-start">
             <h3 className="text-sm font-medium">Connect</h3>
             <ul className="flex gap-3">
               <li>
