@@ -1,5 +1,5 @@
 import React from "react";
-import ActivityCard from "@/components/ActivityCard";
+import ActivityCard from "./ActivityCard"; // Corrected import path
 import { Coins } from "lucide-react";
 import { Activity, DayPlan } from "@/constants/planTypes";
 
