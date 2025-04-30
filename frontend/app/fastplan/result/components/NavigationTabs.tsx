@@ -7,7 +7,7 @@ interface NavigationTabsProps {
 
 const NavigationTabs: React.FC<NavigationTabsProps> = ({ activeTab, setActiveTab }) => {
   return (
-    <div className="flex justify-center mb-8">
+    <div className="flex justify-center mb-8 mt-10">
       <div className="bg-white rounded-full shadow-md p-1 border border-gray-200 flex">
         <button
           className={`px-6 py-2 rounded-full transition-all font-medium text-sm ${

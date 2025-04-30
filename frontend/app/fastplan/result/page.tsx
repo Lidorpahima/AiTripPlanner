@@ -1,51 +1,29 @@
 'use client';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
+import { Star, Coffee, Utensils, Bed, Landmark, ShoppingBag, Bus } from 'lucide-react';
+
+// Component imports
 import TripItinerary from "./components/Tripltinerary"; 
 import PlaceDetailsPopup from "./components/PlaceDetailsPopup";
-import ShareButton from "./components/ShareButton";
-import ChatBubble from "./components/ChatBubble";
-import ActivityCard from "./components/ActivityCard";
-import DayCard from "./components/DayCard";
 import NavigationTabs from "./components/NavigationTabs";
-import CostBreakdownCard from "./components/CostBreakdownCard";
-import { toast } from "react-toastify";
-import { motion } from 'framer-motion';
-import Image from 'next/image';
-import { Clock, Coins, Star, DollarSign, Bus, Map, Calendar, CalendarCheck, Wallet, TicketIcon, Utensils, Coffee, Bed, Car, Train, Plane, Info, ShoppingBag, Gift, Navigation, Globe, ScrollText, Landmark, Share2, Copy, Mail, MessageCircle, X, ChevronLeft, ChevronRight, ImageIcon, MapPin, Phone, MessageSquare } from 'lucide-react';
-import { Dialog } from '@headlessui/react';
-import { Activity, DayPlan, PlaceDetailsData, TripPlan, OriginalRequestData, Review } from "@/constants/planTypes";
+import HeroSection from "./components/HeroSection";
+import TripStats from "./components/TripStats";
+import ItineraryTab from "./components/ItineraryTab";
+import CostsTab from "./components/CostsTab";
+import TipsTab from "@/components/TipsTab";
+import LoadingDisplay from "./components/LoadingDisplay";
+import ErrorDisplay from "./components/ErrorDisplay";
+import ChatBubble from "./components/ChatBubble";
 
-// Function to format the itinerary text - copied from TripItinerary
-function formatPlanText(plan: TripPlan): string {
-    let text = `🗓️ Trip Plan\n`;
-    text += plan.summary + "\n\n";
-    plan.days.forEach((day, i) => {
-        text += `Day ${i + 1}: ${day.title}\n`;
-        day.activities.forEach((act, j) => {
-            text += `  - ${act.time ? act.time + ' | ' : ''}${act.description}\n`;
-        });
-        text += "\n";
-    });
-    return text.trim();
-}
+// Types import
+import { Activity, PlaceDetailsData, TripPlan, OriginalRequestData } from "@/constants/planTypes";
 
-// Animation variants
-const fadeIn = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.6 } }
-};
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
-};
-
-// Helper function to format currency - always use USD
+// Helper function to format currency
 const formatCurrency = (amount: number, currency: string = 'USD') => {
   // Always use USD for consistency regardless of the passed currency parameter
   return new Intl.NumberFormat('en-US', {
@@ -93,6 +71,7 @@ export default function TripResultPage() {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Load trip data from session storage
   useEffect(() => {
     const storedPlan = sessionStorage.getItem("fastplan_result");
     const storedRequest = sessionStorage.getItem("fastplan_request");
@@ -151,14 +130,11 @@ export default function TripResultPage() {
           router.push("/fastplan");
         }, 2000);
     }
-  }, [router]); 
+  }, [router, loadingError]); 
 
   // Function to enhance plan data with cost estimates if not already present
   const enhancePlanWithEstimates = (planData: TripPlan) => {
-    // This is a placeholder function that would normally interact with an API
-    // In a real implementation, we'd call the backend for actual estimates
-    
-    // If the plan already has cost data, don't modify it
+    // Don't modify if already has cost data
     if (planData.total_cost_estimate) return;
     
     // Add destination information if missing
@@ -255,8 +231,6 @@ export default function TripResultPage() {
     // Add daily cost estimates if missing
     planData.days.forEach(day => {
       if (!day.day_cost_estimate) {
-        // Calculate based on number of activities and their types
-        const activityCount = day.activities.length;
         const totalDailyCost = planData.total_cost_estimate!.min / planData.days.length;
         
         day.day_cost_estimate = {
@@ -269,7 +243,6 @@ export default function TripResultPage() {
       // Add cost estimates to individual activities if missing
       day.activities.forEach(activity => {
         if (!activity.cost_estimate) {
-          // Estimate based on description
           const description = activity.description.toLowerCase();
           let costFactor = 1;
           
@@ -293,7 +266,7 @@ export default function TripResultPage() {
     });
   };
 
-  // פונקציה ליצירת מחרוזת חיפוש מלאה (מקום + עיר + מדינה) - עכשיו בתוך הקומפוננטה
+  // Function to create full search query for a place
   function getFullPlaceQuery(placeName: string | null | undefined) {
     if (!placeName) return '';
     const city = plan?.destination_info?.city || '';
@@ -301,7 +274,7 @@ export default function TripResultPage() {
     return [placeName, city, country].filter(Boolean).join(' ');
   }
 
-  // עדכון handleOpenInMaps
+  // Handler to open location in maps
   const handleOpenInMaps = useCallback((placeNameLookup: string | null | undefined) => {
     const fullQuery = getFullPlaceQuery(placeNameLookup);
     if (!fullQuery) {
@@ -313,7 +286,7 @@ export default function TripResultPage() {
     window.open(googleMapsUrl, '_blank');
   }, [plan]);
 
-  // עדכון handlePlaceClick
+  // Handler for place details popup
   const handlePlaceClick = useCallback(async (dayIndex: number, activityIndex: number, placeNameLookup: string | null | undefined) => {
     const fullQuery = getFullPlaceQuery(placeNameLookup);
     if (!fullQuery) {
@@ -363,7 +336,7 @@ export default function TripResultPage() {
         toast.error('An unexpected and unknown error occurred.', { toastId: `error-${key}`});
       }
     }
-  }, [plan, placeDetails, setActivePopupKey, setActivePopupQuery, API_BASE]);
+  }, [plan, placeDetails, API_BASE]);
 
   // Function to handle closing the place details popup
   const handleClosePopup = useCallback(() => {
@@ -430,111 +403,28 @@ export default function TripResultPage() {
     }
   };
 
+  // Show loading state
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col items-center justify-center p-4">
-        <div className="w-24 h-24 mb-8 relative">
-          <div className="absolute inset-0 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin"></div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Globe className="h-12 w-12 text-blue-600" />
-          </div>
-        </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Finalizing Your Trip</h2>
-        <p className="text-gray-600 text-center max-w-md">
-          Creating your personalized travel experience with all the details and cost estimates...
-        </p>
-      </div>
-    );
+    return <LoadingDisplay />;
   }
 
+  // Show error state
   if (loadingError || !plan || !originalRequest) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col items-center justify-center p-4">
-        <div className="bg-white rounded-xl p-8 shadow-xl max-w-md w-full text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
-            <Info className="h-8 w-8 text-red-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Error Loading Trip Data</h2>
-          <p className="text-gray-600 mb-6">{loadingError || "Could not find complete trip information."}</p>
-          <button
-            onClick={() => router.push("/fastplan")}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-2 px-6 rounded-full shadow-lg transition duration-300"
-          >
-            Plan a New Trip
-          </button>
-        </div>
-      </div>
-    );
+    return <ErrorDisplay errorMessage={loadingError} />;
   }
-
-  const startDate = originalRequest.startDate ? new Date(originalRequest.startDate) : null;
-  const endDate = originalRequest.endDate ? new Date(originalRequest.endDate) : null;
-  const formattedStartDate = startDate ? startDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'Not specified';
-  const formattedEndDate = endDate ? endDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'Not specified';
-  const duration = startDate && endDate ? Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) : plan.days.length;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white" ref={containerRef}>
       <div className="max-w-7xl mx-auto px-4 pt-8 pb-20">
         {/* Hero Section */}
-        <motion.div 
-          variants={fadeIn}
-          initial="hidden"
-          animate="visible"
-          className="flex flex-col items-center text-center mb-8"
-        >
-          <div className="flex items-center justify-center gap-2">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
-              Your {plan.destination_info?.city || originalRequest.destination.split(',')[0]} Adventure
-            </h1>
-            {plan && <ShareButton plan={plan} />}
-          </div>
-          <p className="text-xl text-gray-600 max-w-3xl">
-            {plan.summary}
-          </p>
-          
-          {/* Trip Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 w-full max-w-4xl">
-            <motion.div 
-              variants={fadeInUp}
-              className="bg-white rounded-xl p-4 shadow-md border border-gray-100 flex flex-col items-center"
-            >
-              <Calendar className="h-8 w-8 text-blue-600 mb-2" />
-              <h3 className="font-medium text-gray-500 text-sm">Start Date</h3>
-              <p className="font-semibold">{formattedStartDate}</p>
-            </motion.div>
-            
-            <motion.div 
-              variants={fadeInUp}
-              className="bg-white rounded-xl p-4 shadow-md border border-gray-100 flex flex-col items-center"
-            >
-              <CalendarCheck className="h-8 w-8 text-blue-600 mb-2" />
-              <h3 className="font-medium text-gray-500 text-sm">End Date</h3>
-              <p className="font-semibold">{formattedEndDate}</p>
-            </motion.div>
-            
-            <motion.div 
-              variants={fadeInUp}
-              className="bg-white rounded-xl p-4 shadow-md border border-gray-100 flex flex-col items-center"
-            >
-              <Clock className="h-8 w-8 text-blue-600 mb-2" />
-              <h3 className="font-medium text-gray-500 text-sm">Duration</h3>
-              <p className="font-semibold">{duration} Days</p>
-            </motion.div>
-            
-            <motion.div 
-              variants={fadeInUp}
-              className="bg-white rounded-xl p-4 shadow-md border border-gray-100 flex flex-col items-center"
-            >
-              <Wallet className="h-8 w-8 text-blue-600 mb-2" />
-              <h3 className="font-medium text-gray-500 text-sm">Budget Range</h3>
-              <p className="font-semibold">
-                {plan.total_cost_estimate ? 
-                  `${formatCurrency(plan.total_cost_estimate.min)} - ${formatCurrency(plan.total_cost_estimate.max)}` : 'Not available'}
-              </p>
-            </motion.div>
-          </div>
-        </motion.div>
+        <HeroSection plan={plan} originalRequest={originalRequest} />
+        
+        {/* Trip Stats Cards */}
+        <TripStats 
+          plan={plan} 
+          originalRequest={originalRequest}
+          formatCurrency={formatCurrency}
+        />
         
         {/* Navigation Tabs */}
         <NavigationTabs activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -543,303 +433,31 @@ export default function TripResultPage() {
         <div className="mb-12">
           {/* Itinerary Tab */}
           {activeTab === 'itinerary' && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4 }}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {plan.days.map((day, dayIndex) => (
-                  <DayCard
-                    key={dayIndex}
-                    day={day}
-                    dayIndex={dayIndex}
-                    formatCurrency={formatCurrency}
-                    handlePlaceClick={handlePlaceClick}
-                    handleChatRequest={handleChatRequest}
-                    handleOpenInMaps={handleOpenInMaps}
-                    getCategoryIcon={getCategoryIcon}
-                  />
-                ))}
-              </div>
-            </motion.div>
+            <ItineraryTab 
+              plan={plan}
+              formatCurrency={formatCurrency}
+              handlePlaceClick={handlePlaceClick}
+              handleChatRequest={handleChatRequest}
+              handleOpenInMaps={handleOpenInMaps}
+              getCategoryIcon={getCategoryIcon}
+            />
           )}
           
           {/* Cost Breakdown Tab */}
           {activeTab === 'costs' && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4 }}
-              className="max-w-4xl mx-auto"
-            >
-              {plan.total_cost_estimate && (
-                <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-                  <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
-                    <h2 className="text-2xl font-bold mb-2">Trip Budget Estimate</h2>
-                    <p className="opacity-90">
-                      Estimated total cost for your {duration}-day trip to {originalRequest.destination.split(',')[0]}
-                    </p>
-                    <div className="mt-4 flex items-baseline">
-                      <span className="text-4xl font-bold mr-2">
-                        {formatCurrency(plan.total_cost_estimate.min)}
-                      </span>
-                      <span className="text-xl">to</span>
-                      <span className="text-4xl font-bold ml-2">
-                        {formatCurrency(plan.total_cost_estimate.max)}
-                      </span>
-                    </div>
-                    <p className="text-sm mt-2 opacity-80">
-                      Based on a {originalRequest.budget || 'Mid-range'} budget for {duration} days
-                    </p>
-                  </div>
-                  
-                  {/* Cost Breakdown Chart */}
-                  <div className="p-6">
-                    <h3 className="text-lg font-bold text-gray-800 mb-4">Cost Breakdown</h3>
-                    {plan.total_cost_estimate.accommodations && (
-                      <CostBreakdownCard
-                        icon={<Bed className="w-4 h-4 mr-2" />}
-                        label="Accommodations"
-                        min={plan.total_cost_estimate.accommodations.min}
-                        max={plan.total_cost_estimate.accommodations.max}
-                        formatCurrency={formatCurrency}
-                        colorClass="bg-blue-600"
-                      />
-                    )}
-                    {plan.total_cost_estimate.food && (
-                      <CostBreakdownCard
-                        icon={<Utensils className="w-4 h-4 mr-2" />}
-                        label="Food & Drinks"
-                        min={plan.total_cost_estimate.food.min}
-                        max={plan.total_cost_estimate.food.max}
-                        formatCurrency={formatCurrency}
-                        colorClass="bg-green-600"
-                      />
-                    )}
-                    {plan.total_cost_estimate.attractions && (
-                      <CostBreakdownCard
-                        icon={<TicketIcon className="w-4 h-4 mr-2" />}
-                        label="Attractions & Activities"
-                        min={plan.total_cost_estimate.attractions.min}
-                        max={plan.total_cost_estimate.attractions.max}
-                        formatCurrency={formatCurrency}
-                        colorClass="bg-purple-600"
-                      />
-                    )}
-                    {plan.total_cost_estimate.transportation && (
-                      <CostBreakdownCard
-                        icon={<Bus className="w-4 h-4 mr-2" />}
-                        label="Local Transportation"
-                        min={plan.total_cost_estimate.transportation.min}
-                        max={plan.total_cost_estimate.transportation.max}
-                        formatCurrency={formatCurrency}
-                        colorClass="bg-yellow-500"
-                      />
-                    )}
-                    {plan.total_cost_estimate.other && (
-                      <CostBreakdownCard
-                        icon={<ShoppingBag className="w-4 h-4 mr-2" />}
-                        label="Souvenirs & Miscellaneous"
-                        min={plan.total_cost_estimate.other.min}
-                        max={plan.total_cost_estimate.other.max}
-                        formatCurrency={formatCurrency}
-                        colorClass="bg-red-500"
-                      />
-                    )}
-                    <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-                      <h4 className="font-medium text-blue-800 flex items-center mb-2">
-                        <Info className="w-4 h-4 mr-2" /> About These Estimates
-                      </h4>
-                      <p className="text-sm text-blue-700">
-                        These estimates are based on average prices for a {originalRequest.budget || 'Mid-range'} budget in {originalRequest.destination}. 
-                        Actual costs may vary based on seasonality, specific venues, and personal preferences. All figures are in {plan.total_cost_estimate.currency}.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {/* Discount Passes Section */}
-              {plan.destination_info?.discount_options && plan.destination_info.discount_options.length > 0 && (
-                <div className="mt-8">
-                  <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                    <Gift className="w-5 h-5 mr-2 text-green-600" /> 
-                    Money-Saving Passes & Discounts
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {plan.destination_info.discount_options.map((option, index) => (
-                      <div 
-                        key={index}
-                        className="bg-white border border-green-100 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
-                      >
-                        <h4 className="text-lg font-semibold text-green-700 mb-1">{option.name}</h4>
-                        <p className="text-sm text-gray-600 mb-2">{option.description}</p>
-                        {option.price && (
-                          <p className="text-sm font-medium">Approximate cost: {option.price}</p>
-                        )}
-                        {option.link && (
-                          <a 
-                            href={option.link} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-600 hover:underline mt-2 inline-block"
-                          >
-                            Learn more →
-                          </a>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </motion.div>
+            <CostsTab 
+              plan={plan}
+              originalRequest={originalRequest}
+              formatCurrency={formatCurrency}
+            />
           )}
           
           {/* Local Tips Tab */}
           {activeTab === 'tips' && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4 }}
-              className="max-w-4xl mx-auto"
-            >
-              {/* Transportation Options */}
-              <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 mb-8">
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                    <Navigation className="w-5 h-5 mr-2 text-blue-600" /> 
-                    Getting Around {plan.destination_info?.city || originalRequest.destination.split(',')[0]}
-                  </h3>
-                  
-                  <div className="space-y-4">
-                    {plan.destination_info?.transportation_options?.map((option, index) => (
-                      <div 
-                        key={index}
-                        className="border-b border-gray-100 last:border-0 pb-4 last:pb-0"
-                      >
-                        <div className="flex justify-between items-start">
-                          <h4 className="text-lg font-medium text-gray-800">{option.name}</h4>
-                          {option.cost_range && (
-                            <span className="text-sm bg-blue-50 text-blue-700 px-2 py-1 rounded font-medium">
-                              {option.cost_range}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600 mt-1">{option.description}</p>
-                        
-                        {option.app_name && (
-                          <div className="mt-2 flex items-center text-sm">
-                            <span className="text-gray-600 mr-2">Recommended app:</span>
-                            {option.app_link ? (
-                              <a 
-                                href={option.app_link} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline font-medium"
-                              >
-                                {option.app_name}
-                              </a>
-                            ) : (
-                              <span className="font-medium">{option.app_name}</span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                    
-                    {(!plan.destination_info?.transportation_options || 
-                      plan.destination_info.transportation_options.length === 0) && (
-                        <p className="text-gray-500 italic">Transportation information not available for this destination.</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-              
-              {/* Budget Tips */}
-              <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 mb-8">
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                    <DollarSign className="w-5 h-5 mr-2 text-green-600" /> 
-                    Money-Saving Tips
-                  </h3>
-                  
-                  {plan.destination_info?.budget_tips && plan.destination_info.budget_tips.length > 0 ? (
-                    <ul className="space-y-2">
-                      {plan.destination_info.budget_tips.map((tip, index) => (
-                        <li key={index} className="flex items-start">
-                          <span className="text-green-500 font-bold mr-2">•</span>
-                          <span className="text-gray-700">{tip}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-gray-500 italic">Budget tips not available for this destination.</p>
-                  )}
-                </div>
-              </div>
-              
-              {/* Destination Info */}
-              <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                    <Globe className="w-5 h-5 mr-2 text-indigo-600" /> 
-                    Useful Information
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {plan.destination_info && (
-                      <>
-                        <div>
-                          <h4 className="font-medium text-gray-700 mb-2">Country</h4>
-                          <p className="text-gray-900">{plan.destination_info.country || 'Not specified'}</p>
-                        </div>
-                        
-                        <div>
-                          <h4 className="font-medium text-gray-700 mb-2">City</h4>
-                          <p className="text-gray-900">{plan.destination_info.city || originalRequest.destination.split(',')[0]}</p>
-                        </div>
-                        
-                        <div>
-                          <h4 className="font-medium text-gray-700 mb-2">Local Language</h4>
-                          <p className="text-gray-900">{plan.destination_info.language || 'Not specified'}</p>
-                        </div>
-                        
-                        <div>
-                          <h4 className="font-medium text-gray-700 mb-2">Currency</h4>
-                          <p className="text-gray-900">{plan.destination_info.currency || 'Not specified'}</p>
-                        </div>
-                        
-                        {plan.destination_info.exchange_rate && (
-                          <div>
-                            <h4 className="font-medium text-gray-700 mb-2">Exchange Rate</h4>
-                            <p className="text-gray-900">1 USD = {plan.destination_info.exchange_rate} {plan.destination_info.currency}</p>
-                          </div>
-                        )}
-                        
-                        {plan.destination_info.emergency_info && (
-                          <div>
-                            <h4 className="font-medium text-gray-700 mb-2">Emergency Numbers</h4>
-                            <div className="space-y-1">
-                              {plan.destination_info.emergency_info.police && (
-                                <p className="text-sm">Police: <span className="font-medium">{plan.destination_info.emergency_info.police}</span></p>
-                              )}
-                              {plan.destination_info.emergency_info.ambulance && (
-                                <p className="text-sm">Ambulance: <span className="font-medium">{plan.destination_info.emergency_info.ambulance}</span></p>
-                              )}
-                              {plan.destination_info.emergency_info.tourist_police && (
-                                <p className="text-sm">Tourist Police: <span className="font-medium">{plan.destination_info.emergency_info.tourist_police}</span></p>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+            <TipsTab 
+              plan={plan}
+              originalRequest={originalRequest}
+            />
           )}
         </div>
         
@@ -856,6 +474,8 @@ export default function TripResultPage() {
           />
         </div>
       </div>
+
+      {/* Popup components */}
       {activePopupKey && activePopupQuery && (
         <PlaceDetailsPopup
           details={placeDetails[activePopupKey]}
