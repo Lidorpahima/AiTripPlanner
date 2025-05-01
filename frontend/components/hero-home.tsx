@@ -10,23 +10,10 @@ import OrangeWorldMap from "@/public/images/earth.png";
 export default function HeroHome() {
   return (
     <section className="relative overflow-hidden">
-      {/* Container for absolutely positioned decorative elements */}
-      <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
-          {/* World Map - Behind left column text */}
-          <Image
-            src={OrangeWorldMap}
-            alt=""
-            width={700} // Adjust size as needed
-            className="absolute left-[10%] top-[60%] opacity-10"
-          />
-          {/* Blue Circle 1 (Large, bg-blue-500) - Moved to Bottom Right */}
-          <div className="absolute bottom-[-15%] right-[-10%] h-96 w-96 rounded-full bg-blue-500 opacity-20 blur-3xl" /> {/* Changed top/right to bottom/right */}
-          {/* Blue Circle 2 (Medium, bg-blue-400) - Moved to Top Left */}
-          <div className="absolute top-[-10%] left-[-5%] h-80 w-80 rounded-full bg-blue-400 opacity-20 blur-3xl" /> {/* Changed bottom/left to top/left */}
-      </div>
+
 
       {/* Main content container */}
-      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="pb-12 pt-20 md:pb-20 md:pt-28">
           {/* Adjusted flex container for single main column now */} 
           <div className="flex flex-col items-center gap-8 lg:flex-row lg:gap-8">

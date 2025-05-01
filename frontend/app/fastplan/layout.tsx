@@ -1,7 +1,6 @@
 'use client';
 
 import Header from "@/components/ui/header";
-import FastPlanFooter from "@/components/AnimatedWave";
 
 export default function FastPlanLayout({
   children,
@@ -16,7 +15,6 @@ export default function FastPlanLayout({
       </main>
 
       <div className="absolute bottom-0 left-0 right-0 w-full h-64 md:h-72 lg:h-100 z-0 overflow-hidden"> 
-        <FastPlanFooter className="w-full h-full" />
       </div>
     </div>
   );

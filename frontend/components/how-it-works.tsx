@@ -1,0 +1,124 @@
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
+import { MapPin, Calendar, ListChecks, Plane } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+const fadeIn = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6
+    }
+  }
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2
+    }
+  }
+};
+
+const HowItWorksSection: React.FC = () => {
+  const steps = [
+    {
+      icon: <MapPin className="h-10 w-10 text-blue-600" />,
+      title: "Choose Your Destination",
+      description: "Select where you want to go from our wide range of supported destinations worldwide."
+    },
+    {
+      icon: <Calendar className="h-10 w-10 text-blue-600" />,
+      title: "Set Your Dates",
+      description: "Pick your travel dates and duration to create the perfect schedule for your trip."
+    },
+    {
+      icon: <ListChecks className="h-10 w-10 text-blue-600" />,
+      title: "Customize Preferences",
+      description: "Tell us your travel style, interests, and pace to personalize your experience."
+    },
+    {
+      icon: <Plane className="h-10 w-10 text-blue-600" />,
+      title: "Get Your Itinerary",
+      description: "Receive a detailed day-by-day plan with optimized routes and local recommendations."
+    }
+  ];
+
+  return (
+    <section className=" py-16 md:py-24 verflow-hidden">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <motion.div 
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          className="text-center mb-16"
+        >
+          <motion.h2 
+            variants={fadeIn}
+            className="text-3xl font-bold mb-4 text-gray-800 md:text-4xl"
+          >
+            How It Works
+          </motion.h2>
+          <motion.p 
+            variants={fadeIn}
+            className="text-lg text-gray-600 max-w-2xl mx-auto"
+          >
+            Planning your trip should be as enjoyable as the journey itself. Our AI makes it simple.
+          </motion.p>
+        </motion.div>
+
+        <motion.div 
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+        >
+          {steps.map((step, index) => (
+            <motion.div 
+              key={index} 
+              variants={fadeIn}
+              className="flex flex-col items-center p-6 rounded-xl shadow-md transform transition-all duration-300 hover:scale-105 hover:shadow-lg hover:bg-gray-50"
+            >
+              <div className="mb-4 p-3 bg-blue-50 rounded-full">
+                {step.icon}
+              </div>
+              <h3 className="text-xl font-semibold mb-2 text-gray-800">
+                {step.title}
+              </h3>
+              <p className="text-center text-gray-600">
+                {step.description}
+              </p>
+              <div className="mt-4 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-semibold">
+                {index + 1}
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        <motion.div 
+          variants={fadeIn}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="mt-16 text-center"
+        >
+          <Link 
+            href="/fastplan"
+            className="inline-block bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-3 px-8 rounded-lg shadow-lg transition-all duration-300"
+          >
+            Start Planning Now
+          </Link>
+        </motion.div>
+      </div>
+    </section>
+  );
+};
+
+export default HowItWorksSection;
