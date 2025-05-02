@@ -84,7 +84,7 @@ const HowItWorksSection: React.FC = () => {
             <motion.div 
               key={index} 
               variants={fadeIn}
-              className="flex flex-col items-center p-6 rounded-xl shadow-md transform transition-all duration-300 hover:scale-105 hover:shadow-lg hover:bg-gray-50"
+              className="flex flex-col items-center p-6 rounded-xl shadow-md transform transition-all duration-300 scale-105 shadow-lg bg-gray-50"
             >
               <div className="mb-4 p-3 bg-blue-50 rounded-full">
                 {step.icon}

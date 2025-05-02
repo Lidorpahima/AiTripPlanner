@@ -273,7 +273,7 @@ export default function FastPlanPage() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <div className="container mx-auto px-4 py-17 md:py-20" ref={containerRef}>
         {/* Progress bar */}
-        <div className="mx-auto mb-8 max-w-3xl">
+        <div className="mx-auto mb-2 max-w-3xl">
           <div className="h-2 w-full rounded-full bg-gray-200">
             <div 
               className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-300 ease-in-out" 

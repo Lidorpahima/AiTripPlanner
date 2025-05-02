@@ -6,6 +6,8 @@ import { AuthProvider } from "@/app/(auth)/context/AuthContext";
 import { Inter } from "next/font/google";
 import { ToastContainer } from 'react-toastify'; 
 import 'react-toastify/dist/ReactToastify.css'; 
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 
 const inter = Inter({
   subsets: ["latin"],
@@ -23,6 +25,15 @@ export default function RootLayout({
 }) {
 
   useEffect(() => {
+    // אתחול AOS עם הגדרות מותאמות אישית
+    AOS.init({
+      duration: 800,
+      once: false,
+      easing: 'ease-out',
+      mirror: true,
+      anchorPlacement: 'top-bottom',
+    });
+
     const ensureCsrfCookie = async () => {
       console.log("Attempting to fetch CSRF cookie endpoint..."); 
       try {

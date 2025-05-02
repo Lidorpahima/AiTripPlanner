@@ -14,7 +14,7 @@ export default function HeroHome() {
 
       {/* Main content container */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="pb-12 pt-20 md:pb-20 md:pt-28">
+        <div className="pb-12 pt-5 md:pb-20 md:pt-28">
           {/* Adjusted flex container for single main column now */} 
           <div className="flex flex-col items-center gap-8 lg:flex-row lg:gap-8">
             {/* Left Column (Text Content) - Adjusted width */}
