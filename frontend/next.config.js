@@ -12,6 +12,12 @@ const nextConfig = {
         port: '', 
         pathname: '/get/**', 
       },
+      {
+        protocol: 'https',
+        hostname: 'randomuser.me',
+        port: '',
+        pathname: '/api/portraits/**',
+      },
     ],
   },
 
@@ -27,4 +33,4 @@ const nextConfig = {
 
 }; 
 
-module.exports = nextConfig; 
+module.exports = nextConfig;

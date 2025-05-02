@@ -5,7 +5,7 @@ import PopularDestinations from "@/components/popular-destinations";
 import TestimonialsSection from "@/components/testimonials";
 import CallToAction from "@/components/call-to-action";
 import { BudgetPlanner } from "@/components/budget-planner";
-import { EfforlessPlanning } from "@/components/EfforlessPlanning";
+import { EffortlessPlanning } from "@/components/EffortlessPlanning";
 import { TravelToolkit } from "@/components/TravelToolkit";
 
 export default function Home() {
@@ -19,6 +19,7 @@ export default function Home() {
         </div>
         {/* Hero Content with AOS animation */}
         <div 
+          data-aos-once="true"
           data-aos="fade-up"
           data-aos-duration="1000" 
           className="mx-auto max-w-7xl px-4 sm:px-6 relative z-10 bg-white/100 backdrop-blur-lg rounded-xl p-8 shadow-xl border-2 border-blue-200"        >
@@ -26,11 +27,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* EfforlessPlanning */}
+      {/* EffortlessPlanning */}
       <section className="relative py-12 md:py-20">
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         </div>
-          <EfforlessPlanning />
+          <EffortlessPlanning />
       </section>
 
         {/* Budget planner*/}
