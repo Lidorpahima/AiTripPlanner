@@ -13,7 +13,7 @@ export default function Home() {
     <>
       {/* Hero Section with Rotating Globe */}
       <section className="relative py-12 md:py-20">
-        <SectionBlob blobName="Mobile Header Light - 1.jpg" />
+        <SectionBlob blobName="Desktop Header Light - 1.png" />
         {/* Add the Globe animation component */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         </div>

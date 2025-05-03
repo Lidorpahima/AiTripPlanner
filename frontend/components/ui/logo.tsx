@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image"; 
-import LogoSvg from "@/public/images/logo-01.svg"; 
+import LogoImage from "@/public/images/logo.png"; 
 
 interface LogoProps {
   skipLink?: boolean; // When true, doesn't wrap logo in a Link component
@@ -9,7 +9,7 @@ interface LogoProps {
 export default function Logo({ skipLink = false }: LogoProps) {
   const logoImage = (
     <Image
-      src={LogoSvg}
+      src={LogoImage}
       alt="Trip Planner AI Logo"
       width={40}
       height={40}

@@ -1,6 +1,7 @@
 'use client'; 
 
 import { useEffect } from 'react'; 
+import Script from 'next/script'; // Import the Script component
 import "./css/style.css";
 import { AuthProvider } from "@/app/(auth)/context/AuthContext";
 import { Inter } from "next/font/google";
@@ -15,7 +16,6 @@ const inter = Inter({
   display: "swap",
 });
 
-
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ;
 
 export default function RootLayout({
@@ -25,7 +25,6 @@ export default function RootLayout({
 }) {
 
   useEffect(() => {
-    // אתחול AOS עם הגדרות מותאמות אישית
     AOS.init({
       duration: 800,
       once: false,
@@ -49,7 +48,6 @@ export default function RootLayout({
     
     ensureCsrfCookie();
   }, []); 
-
 
   return (
     <html lang="en" className="scroll-smooth">
@@ -77,6 +75,26 @@ export default function RootLayout({
             pauseOnHover
             theme="light" 
         />
+
+        {/* Brevo Conversations Scripts */}
+        <Script id="brevo-config" strategy="beforeInteractive">
+          {`
+            (function(d, w, c) {
+              w.BrevoConversationsID = '${process.env.NEXT_PUBLIC_BREVO_CONVERSATIONS_ID}';
+              w[c] = w[c] || function() {
+                  (w[c].q = w[c].q || []).push(arguments);
+              };
+            })(document, window, 'BrevoConversations');
+          `}
+        </Script>
+        <Script 
+          id="brevo-widget" 
+          src="https://conversations-widget.brevo.com/brevo-conversations.js" 
+          strategy="lazyOnload" 
+          async 
+        />
+        {/* End Brevo Conversations Scripts */}
+
       </body>
     </html>
   );

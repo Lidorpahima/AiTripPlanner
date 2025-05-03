@@ -20,6 +20,13 @@ from django.views.decorators.http import require_GET
 from rest_framework import viewsets
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import generics
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from django.utils.http import urlsafe_base64_encode ,urlsafe_base64_decode
+from django.utils.encoding import force_bytes ,force_str
+from django.core.exceptions import ValidationError
+from django.contrib.auth.password_validation import validate_password
 # ──────────────────────────────── CSRF Token ──────────────────────────────── #
 @ensure_csrf_cookie
 def get_csrf_token(request):
@@ -50,6 +57,59 @@ class RegisterView(generics.CreateAPIView):
         }
         headers = self.get_success_headers(serializer.data)
         return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
+    
+# ──────────────────────────────── RestPassword ──────────────────────────────── #
+class PasswordResetRequestView(APIView): 
+    def post(self, request): 
+        email = request.data.get('email') 
+        user = User.objects.filter(email=email).first() 
+
+        if user:
+            frontend_url = settings.FRONTEND_BASE_URL
+            uid = urlsafe_base64_encode(force_bytes(user.pk)) 
+            token = default_token_generator.make_token(user) 
+            reset_link = f"{frontend_url}/reset-password/{uid}/{token}" 
+
+            send_mail(
+                'Password Reset', 
+                f'Click here to reset your password: {reset_link}', 
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[email],
+                fail_silently=False,
+            )
+
+        return Response({'message': 'If this email exists, a reset link was sent.'})
+    
+# ──────────────────────────────── SETNEW PASSWORD ──────────────────────────────── #
+class PasswordResetConfirmView(APIView):
+    def post(self, request, uidb64=None, token=None):
+
+        new_password = request.data.get('new_password')
+        new_password_confirm = request.data.get('new_password_confirm') 
+
+        if not all([uidb64, token, new_password, new_password_confirm]):
+             return Response({'error': 'Missing required fields.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if new_password != new_password_confirm:
+            return Response({'error': 'Passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64)) 
+            user = User.objects.get(pk=uid)
+        except (User.DoesNotExist, ValueError, TypeError, OverflowError):
+            user = None
+
+        if user is not None and default_token_generator.check_token(user, token):
+            try:
+                validate_password(new_password, user)
+            except ValidationError as e:
+                return Response({'error': list(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
+
+            user.set_password(new_password) 
+            user.save()
+            return Response({'message': 'Password has been reset successfully.'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Invalid reset link or token expired.'}, status=status.HTTP_400_BAD_REQUEST)
 # ──────────────────────────────── Profile ──────────────────────────────── #
 class ProfileRetrieveView(generics.RetrieveAPIView): 
     serializer_class = UserProfileSerializer
@@ -593,3 +653,4 @@ def chat_replace_activity(request):
 
     except Exception as e:
         return Response({"error": "Internal server error.", "details": str(e)}, status=500)
+    

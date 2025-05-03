@@ -126,7 +126,7 @@ export default function SignIn() {
               onChange={handleChange}
               className="form-input w-full py-2"
               type="email"
-              placeholder="Lidorpahima@email.com"
+              placeholder="emaila@email.com"
               autoComplete="email" 
               required
             />
