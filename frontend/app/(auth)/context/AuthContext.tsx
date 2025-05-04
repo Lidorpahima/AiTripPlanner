@@ -27,6 +27,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     console.log("Auth Context: Checking localStorage for token...");
     const token = Cookies.get('access'); 
+    console.log("Auth Context: Attempting to store token in localStorage...");
+    if (token) {
+      localStorage.setItem('authToken', token);
+      console.log("Auth Context: Token stored successfully.");
+    } else {
+      console.warn("Auth Context: No token provided to store.");
+    }
+
+    console.log("Auth Context: Checking localStorage for token...");
+    const storedToken = localStorage.getItem('authToken');
+    if (storedToken) {
+      console.log("Auth Context: Token found in localStorage.", storedToken);
+    } else {
+      console.warn("Auth Context: No token found in localStorage.");
+    }
+
     if (token) {
       console.log("Auth Context: Token found, setting authenticated.");
       setIsAuthenticated(true);
