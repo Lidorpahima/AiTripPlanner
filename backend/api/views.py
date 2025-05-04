@@ -27,6 +27,11 @@ from django.utils.http import urlsafe_base64_encode ,urlsafe_base64_decode
 from django.utils.encoding import force_bytes ,force_str
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token
+from django.core.exceptions import ObjectDoesNotExist
+
+
 # ──────────────────────────────── CSRF Token ──────────────────────────────── #
 @ensure_csrf_cookie
 def get_csrf_token(request):
@@ -57,7 +62,72 @@ class RegisterView(generics.CreateAPIView):
         }
         headers = self.get_success_headers(serializer.data)
         return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
-    
+# ──────────────────────────────── GOOGLELOGIN ──────────────────────────────── #
+class GoogleLoginView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        print("Starting Google login process...")  # Log the start of the process
+
+        token = request.data.get('token')
+        print(f"Received token: {token}")  # Log the received token
+
+        if not token:
+            print("No token provided in the request.")  # Log missing token
+            return Response({'error': 'No token provided'}, status=400)
+        
+        try:
+            print("Verifying token with Google...")  # Log token verification start
+            idinfo = id_token.verify_oauth2_token(
+                token, 
+                google_requests.Request(), 
+                settings.GOOGLE_CLIENT_ID
+            )
+            print(f"Token verified successfully. ID Info: {idinfo}")  # Log the decoded ID token information
+
+            if idinfo['aud'] not in [settings.GOOGLE_CLIENT_ID]:
+                print("Invalid token audience. Expected audience does not match.")  # Log invalid audience
+                return Response({'error': 'Invalid token'}, status=401)
+
+            email = idinfo['email']
+            print(f"Extracted email from token: {email}")  # Log the extracted email
+
+            try:
+                user = User.objects.get(email=email)
+                print(f"User found in database: {user}")  # Log if user exists
+            except User.DoesNotExist:
+                print("User does not exist. Creating a new user...")  # Log user creation
+                user = User.objects.create_user(
+                    username=email,
+                    email=email,
+                )
+                UserProfile.objects.create(
+                    user=user, 
+                    full_name=idinfo.get('name', '')
+                )
+                print(f"New user created: {user}")  # Log new user creation
+
+            print("Generating refresh and access tokens...")  # Log token generation
+            refresh = RefreshToken.for_user(user)
+            print(f"Generated tokens: refresh={refresh}, access={refresh.access_token}")  # Log generated tokens
+
+            return Response({
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                }
+            })
+
+        except ValueError as ve:
+            print(f"ValueError during token verification: {ve}")  # Log invalid token format
+            return Response({'error': 'Invalid token'}, status=401)
+        except Exception as e:
+            print(f"Unexpected error during Google login: {str(e)}")  # Log unexpected errors
+            return Response({'error': 'Authentication failed'}, status=400)
+
 # ──────────────────────────────── RestPassword ──────────────────────────────── #
 class PasswordResetRequestView(APIView): 
     def post(self, request): 
@@ -653,4 +723,4 @@ def chat_replace_activity(request):
 
     except Exception as e:
         return Response({"error": "Internal server error.", "details": str(e)}, status=500)
-    
+

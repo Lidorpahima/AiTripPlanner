@@ -14,7 +14,7 @@ from .views import (
     proxy_place_photo,
     PasswordResetRequestView,
     PasswordResetConfirmView,
-    
+    GoogleLoginView,
 )
 from django.contrib.auth import views as auth_views
 urlpatterns = [
@@ -32,4 +32,5 @@ urlpatterns = [
     path('chat-replace-activity/', chat_replace_activity, name='chat_replace_activity'),
     path('password-reset/request/', PasswordResetRequestView.as_view(), name='password_reset_request_api'),
     path('password-reset/confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm_api'),
+    path('auth/google/', GoogleLoginView.as_view(), name='google_login')
 ]
