@@ -802,11 +802,11 @@ export default function FastPlanPage() {
                   </div>
                 </div>
 
-                <div className="mt-8 flex justify-between">
+                <div className="mt-8 flex justify-between gap-15">
                   <button
                     type="button"
                     onClick={prevStep}
-                    className="rounded-full border border-gray-300 bg-white px-6 py-3 text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+                    className="rounded-full border border-gray-300 bg-white px-1 py-6 text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
                   >
                     ← Back
                   </button>
@@ -814,7 +814,7 @@ export default function FastPlanPage() {
                     type="button"
                     onClick={handleSubmit}
                     disabled={isLoading}
-                    className={`group relative overflow-hidden rounded-full px-8 py-4 text-center text-lg font-bold text-white shadow-lg transition-all duration-300 ${
+                    className={`group relative overflow-hidden rounded-full px-1 py-2 text-center text-lg font-bold text-white shadow-lg transition-all duration-300 ${
                       isLoading
                         ? 'cursor-not-allowed bg-gray-400'
                         : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:scale-105'
@@ -829,11 +829,14 @@ export default function FastPlanPage() {
                         <span>Creating Your Perfect Trip...</span>
                       </span>
                     ) : (
-                      <span className="flex items-center justify-center">
-                        <span className="mr-2">✨</span>
+                      <div className="flex items-center justify-center">
+                      <span className="mr-2 text-yellow-300 animate-pulse">✨</span>
+                      <span className="relative">
                         Generate My Dream Trip
-                        <span className="ml-2">✨</span>
+                        <span className="absolute -bottom-1 left-0 h-0.5 w-full bg-white/50 rounded-full transform scale-x-0 transition-transform group-hover:scale-x-100 duration-300 origin-left"></span>
                       </span>
+                      <span className="ml-2 text-yellow-300 animate-pulse">✨</span>
+                    </div>
                     )}
                     {!isLoading && (
                       <span className="absolute -inset-full top-0 block h-full w-1/2 -skew-x-12 transform bg-gradient-to-r from-transparent to-white opacity-30 group-hover:animate-shine"></span>
