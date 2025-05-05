@@ -46,6 +46,8 @@ export default function SignUp() {
       password2: '',
     })
     const [isLoading, setIsLoading] = useState(false);
+    const [googleLoading, setGoogleLoading] = useState(false);
+    const [authError, setAuthError] = useState<string | null>(null);
     const router = useRouter();
     const { login } = useAuth();
     
@@ -55,11 +57,14 @@ export default function SignUp() {
         ...prev,
         [name]: value,
       }))
+      // Clear any error when user starts typing again
+      if (authError) setAuthError(null);
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       setIsLoading(true);
+      setAuthError(null);
       
       const payload = {
         full_name: formData.full_name,
@@ -121,18 +126,15 @@ export default function SignUp() {
     // Handle Google authentication
     const handleGoogleAuth = async (credentialResponse: any) => {
       try {
-        setIsLoading(true);
+        setGoogleLoading(true);
+        setAuthError(null);
         const token = credentialResponse.credential;
 
-        console.log("Google Token:", token); // Log the token returned by Google
-
         if (!token) {
-          console.error("No token received from Google"); // Log if token is missing
+          setAuthError('Failed to receive authentication token from Google');
           toast.error('Failed to get authentication token from Google');
           return;
         }
-
-        console.log("Sending token to backend..."); // Log before sending the request
 
         const res = await fetch(`${API_BASE}/api/auth/google/`, {
           method: 'POST',
@@ -141,10 +143,7 @@ export default function SignUp() {
           body: JSON.stringify({ token }),
         });
 
-        console.log("Request sent to backend"); // Log when the request is sent
-
         const data = await res.json();
-        console.log('Google Auth Response from Backend:', data); // Log the response from the backend
 
         if (res.ok) {
           if (data && data.access && data.refresh) {
@@ -160,33 +159,30 @@ export default function SignUp() {
               secure: window.location.protocol === "https:",
               sameSite: 'strict'
             });
-            console.log('Tokens set in cookies');
+            
             login(data.access, data.refresh);
             toast.success('Google sign-in successful! Redirecting...');
             setTimeout(() => {
-              console.log('Navigating to home page...'); // Log navigation
               router.push('/');
             }, 2000);
           } else {
-            console.error('Authentication succeeded but failed to get tokens:', data); // Log missing tokens
+            setAuthError('Authentication successful but failed to receive tokens');
             toast.error('Authentication succeeded but failed to get tokens');
           }
         } else {
-          console.error('Google authentication failed:', data.error || data); // Log error response
-          toast.error(data.error || 'Google authentication failed');
+          const errorMessage = data.error || extractErrorMessages(data);
+          setAuthError(errorMessage);
+          toast.error(errorMessage || 'Google authentication failed');
         }
       } catch (error) {
         console.error("Google auth error:", error);
+        setAuthError('Failed to authenticate with Google. Please try again.');
         toast.error('Failed to authenticate with Google');
       } finally {
-        setIsLoading(false);
+        setGoogleLoading(false);
       }
     };
-    
-    // Handle GitHub authentication (placeholder for future implementation)
-    const handleGitHubAuth = () => {
-      toast.info('GitHub authentication will be implemented soon');
-    };
+
     
     // Initialize Google Sign-In
     useEffect(() => {
@@ -202,14 +198,15 @@ export default function SignUp() {
               client_id: GOOGLE_CLIENT_ID,
               callback: handleGoogleAuth,
               cancel_on_tap_outside: true,
-              context: 'use',
+              context: 'signup',
               auto_select: false,
               ux_mode: 'popup',
-
+              locale: 'en', // Force English language
             });
 
             const buttonElement = document.getElementById('google-signin-button');
             if (buttonElement) {
+              // Remove the width calculation and allow the button to use full width
               window.google.accounts.id.renderButton(
                 buttonElement,
                 {
@@ -217,9 +214,9 @@ export default function SignUp() {
                   theme: 'outline',
                   size: 'large',
                   text: 'continue_with',
-                  shape: 'rectangular',
-                  logo_alignment: 'center',
-                  width: 280,
+                  shape: 'rectangle',
+                  logo_alignment: 'left',
+                  // Width is not specified to match parent container width
                 }
               );
               console.log("Google Sign-In button rendered successfully");
@@ -376,22 +373,19 @@ export default function SignUp() {
                   <div className="flex-grow h-px bg-gray-300"></div>
                 </div>
                 
-                <button 
-                  type="button"
-                  onClick={handleGitHubAuth}
-                  disabled={isLoading}
-                  className={`w-full bg-gray-800 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 mb-3 transition-all ${
-                    isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-gray-700'
-                  }`}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                  </svg>
-                  Continue with GitHub
-                </button>
-                
-                {/* Google Sign-In Button Wrapper */}
-                <div id="google-signin-button" className="flex justify-center w-full mt-3"></div>
+                {/* Google Sign-In Button Wrapper with loading state */}
+                <div className="flex flex-col items-center w-full mt-3">
+                  {googleLoading && (
+                    <div className="flex items-center justify-center mb-2">
+                      <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                      <span className="ml-2 text-sm text-gray-600">Processing Google sign-in...</span>
+                    </div>
+                  )}
+                  <div 
+                    id="google-signin-button" 
+                    className={` w-full ${googleLoading ? 'opacity-50 pointer-events-none' : ''}`}
+                  ></div>
+                </div>
               </div>
 
               <div className="text-center mt-6">
