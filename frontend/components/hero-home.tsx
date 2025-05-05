@@ -1,11 +1,11 @@
+"use client";
 import Image from "next/image";
 
-import ImgTokyo from "@/public/images/destinations/tokyo.jpg";
-import ImgRome from "@/public/images/destinations/rome.jpg";
-import ImgParis from "@/public/images/destinations/paris.jpg";
-import ImgBali from "@/public/images/destinations/bali.jpg";
+import ImgTokyo from "@/public/images/destinations/rhome.jpg";
+import ImgRome from "@/public/images/destinations/lhero.jpg";
+import ImgParis from "@/public/images/destinations/parisHero.jpg";
+import ImgBali from "@/public/images/destinations/mHero.png";
 
-import OrangeWorldMap from "@/public/images/earth.png";
 
 export default function HeroHome() {
   return (
@@ -24,6 +24,7 @@ export default function HeroHome() {
                 <h1
                   className="mb-6 border-y text-5xl font-bold [border-image:linear-gradient(to_right,transparent,--theme(--color-slate-300/.8),transparent)1] md:text-6xl "
                   data-aos="zoom-y-out"
+                  data-aos-once="true"
                   data-aos-delay={150}
                 >
                   Pick Your Dates, <br className="max-lg:hidden" /> We'll Plan the Rest.
@@ -32,6 +33,7 @@ export default function HeroHome() {
                   <p
                     className="mb-8 text-lg text-gray-700"
                     data-aos="zoom-y-out"
+                    data-aos-once="true"
                     data-aos-delay={300}
                   >
                     Smart itineraries with routes, sights, and local events.

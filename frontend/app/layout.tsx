@@ -60,7 +60,21 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <head>
-          <title>Ai Trip Planner</title> 
+          <title>Ai Trip Planner</title>
+          <Script id="brevo-config" strategy="beforeInteractive">
+            {`
+              (function(d, w, c) {
+                  w.BrevoConversationsID = '6815fb310a9d3d601a01fe9e';
+                  w[c] = w[c] || function() {
+                      (w[c].q = w[c].q || []).push(arguments);
+                  };
+                  var s = d.createElement('script');
+                  s.async = true;
+                  s.src = 'https://conversations-widget.brevo.com/brevo-conversations.js';
+                  if (d.head) d.head.appendChild(s);
+              })(document, window, 'BrevoConversations');
+            `}
+          </Script>
       </head>
       <body
         className={`${inter.variable} bg-gray-50 font-inter tracking-tight text-gray-900 antialiased`}
@@ -83,26 +97,6 @@ export default function RootLayout({
             pauseOnHover
             theme="light" 
         />
-
-        {/* Brevo Conversations Scripts */}
-        <Script id="brevo-config" strategy="beforeInteractive">
-          {`
-            (function(d, w, c) {
-              w.BrevoConversationsID = '${process.env.NEXT_PUBLIC_BREVO_CONVERSATIONS_ID}';
-              w[c] = w[c] || function() {
-                  (w[c].q = w[c].q || []).push(arguments);
-              };
-            })(document, window, 'BrevoConversations');
-          `}
-        </Script>
-        <Script 
-          id="brevo-widget" 
-          src="https://conversations-widget.brevo.com/brevo-conversations.js" 
-          strategy="lazyOnload" 
-          async 
-        />
-        {/* End Brevo Conversations Scripts */}
-
       </body>
     </html>
   );

@@ -89,7 +89,7 @@ const HowItWorksSection: React.FC = () => {
               <div className="mb-4 p-3 bg-blue-50 rounded-full">
                 {step.icon}
               </div>
-              <h3 className="text-xl font-semibold mb-2 text-gray-800">
+              <h3 className="text-xl text-center font-semibold mb-2 text-gray-800">
                 {step.title}
               </h3>
               <p className="text-center text-gray-600">

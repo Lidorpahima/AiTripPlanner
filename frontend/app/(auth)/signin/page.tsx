@@ -16,8 +16,6 @@ export default function SignIn() {
       <AuthFormDivider />
       <GoogleAuthButton context="signup" />
 
-
-      {/* Bottom link */}
       <div className="mt-6 text-center">
         <Link
           className="text-sm text-gray-700 underline hover:no-underline"
