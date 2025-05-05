@@ -134,8 +134,10 @@ export default function FastPlanPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [destinationSuggestions, setDestinationSuggestions] = useState<string[]>([]);
+  const [searchMode, setSearchMode] = useState<'quick' | 'deep' | null>(null);
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
+  const [dateError, setDateError] = useState<string | null>(null);
 
   // Auto-scroll to top when changing steps
   useEffect(() => {
@@ -173,9 +175,16 @@ export default function FastPlanPage() {
       toast.warn("Please select or enter a destination.");
       return;
     }
-    if (currentStep === 2 && (!formData.startDate || !formData.endDate)) {
-      toast.warn("Please select both start and end dates.");
-      return;
+    if (currentStep === 2) {
+      if (!formData.startDate || !formData.endDate) {
+        toast.warn("Please select both start and end dates.");
+        return;
+      }
+      if (formData.endDate < formData.startDate) {
+        setDateError("End date cannot be before start date.");
+        return;
+      }
+      setDateError(null);
     }
     if (currentStep === 3 && formData.tripStyle.length === 0) {
       toast.warn("Please select at least one trip style.");
@@ -221,13 +230,17 @@ export default function FastPlanPage() {
     const start = new Date(formData.startDate);
     const end = new Date(formData.endDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
     
     return diffDays;
   };
 
   // --- Submit Handler ---
   const handleSubmit = async () => {
+    if (!searchMode) {
+      toast.warn("Please select a search mode.");
+      return;
+    }
     setIsLoading(true);
     
     try {
@@ -240,7 +253,7 @@ export default function FastPlanPage() {
           "Content-Type": "application/json",
         },
         credentials: "include", 
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, searchMode }),
       });
   
       if (!response.ok) {
@@ -252,7 +265,8 @@ export default function FastPlanPage() {
       const originalRequest = {
         destination: formData.destination,
         startDate: formData.startDate,
-        endDate: formData.endDate
+        endDate: formData.endDate,
+        searchMode,
       };
       sessionStorage.setItem("fastplan_request", JSON.stringify(originalRequest));
       toast.success("Your perfect trip plan is ready!");
@@ -267,7 +281,7 @@ export default function FastPlanPage() {
   };
   
   // --- Progress bar calculation ---
-  const progressPercentage = ((currentStep - 1) / 6) * 100;
+  const progressPercentage = ((currentStep - 1) / 8) * 100;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
@@ -282,7 +296,7 @@ export default function FastPlanPage() {
           </div>
           <div className="mt-2 flex justify-between text-sm font-medium text-gray-500">
             <span>Start</span>
-            <span className="text-blue-600">Step {currentStep} of 7</span>
+            <span className="text-blue-600">Step {currentStep} of 8</span>
             <span>Finish</span>
           </div>
         </div>
@@ -423,6 +437,7 @@ export default function FastPlanPage() {
                       onChange={handleInputChange}
                       className="w-full rounded-lg border border-gray-300 py-3 pl-4 text-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     />
+                    
                   </div>
                   <div>
                     <label htmlFor="endDate" className="mb-2 block text-lg font-medium text-gray-700">
@@ -436,6 +451,9 @@ export default function FastPlanPage() {
                       onChange={handleInputChange}
                       className="w-full rounded-lg border border-gray-300 py-3 pl-4 text-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     />
+                    {dateError && (
+                        <div className="mt-2 text-sm text-red-600">{dateError}</div>
+                      )}
                   </div>
                 </div>
 
@@ -445,7 +463,7 @@ export default function FastPlanPage() {
                     <div className="flex items-center space-x-2 text-lg text-indigo-800">
                       <span className="text-2xl">🗓️</span>
                       <span>
-                        Your trip will be <strong>{getTripDuration()}</strong> days long
+                        Your trip will be <strong>{getTripDuration()}</strong> {getTripDuration() === 1 ? 'day' : 'days'} long
                       </span>
                     </div>
                   </div>
@@ -741,7 +759,7 @@ export default function FastPlanPage() {
               </motion.div>
             )}
 
-            {/* Step 7: Final Details and Submit */}
+            {/* Step 7: Final Details */}
             {currentStep === 7 && (
               <motion.div variants={fadeIn} className="space-y-6">
                 <h2 className="text-center text-2xl font-bold text-gray-800 sm:text-3xl">
@@ -806,19 +824,89 @@ export default function FastPlanPage() {
                   <button
                     type="button"
                     onClick={prevStep}
-                    className="rounded-full border border-gray-300 bg-white px-1 py-6 text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+                    className="rounded-full border border-gray-300 bg-white px-6 py-3 text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+                  >
+                    ←   Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(8)}
+                    disabled={isLoading}
+                    className={`rounded-full px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300
+                      ${isLoading
+                        ? 'cursor-not-allowed bg-gray-400'
+                        : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'}
+                    `}
+                    aria-label="Continue to search mode selection"
+                  >
+                    Continue
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 8: Search Mode */}
+            {currentStep === 8 && (
+              <motion.div variants={fadeIn} className="space-y-8">
+                <h2 className="text-center text-2xl font-bold text-gray-800 sm:text-3xl">
+                  Choose your itinerary search mode
+                </h2>
+                <div className="flex flex-col gap-6 sm:flex-row sm:justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setSearchMode('quick')}
+                    className={`flex-1 rounded-xl border-2 p-6 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                      searchMode === 'quick'
+                        ? 'border-blue-600 bg-blue-50 ring-2 ring-blue-200'
+                        : 'border-gray-200 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">⚡</span>
+                      <span className="text-lg font-semibold">Quick Search</span>
+                    </div>
+                    <p className="mt-2 text-gray-600 text-sm">
+                      Fastest results (~30 seconds). <br />
+                      <span className="font-medium text-blue-700">Does not include live events for your exact dates.</span>
+                    </p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSearchMode('deep')}
+                    className={`flex-1 rounded-xl border-2 p-6 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-400 ${
+                      searchMode === 'deep'
+                        ? 'border-purple-600 bg-purple-50 ring-2 ring-purple-200'
+                        : 'border-gray-200 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">🔎</span>
+                      <span className="text-lg font-semibold">Deep Search</span>
+                    </div>
+                    <p className="mt-2 text-gray-600 text-sm">
+                      Most comprehensive (~2 minutes). <br />
+                      <span className="font-medium text-purple-700">Includes live events for your selected dates.</span>
+                    </p>
+                  </button>
+                </div>
+                <div className="mt-8 flex justify-between">
+                  <button
+                    type="button"
+                    onClick={prevStep}
+                    className="rounded-full border border-gray-300 bg-white px-6 py-3 text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
                   >
                     ← Back
                   </button>
                   <button
                     type="button"
                     onClick={handleSubmit}
-                    disabled={isLoading}
-                    className={`group relative overflow-hidden rounded-full px-1 py-2 text-center text-lg font-bold text-white shadow-lg transition-all duration-300 ${
-                      isLoading
-                        ? 'cursor-not-allowed bg-gray-400'
-                        : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:scale-105'
-                    }`}
+                    disabled={!searchMode || isLoading}
+                    className={`group relative overflow-hidden rounded-full px-8 py-4 text-center text-lg font-bold text-white shadow-lg transition-all duration-300
+                      ${searchMode && !isLoading
+                        ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:scale-105'
+                        : 'cursor-not-allowed bg-gray-400'}
+                    `}
+                    aria-label="Generate My Dream Trip"
                   >
                     {isLoading ? (
                       <span className="flex items-center justify-center space-x-2">
@@ -830,13 +918,13 @@ export default function FastPlanPage() {
                       </span>
                     ) : (
                       <div className="flex items-center justify-center">
-                      <span className="mr-2 text-yellow-300 animate-pulse">✨</span>
-                      <span className="relative">
-                        Generate My Dream Trip
-                        <span className="absolute -bottom-1 left-0 h-0.5 w-full bg-white/50 rounded-full transform scale-x-0 transition-transform group-hover:scale-x-100 duration-300 origin-left"></span>
-                      </span>
-                      <span className="ml-2 text-yellow-300 animate-pulse">✨</span>
-                    </div>
+                        <span className="mr-2 text-yellow-300 animate-pulse">✨</span>
+                        <span className="relative">
+                          Generate My Dream Trip
+                          <span className="absolute -bottom-1 left-0 h-0.5 w-full bg-white/50 rounded-full transform scale-x-0 transition-transform group-hover:scale-x-100 duration-300 origin-left"></span>
+                        </span>
+                        <span className="ml-2 text-yellow-300 animate-pulse">✨</span>
+                      </div>
                     )}
                     {!isLoading && (
                       <span className="absolute -inset-full top-0 block h-full w-1/2 -skew-x-12 transform bg-gradient-to-r from-transparent to-white opacity-30 group-hover:animate-shine"></span>
