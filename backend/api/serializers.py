@@ -127,6 +127,7 @@ class PlanTripSerializer(serializers.Serializer):
     accommodation = serializers.CharField(required=False, allow_blank=True, default="")
     localExperiences = serializers.ListField(child=serializers.CharField(), required=False, default=list)
     travelWith = serializers.ListField(child=serializers.CharField(), required=False, default=list)
+    searchMode = serializers.CharField(required=True)
 
 class SavedTripSerializer(serializers.ModelSerializer):
     user_email = serializers.EmailField(source='user.username', read_only=True)

@@ -134,7 +134,7 @@ export default function FastPlanPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [destinationSuggestions, setDestinationSuggestions] = useState<string[]>([]);
-  const [searchMode, setSearchMode] = useState<'quick' | 'deep' | null>(null);
+  const [searchMode, setSearchMode] = useState<'quick' | 'normal' | 'deep' | null>(null);
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const [dateError, setDateError] = useState<string | null>(null);
@@ -852,6 +852,7 @@ export default function FastPlanPage() {
                   Choose your itinerary search mode
                 </h2>
                 <div className="flex flex-col gap-6 sm:flex-row sm:justify-center">
+                  {/* Quick Search */}
                   <button
                     type="button"
                     onClick={() => setSearchMode('quick')}
@@ -870,22 +871,44 @@ export default function FastPlanPage() {
                       <span className="font-medium text-blue-700">Does not include live events for your exact dates.</span>
                     </p>
                   </button>
+
+                  {/* Normal Search */}
                   <button
                     type="button"
-                    onClick={() => setSearchMode('deep')}
+                    onClick={() => setSearchMode('normal')}
                     className={`flex-1 rounded-xl border-2 p-6 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-400 ${
-                      searchMode === 'deep'
+                      searchMode === 'normal'
                         ? 'border-purple-600 bg-purple-50 ring-2 ring-purple-200'
                         : 'border-gray-200 bg-white'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-3xl">🔎</span>
-                      <span className="text-lg font-semibold">Deep Search</span>
+                      <span className="text-lg font-semibold">Normal Search</span>
                     </div>
                     <p className="mt-2 text-gray-600 text-sm">
-                      Most comprehensive (~2 minutes). <br />
+                      Most comprehensive (~1 minute). <br />
                       <span className="font-medium text-purple-700">Includes live events for your selected dates.</span>
+                    </p>
+                  </button>
+
+                  {/* AI Expert Mode */}
+                  <button
+                    type="button"
+                    onClick={() => setSearchMode('deep')}
+                    className={`flex-1 rounded-xl border-2 p-6 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
+                      searchMode === 'deep'
+                        ? 'border-emerald-600 bg-emerald-50 ring-2 ring-emerald-200'
+                        : 'border-gray-200 bg-white'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">🧠</span>
+                      <span className="text-lg font-semibold">AI Expert</span>
+                    </div>
+                    <p className="mt-2 text-gray-600 text-sm">
+                      Get an itinerary crafted by our most advanced AI. <br />
+                      <span className="font-medium text-emerald-700">Includes deep personalization and expert tips.</span>
                     </p>
                   </button>
                 </div>

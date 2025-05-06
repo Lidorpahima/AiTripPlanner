@@ -417,12 +417,12 @@ Now, generate ONLY the JSON itinerary based on the user preferences and your res
 """
     return prompt.strip()
 # ──────────────────────────────── Plan Trip View (Main Logic) ──────────────────────────────── #
-model_name = 'gemini-2.5-pro-exp-03-25'
 @api_view(['POST'])
 def plan_trip_view(request):
     serializer = PlanTripSerializer(data=request.data)
     if serializer.is_valid():
         data = serializer.validated_data 
+        
         key = make_key(data)       
         print("DEBUG: Serializer is valid")
         try:
@@ -451,7 +451,12 @@ def plan_trip_view(request):
         print("🚀 Sending combined prompt to Gemini...")
         raw_response = None
         try:
-            raw_response = ask_gemini(single_prompt, model_name)
+            if data.get("searchMode") == "normal":
+                raw_response = ask_gemini(single_prompt, 'gemini-2.5-flash-preview-04-17')
+            elif data.get("searchMode") == "quick":
+                raw_response = ask_gemini(single_prompt, 'gemini-2.0-flash')
+            else:
+                raw_response = ask_gemini(single_prompt, 'gemini-2.5-pro-preview-03-25')
 
 
             if raw_response is None:
