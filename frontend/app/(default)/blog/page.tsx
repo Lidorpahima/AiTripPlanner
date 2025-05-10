@@ -18,7 +18,7 @@ export default function BlogPage() {
           {/* Page content */}
           <div className="mx-auto max-w-3xl">
             <div className="space-y-6 text-lg text-gray-700">
-              <p>Welcome to the AiTripPlanner Blog! Here you'll find travel tips, project updates, AI insights, and more.</p>
+              <p>Welcome to the AiTripPlanner Blog! Here you&apos;ll find travel tips, project updates, AI insights, and more.</p>
               <p>Stay tuned as we share guides, stories, and behind-the-scenes looks at how AiTripPlanner helps you explore the world more intelligently.</p>
 
               <hr className="my-8 border-t border-gray-200" />

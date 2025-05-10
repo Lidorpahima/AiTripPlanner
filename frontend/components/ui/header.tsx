@@ -42,9 +42,9 @@ export default function Header() {
 
   const navLinkClasses = "relative group text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md transition-colors duration-150 ease-in-out flex items-center gap-1.5";
   const mobileNavLinkClasses = "text-lg font-medium text-gray-700 hover:text-blue-600 py-2 flex items-center gap-2";
-  const actionButtonClasses = "btn-sm text-gray-700 bg-white hover:bg-gray-100 shadow-sm border border-gray-200 transition-all duration-150 ease-in-out flex items-center gap-1.5";
-  const primaryButtonClasses = `btn-sm bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md hover:shadow-lg hover:scale-[1.03] transition-all duration-200 ease-in-out flex items-center gap-1.5${shake ? ' animate-shake' : ''}`;
-  const logoutButtonClasses = "btn-sm text-red-600 bg-white hover:bg-red-50 border border-red-200 shadow-sm transition-all duration-150 ease-in-out flex items-center gap-1.5";
+  const actionButtonClasses = "text-sm text-gray-700 bg-white hover:bg-gray-100 shadow-sm border border-gray-200 transition-all duration-150 ease-in-out flex items-center justify-center gap-1.5 px-3 py-2 rounded-md";
+  const primaryButtonClasses = `text-sm bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md hover:shadow-lg hover:scale-[1.03] transition-all duration-200 ease-in-out flex items-center justify-center gap-1.5 px-3 py-2 rounded-md${shake ? ' animate-shake' : ''}`;
+  const logoutButtonClasses = "text-sm text-red-600 bg-white hover:bg-red-50 border border-red-200 shadow-sm transition-all duration-150 ease-in-out flex items-center justify-center gap-1.5 px-3 py-2 rounded-md";
 
   const headerMotionProps = {
     initial: { opacity: 0, y: -20 },
@@ -70,7 +70,7 @@ export default function Header() {
       {...headerMotionProps}
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="relative flex h-14 items-center justify-between gap-4 rounded-full bg-white/90 px-4 shadow-lg shadow-black/[0.07] backdrop-blur-xl border border-white/50">
+        <div className="relative flex h-14 items-center justify-between gap-5 rounded-full bg-white/60 px-4 shadow-lg shadow-black/[0.07] backdrop-blur-xl border border-white/50">
           
           <div className="flex-shrink-0">
             <Link href="/" aria-label="Home">

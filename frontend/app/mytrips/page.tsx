@@ -151,7 +151,7 @@ export default function MyTripsPage() {
             <div className="container mx-auto px-4 text-center text-gray-600 pt-20"> 
                  <List className="h-16 w-16 mb-6 text-gray-400 mx-auto" />
                 <h2 className="text-2xl font-semibold mb-2">No Saved Trips Yet</h2>
-                <p className="mb-6">You haven't saved any trip plans. Start planning your next adventure!</p>
+                <p className="mb-6">You haven&apos;t saved any trip plans. Start planning your next adventure!</p>
                 <button
                     onClick={() => router.push("/fastplan")}
                     className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md"

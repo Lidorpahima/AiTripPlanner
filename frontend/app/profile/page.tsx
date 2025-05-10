@@ -262,10 +262,17 @@ export default function ProfilePage() {
                            }}
                         />
                     </div>
-                    <div>
-                        <h1 className="text-2xl font-bold">Hello, {profileData.name || 'User'}</h1>
-                        <p className="text-gray-600">{profileData.email}</p>
+                    <div className="flex-grow">
+                        <h1 className="text-3xl font-bold text-gray-800">{profileData.name || "User&apos;s Profile"}</h1>
+                        <p className="text-gray-500">{profileData.email}</p>
                     </div>
+                </div>
+
+                {/* Information Text */}
+                <div className="mb-8">
+                    <p className="text-gray-600">
+                        Manage your account settings and preferences. Here you&apos;ll find your travel statistics and saved plans.
+                    </p>
                 </div>
 
                 {/* PROFILE INFO */}

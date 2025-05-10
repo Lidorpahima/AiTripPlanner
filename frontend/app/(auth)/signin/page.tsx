@@ -29,7 +29,7 @@ export default function SignIn() {
           className="text-sm text-gray-700 underline hover:no-underline"
           href="/signup" 
         >
-          Don't have an account? Sign up
+          Don&apos;t have an account? Sign up
         </Link>
       </div>
     </>

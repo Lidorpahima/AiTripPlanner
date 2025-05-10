@@ -102,7 +102,7 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in">
                 <div className="bg-white p-6 rounded-lg shadow-xl text-center">
                     <p className="font-semibold text-red-600">Could not load details</p>
-                    <p className="text-sm text-gray-700 mb-4">Failed to fetch details for "{placeNameQuery}". The place might not be found on Google Maps or there was a network issue.</p>
+                    <p className="text-sm text-gray-700 mb-4">Failed to fetch details for &quot;{placeNameQuery}&quot;. The place might not be found on Google Maps or there was a network issue.</p>
                     <button onClick={onClose} className="bg-gray-200 hover:bg-gray-300 px-4 py-1 rounded text-sm">Close</button>
                 </div>
             </div>

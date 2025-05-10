@@ -410,7 +410,7 @@ export default function FastPlanPage() {
                         : 'cursor-not-allowed bg-gray-400'
                     }`}
                   >
-                    <span className="relative z-10">Let's plan your trip →</span>
+                    <span className="relative z-10">Let&apos;s plan your trip →</span>
                   </button>
                 </div>
               </motion.div>
@@ -627,7 +627,7 @@ export default function FastPlanPage() {
                 
                 {/* Budget */}
                 <div className="mt-8">
-                  <h3 className="mb-3 font-medium text-gray-700">What's your budget level?</h3>
+                  <h3 className="mb-3 font-medium text-gray-700">What&apos;s your budget level?</h3>
                   <div className="grid gap-4 sm:grid-cols-3">
                     {BUDGET_OPTIONS.map((option) => (
                       <button
@@ -671,7 +671,7 @@ export default function FastPlanPage() {
             {currentStep === 6 && (
               <motion.div variants={fadeIn} className="space-y-6">
                 <h2 className="text-center text-2xl font-bold text-gray-800 sm:text-3xl">
-                  Let's personalize your experience
+                  Let&apos;s personalize your experience
                 </h2>
                 
                 {/* Accommodation */}

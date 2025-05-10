@@ -117,7 +117,7 @@ const TestimonialsSection: React.FC = () => {
                 ))}
               </div>
 
-              <p className="text-gray-600">"{testimonial.content}"</p>
+              <p className="text-gray-600">&quot;{testimonial.content}&quot;</p>
             </motion.div>
           ))}
         </motion.div>

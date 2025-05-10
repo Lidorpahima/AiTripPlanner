@@ -27,7 +27,7 @@ export default function HeroHome() {
                   data-aos-once="true"
                   data-aos-delay={150}
                 >
-                  Pick Your Dates, <br className="max-lg:hidden" /> We'll Plan the Rest.
+                  Pick Your Dates, <br className="max-lg:hidden" /> We&apos;ll Plan the Rest.
                 </h1>
                 <div className="max-w-3xl">
                   <p

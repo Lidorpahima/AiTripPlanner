@@ -13,7 +13,7 @@ export default function PrivacyPage() {
             <div className="space-y-6 text-gray-700">
               <h2 className="text-2xl font-semibold">Introduction</h2>
               <p>
-                AiTripPlanner ("us", "we", or "our") operates the AiTripPlanner website (the "Service"). This page informs you of our policies regarding the collection, use, and disclosure of personal data when you use our Service and the choices you have associated with that data.
+                AiTripPlanner (&quot;us&quot;, &quot;we&quot;, or &quot;our&quot;) operates the AiTripPlanner website (the &quot;Service&quot;). This page informs you of our policies regarding the collection, use, and disclosure of personal data when you use our Service and the choices you have associated with that data.
               </p>
 
               <h2 className="text-2xl font-semibold">Information Collection and Use</h2>
@@ -37,7 +37,7 @@ export default function PrivacyPage() {
 
               <h2 className="text-2xl font-semibold">Log Data</h2>
               <p>
-                We may also collect information that your browser sends whenever you visit our Service or when you access the Service by or through a mobile device ("Log Data"). This Log Data may include information such as your computer's Internet Protocol ("IP") address, browser type, browser version, the pages of our Service that you visit, the time and date of your visit, the time spent on those pages, unique device identifiers and other diagnostic data.
+                We may also collect information that your browser sends whenever you visit our Service or when you access the Service by or through a mobile device (&quot;Log Data&quot;). This Log Data may include information such as your computer&apos;s Internet Protocol (&quot;IP&quot;) address, browser type, browser version, the pages of our Service that you visit, the time and date of your visit, the time spent on those pages, unique device identifiers and other diagnostic data.
               </p>
 
               <h2 className="text-2xl font-semibold">Cookies</h2>
@@ -55,9 +55,9 @@ export default function PrivacyPage() {
                 Our Service uses third-party services like Google Places API and Gemini API. These services have their own privacy policies, and we encourage you to review them. We have no control over and assume no responsibility for the content, privacy policies or practices of any third party sites or services.
               </p>
 
-              <h2 className="text-2xl font-semibold">Children's Privacy</h2>
+              <h2 className="text-2xl font-semibold">Children&apos;s Privacy</h2>
               <p>
-                Our Service does not address anyone under the age of 13 ("Children"). We do not knowingly collect personally identifiable information from anyone under the age of 13. If you are a parent or guardian and you are aware that your Children has provided us with Personal Data, please contact us. If we become aware that we have collected Personal Data from children without verification of parental consent, we take steps to remove that information from our servers.
+                Our Service does not address anyone under the age of 13 (&quot;Children&quot;). We do not knowingly collect personally identifiable information from anyone under the age of 13. If you are a parent or guardian and you are aware that your Children has provided us with Personal Data, please contact us. If we become aware that we have collected Personal Data from children without verification of parental consent, we take steps to remove that information from our servers.
               </p>
 
               <h2 className="text-2xl font-semibold">Changes to This Privacy Policy</h2>

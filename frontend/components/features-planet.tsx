@@ -64,7 +64,7 @@ export default function FeaturesPlanet() {
                 <span>Save & Access</span>
               </h3>
               <p className="text-[15px] text-gray-400">
-                  Keep all your generated travel plans organized in "My Trips".
+                  Keep all your generated travel plans organized in &quot;My Trips&quot;.
                </p>
             </article>
             <article>

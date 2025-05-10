@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
@@ -20,7 +20,7 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
   const { login } = useAuth();
 
   // Handle Google authentication
-  const handleGoogleAuth = async (credentialResponse: any) => {
+  const handleGoogleAuth = useCallback(async (credentialResponse: any) => {
     try {
       setIsLoading(true);
       setAuthError(null);
@@ -77,7 +77,7 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [login, router]);
   
   // Initialize Google Sign-In
   useEffect(() => {
