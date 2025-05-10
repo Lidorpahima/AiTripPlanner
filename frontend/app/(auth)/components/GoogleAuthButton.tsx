@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { Languages } from 'lucide-react';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ;
 
 interface GoogleAuthButtonProps {
   context: 'signin' | 'signup';
@@ -101,6 +101,7 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
 
           const buttonElement = document.getElementById('google-signin-button');
           if (buttonElement) {
+            const containerWidth = buttonElement.offsetWidth;
             window.google.accounts.id.renderButton(
               buttonElement,
               {
@@ -108,12 +109,12 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
                 theme: 'outline',
                 size: 'large',
                 text: 'continue_with',
-                Languages: 'en',
+                locale: 'en', 
                 shape: 'rectangular',
                 logo_alignment: 'left',
+                width: containerWidth.toString(),
               }
             );
-            console.log("Google Sign-In button rendered successfully");
           } else {
             console.error("Google Sign-In button element not found");
           }
@@ -161,7 +162,7 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
         )}
         <div 
           id="google-signin-button" 
-          className={` w-full ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}
+          className={`w-full overflow-hidden pt-[2px] pb-[2px] pl-[10px] pr-[10px] ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}
         ></div>
       </div>
     </>

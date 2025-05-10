@@ -60,6 +60,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           <title>Ai Trip Planner</title>
           <Script id="brevo-config" strategy="beforeInteractive">
             {`
