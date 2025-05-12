@@ -30,23 +30,23 @@ const HowItWorksSection: React.FC = () => {
   const steps = [
     {
       icon: <MapPin className="h-10 w-10 text-blue-600" />,
-      title: "Choose Your Destination",
-      description: "Select where you want to go from our wide range of supported destinations worldwide."
+      title: "Choose Destination",
+      description: "Select your dream location from our wide range of supported destinations across the globe."
     },
     {
       icon: <Calendar className="h-10 w-10 text-blue-600" />,
       title: "Set Your Dates",
-      description: "Pick your travel dates and duration to create the perfect schedule for your trip."
+      description: "Choose when you want to travel and how long you'll stay to create your perfect trip schedule."
     },
     {
       icon: <ListChecks className="h-10 w-10 text-blue-600" />,
       title: "Customize Preferences",
-      description: "Tell us your travel style, interests, and pace to personalize your experience."
+      description: "Tell us about your interests, travel style, and pace to help us personalize your journey."
     },
     {
       icon: <Plane className="h-10 w-10 text-blue-600" />,
       title: "Get Your Itinerary",
-      description: "Receive a detailed day-by-day plan with optimized routes and local recommendations."
+      description: "Receive your custom day-by-day plan with optimized routes and local insider recommendations."
     }
   ];
 
@@ -92,7 +92,7 @@ const HowItWorksSection: React.FC = () => {
               <h3 className="text-xl text-center font-semibold mb-2 text-gray-800">
                 {step.title}
               </h3>
-              <p className="text-center text-gray-600">
+              <p className="text-center text-gray-600 h-[85px] flex items-center">
                 {step.description}
               </p>
               <div className="mt-4 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-semibold">

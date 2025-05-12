@@ -1,11 +1,17 @@
 "use client";
 import Image from "next/image";
+import { Lobster } from "next/font/google";
 
 import ImgTokyo from "@/public/images/destinations/rhome.jpg";
 import ImgRome from "@/public/images/destinations/lhero.jpg";
 import ImgParis from "@/public/images/destinations/parisHero.jpg";
 import ImgBali from "@/public/images/destinations/mHero.png";
 
+const lobster = Lobster({
+  weight: "400",
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export default function HeroHome() {
   return (
@@ -20,14 +26,14 @@ export default function HeroHome() {
             {/* Left Column (Text Content) - Adjusted width */}
             <div className="lg:w-1/2">
               {/* Section header */}
-              <div className="pb-8 text-left md:pb-12">
+              <div className="pb-8 text-left md:pb-12 pt-7">
                 <h1
                   className="mb-6 border-y text-5xl font-bold [border-image:linear-gradient(to_right,transparent,--theme(--color-slate-300/.8),transparent)1] md:text-6xl "
                   data-aos="zoom-y-out"
                   data-aos-once="true"
                   data-aos-delay={150}
                 >
-                  Pick Your Dates, <br className="max-lg:hidden" /> We'll Plan the Rest.
+                  Pick Your Dates, <br className="max-lg:hidden" />We'll<span className={`${lobster.className} text-blue-700`}>  Plan  </span>the Rest.
                 </h1>
                 <div className="max-w-3xl">
                   <p
@@ -50,11 +56,10 @@ export default function HeroHome() {
                       href="/fastplan" // Changed href to /login
                     >
                       <span className="relative inline-flex items-center">
-                        Plan Your Trip{" "}
+                        Plan Your Journey</span>{" "}
                         <span className="ml-1 tracking-normal text-blue-300 transition-transform group-hover:translate-x-0.5">
                           -&gt;
                         </span>
-                      </span>
                     </a>
                     {/* Learn More Button - Changed to Watch Demo */}
                     <a
@@ -65,7 +70,7 @@ export default function HeroHome() {
                        <svg className="mr-2 h-4 w-4 shrink-0 fill-current text-gray-600" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
                            <path d="M15.679 7.126a.998.998 0 0 0-.023-.113l-.002-.005a1.005 1.005 0 0 0-.144-.27L1.593.324A.999.999 0 0 0 .141.996v14.008a.999.999 0 0 0 1.452.874l13.918-6.409a1 1 0 0 0 .168-.873Z"/>
                        </svg>
-                       <span>Watch Demo</span> {/* Changed text */}
+                       <span>Watch <span className={`${lobster.className} text-indigo-600`}>Magic</span></span> {/* Changed text */}
                     </a>
                   </div>
                 </div>
@@ -75,20 +80,20 @@ export default function HeroHome() {
             {/* Restore Right Column (Image Grid) */}
             <div className="grid w-full grid-cols-3 grid-rows-2 gap-4 lg:w-1/2">
                  {/* Tokyo: Takes more space top left */}
-                 <div className="col-span-2 row-span-1 overflow-hidden rounded-lg shadow-md">
-                     <Image className="h-full w-full object-cover" src={ImgTokyo} alt="Tokyo" priority />
+                 <div className="col-span-2 row-span-1 overflow-hidden rounded-lg shadow-md transition-all duration-300 hover:shadow-lg group">
+                     <Image className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" src={ImgTokyo} alt="Tokyo" priority />
                  </div>
                  {/* Paris: Small top right */}
-                 <div className="col-span-1 row-span-1 overflow-hidden rounded-lg shadow-md">
-                     <Image className="h-full w-full object-cover" src={ImgParis} alt="Paris" />
+                 <div className="col-span-1 row-span-1 overflow-hidden rounded-lg shadow-md transition-all duration-300 hover:shadow-lg group">
+                     <Image className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" src={ImgParis} alt="Paris" />
                  </div>
                  {/* Rome: Small bottom left */}
-                 <div className="col-span-1 row-span-1 overflow-hidden rounded-lg shadow-md">
-                     <Image className="h-full w-full object-cover" src={ImgRome} alt="Rome" />
+                 <div className="col-span-1 row-span-1 overflow-hidden rounded-lg shadow-md transition-all duration-300 hover:shadow-lg group">
+                     <Image className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" src={ImgRome} alt="Rome" />
                  </div>
                  {/* Bali: Larger bottom right */}
-                 <div className="col-span-2 row-span-1 overflow-hidden rounded-lg shadow-md">
-                     <Image className="h-full w-full object-cover" src={ImgBali} alt="Bali" />
+                 <div className="col-span-2 row-span-1 overflow-hidden rounded-lg shadow-md transition-all duration-300 hover:shadow-lg group">
+                     <Image className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" src={ImgBali} alt="Bali" />
                  </div>
              </div>
 
