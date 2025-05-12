@@ -75,7 +75,7 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
             <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in">
                 <div className="bg-white p-6 rounded-lg shadow-xl text-center">
                     <p className="font-semibold">Loading details for {placeNameQuery}...</p>
-                    <div className="mt-4 w-8 h-8 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin mx-auto"></div>
+                    <div className="mt-4 w-8 h-8 border-4 border-primary-500 border-t-transparent border-solid rounded-full animate-spin mx-auto"></div>
                     <button onClick={onClose} className="mt-4 text-sm text-gray-600 hover:text-black">Cancel</button>
                 </div>
             </div>
@@ -174,7 +174,7 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
                         href={mapLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="ml-2 text-blue-600 hover:underline text-xs whitespace-nowrap"
+                        className="ml-2 text-primary-600 hover:underline text-xs whitespace-nowrap"
                         title="View on Google Maps"
                     >
                         (View Map)
@@ -184,13 +184,13 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
                 {phone && (
                     <div className="flex items-center">
                     <Phone size={16} className="mr-2 text-gray-600" />
-                    <a href={`tel:${phone}`} className="text-blue-600 hover:underline">{phone}</a>
+                    <a href={`tel:${phone}`} className="text-primary-600 hover:underline">{phone}</a>
                     </div>
                 )}
                 {website && (
                     <div className="flex items-center">
                     <Globe size={16} className="mr-2 text-gray-600" />
-                    <a href={website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                    <a href={website} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline truncate">
                         {website.replace(/^https?:\/\//, '')}
                     </a>
                     </div>

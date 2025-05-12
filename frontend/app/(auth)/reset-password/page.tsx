@@ -81,7 +81,7 @@ export default function ResetPassword() {
         <div className="mt-6">
         <button
             type="submit"
-            className={`btn w-full bg-linear-to-t from-blue-600 to-blue-500 bg-[length:100%_100%] bg-[bottom] text-white shadow-sm hover:bg-[length:100%_150%] ${isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+            className={`btn w-full bg-linear-to-t from-blue-500 to-blue-500 bg-[length:100%_100%] bg-[bottom] text-white shadow-sm hover:bg-[length:100%_150%] ${isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
             disabled={isLoading}
           >
             

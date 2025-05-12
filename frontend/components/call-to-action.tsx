@@ -19,7 +19,7 @@ const fadeIn = {
 
 const CallToAction: React.FC = () => {
   return (
-    <section className="py-16 md:py-24 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+    <section className="py-16 md:py-24 bg-gradient-to-r from-blue-500 to-indigo-700 text-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <motion.div 
           initial="hidden"
@@ -66,7 +66,7 @@ const CallToAction: React.FC = () => {
               
               <Link 
                 href="/fastplan"
-                className="block w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-3 px-4 rounded-lg shadow-md hover:shadow-lg hover:scale-[1.03] hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-center transition-all duration-300 ease-in-out"
+                className="block w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-3 px-4 rounded-lg shadow-md hover:shadow-lg hover:scale-[1.03] hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-center transition-all duration-300 ease-in-out"
               >
                 Plan My Trip Now
               </Link>

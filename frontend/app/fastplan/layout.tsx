@@ -1,7 +1,5 @@
 'use client';
 
-import Header from "@/components/ui/header";
-
 export default function FastPlanLayout({
   children,
 }: {
@@ -9,7 +7,7 @@ export default function FastPlanLayout({
 }) {
   return (
     <div className="relative min-h-screen bg-gray-100">
-      <Header />
+
       <main className="relative z-10">
         {children}
       </main>

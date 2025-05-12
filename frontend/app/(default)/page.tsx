@@ -1,7 +1,7 @@
 import Hero from "@/components/hero-home";
 import SectionBlob from "@/components/ui/SectionBlob";
-import HowItWorksSection from "@/components/how-it-works";
-import PopularDestinations from "@/components/popular-destinations";
+import HowItWorksSection from "@/app/components/HowItWorks/how-it-works";
+import PopularDestinations from "@/app/components/popular-destinations/popular-destinations";
 import TestimonialsSection from "@/components/testimonials";
 import CallToAction from "@/components/call-to-action";
 import { BudgetPlanner } from "@/components/budget-planner";

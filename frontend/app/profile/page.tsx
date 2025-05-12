@@ -233,7 +233,7 @@ export default function ProfilePage() {
             <div className="flex flex-col justify-center items-center h-screen text-red-600">
                 <p>Error loading profile: {error}</p>
                 <p>Please try refreshing the page. If the problem persists, try logging in again.</p>
-                <button onClick={() => router.push('/signin')} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                <button onClick={() => router.push('/signin')} className="mt-4 px-4 py-2 bg-primary-500 text-white rounded hover:bg-primary-600">
                     Go to Login
                 </button>
             </div>
@@ -311,7 +311,7 @@ export default function ProfilePage() {
 
                     {/* COUNTRY MAP*/}
                     <div>
-                        <h2 className="text-xl font-semibold mb-4">Countries I've Visited</h2>
+                        <h2 className="text-xl font-semibold mb-4">Countries I&apos;ve Visited</h2>
                         <div className="border rounded-lg p-4 relative">
                             <Suspense fallback={
                               <div className="w-full h-[400px] bg-gray-100 flex items-center justify-center">
@@ -327,7 +327,7 @@ export default function ProfilePage() {
                                 <p className="text-gray-700 mb-2">Number of countries visited: {profileData.visitedCountries.length}</p>
                                 <div className="flex flex-wrap gap-2">
                                     {profileData.visitedCountries.map((country) => (
-                                        <span key={country} className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">{country}</span>
+                                        <span key={country} className="inline-block bg-primary-100 text-primary-800 px-3 py-1 rounded-full text-sm">{country}</span>
                                     ))}
                                 </div>
                             </div>
@@ -336,7 +336,7 @@ export default function ProfilePage() {
 
                     {/* SAVEBUTTOM*/}
                     <button
-                        className={`bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition-colors ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-primary-600 transition-colors ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
                         onClick={handleSaveChanges}
                         disabled={isSaving}
                     >

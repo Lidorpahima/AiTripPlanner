@@ -15,7 +15,7 @@ const CostsTab: React.FC<CostsTabProps> = ({ plan, originalRequest, duration, fo
   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }} className="max-w-4xl mx-auto">
     {plan.total_cost_estimate && (
       <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
+        <div className="bg-gradient-to-r from-primary-500 to-primary-700 p-6 text-white">
           <h2 className="text-2xl font-bold mb-2">Trip Budget Estimate</h2>
           <p className="opacity-90">
             Estimated total cost for your {duration}-day trip to {originalRequest.destination.split(',')[0]}
@@ -43,7 +43,7 @@ const CostsTab: React.FC<CostsTabProps> = ({ plan, originalRequest, duration, fo
               min={plan.total_cost_estimate.accommodations.min}
               max={plan.total_cost_estimate.accommodations.max}
               formatCurrency={formatCurrency}
-              colorClass="bg-blue-600"
+              colorClass="bg-primary-600"
             />
           )}
           {plan.total_cost_estimate.food && (
@@ -86,11 +86,11 @@ const CostsTab: React.FC<CostsTabProps> = ({ plan, originalRequest, duration, fo
               colorClass="bg-red-500"
             />
           )}
-          <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-            <h4 className="font-medium text-blue-800 flex items-center mb-2">
+          <div className="mt-8 p-4 bg-primary-50 rounded-lg">
+            <h4 className="font-medium text-primary-800 flex items-center mb-2">
               <Info className="w-4 h-4 mr-2" /> About These Estimates
             </h4>
-            <p className="text-sm text-blue-700">
+            <p className="text-sm text-primary-700">
               These estimates are based on average prices for a {originalRequest.budget || 'Mid-range'} budget in {originalRequest.destination}. 
               Actual costs may vary based on seasonality, specific venues, and personal preferences. All figures are in {plan.total_cost_estimate.currency}.
             </p>
@@ -121,7 +121,7 @@ const CostsTab: React.FC<CostsTabProps> = ({ plan, originalRequest, duration, fo
                   href={option.link} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-xs text-blue-600 hover:underline mt-2 inline-block"
+                  className="text-xs text-primary-600 hover:underline mt-2 inline-block"
                 >
                   Learn more →
                 </a>

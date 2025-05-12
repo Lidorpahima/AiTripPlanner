@@ -18,7 +18,7 @@ const ErrorSection: React.FC<ErrorSectionProps> = ({ loadingError }) => {
         <p className="text-gray-600 mb-6">{loadingError || "Could not find complete trip information."}</p>
         <button
           onClick={() => router.push("/fastplan")}
-          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-2 px-6 rounded-full shadow-lg transition duration-300"
+          className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-2 px-6 rounded-full shadow-lg transition duration-300"
         >
           Plan a New Trip
         </button>

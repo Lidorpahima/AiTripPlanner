@@ -51,7 +51,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ isOpen, anchorRef, onClose, onS
         <button onClick={onClose} className="text-gray-600 hover:text-black text-sm">Cancel</button>
         <button
           onClick={() => { if (message.trim()) onSubmit(message); }}
-          className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
+          className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-primary-700 text-sm"
           disabled={loading || !message.trim()}
         >
           {loading ? 'Sending...' : 'Send'}

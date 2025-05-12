@@ -24,7 +24,7 @@ const DayCard: React.FC<DayCardProps> = ({
 }) => {
   return (
     <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-      <div className="bg-blue-600 py-3 px-4">
+      <div className="bg-blue-500 py-3 px-4">
         <h2 className="text-white font-bold text-lg">{day.title}</h2>
       </div>
       <div className="p-4">
@@ -34,7 +34,7 @@ const DayCard: React.FC<DayCardProps> = ({
               <Coins className="h-4 w-4 mr-1" />
               Estimated Cost:
             </span>
-            <span className="font-semibold text-blue-700">
+            <span className="font-semibold text-primary-700">
               {day.day_cost_estimate ?
                 `${formatCurrency(day.day_cost_estimate.min)} - ${formatCurrency(day.day_cost_estimate.max)}` :
                 'Varies'}

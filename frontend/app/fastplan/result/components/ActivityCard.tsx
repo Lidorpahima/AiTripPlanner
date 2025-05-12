@@ -24,10 +24,10 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
   formatCurrency,
 }) => {
   return (
-    <div className="border border-gray-100 rounded-lg p-3 hover:bg-blue-50 hover:border-blue-200 transition-all">
+    <div className="border border-gray-100 rounded-lg p-3 hover:bg-primary-50 hover:border-primary-200 transition-all">
       <div className="flex justify-between items-start">
         {activity.time && (
-          <span className="text-blue-700 font-bold text-xs bg-blue-50 px-2 py-0.5 rounded">
+          <span className="text-primary-700 font-bold text-xs bg-primary-50 px-2 py-0.5 rounded">
             {activity.time}
           </span>
         )}
@@ -47,7 +47,7 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
             {activity.place_name_for_lookup && (
               <button
                 onClick={() => onPlaceClick(dayIndex, activityIndex, activity.place_name_for_lookup)}
-                className="text-xs text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+                className="text-xs text-sky-600 hover:text-sky-700 hover:underline flex items-center gap-1"
               >
                 <ImageIcon size={12} /> Details
               </button>
@@ -62,7 +62,7 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
             {activity.place_name_for_lookup && (
               <button
                 onClick={() => onOpenInMaps(activity.place_name_for_lookup)}
-                className="text-xs text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+                className="text-xs text-red-500 hover:text-red-600 hover:underline flex items-center gap-1"
               >
                 <MapPin size={12} /> View Location
               </button>

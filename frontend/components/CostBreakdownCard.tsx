@@ -6,7 +6,7 @@ interface CostBreakdownCardProps {
   min: number;
   max: number;
   formatCurrency: (amount: number, currency?: string) => string;
-  colorClass: string; // Tailwind background color class, e.g., 'bg-blue-600'
+  colorClass: string; 
 }
 
 const CostBreakdownCard: React.FC<CostBreakdownCardProps> = ({ 

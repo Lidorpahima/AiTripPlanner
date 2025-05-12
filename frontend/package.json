@@ -26,11 +26,10 @@
     "react-toastify": "^11.0.5",
     "react-tooltip": "^5.28.1",
     "three": "^0.175.0",
-    "typescript": "^5.7.3",
     "@heroicons/react": "^2.0.18",
     "@types/node": "20.2.0",
     "autoprefixer": "10.4.14",
-    "eslint": "8.40.0",
+    "eslint": "^8.57.0",
     "eslint-config-next": "15.1.6",
     "postcss": "8.4.23",
     "react-slick": "^0.29.0",
@@ -62,6 +61,7 @@
     "@types/react-lottie": "^1.2.10",
     "@types/react-simple-maps": "^3.0.6",
     "@types/react-tooltip": "^3.11.0",
-    "@types/react-slick": "^0.23.10"
+    "@types/react-slick": "^0.23.10",
+    "typescript": "^5.7.3"
   }
 }

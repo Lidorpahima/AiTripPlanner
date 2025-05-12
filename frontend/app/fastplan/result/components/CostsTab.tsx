@@ -24,7 +24,7 @@ const CostsTab: React.FC<CostsTabProps> = ({ plan, originalRequest, formatCurren
     >
       {plan.total_cost_estimate && (
         <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
+          <div className="bg-gradient-to-r from-primary-600 to-indigo-600 p-6 text-white">
             <h2 className="text-2xl font-bold mb-2">Trip Budget Estimate</h2>
             <p className="opacity-90">
               Estimated total cost for your {duration}-day trip to {originalRequest.destination.split(',')[0]}
@@ -53,7 +53,7 @@ const CostsTab: React.FC<CostsTabProps> = ({ plan, originalRequest, formatCurren
                 min={plan.total_cost_estimate.accommodations.min}
                 max={plan.total_cost_estimate.accommodations.max}
                 formatCurrency={formatCurrency}
-                colorClass="bg-blue-600"
+                colorClass="bg-primary-600"
               />
             )}
             {plan.total_cost_estimate.food && (

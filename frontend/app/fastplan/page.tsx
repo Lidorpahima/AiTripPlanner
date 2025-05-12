@@ -310,7 +310,7 @@ export default function FastPlanPage() {
           style={{ boxShadow: '0 10px 40px rgba(0, 0, 0, 0.1)' }}
         >
           {/* Header section */}
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-white">
+          <div className="bg-gradient-to-r from-blue-500 to-indigo-700 p-8 text-white">
             <h1 className="text-center text-3xl font-bold">AI Trip Planner</h1>
             <p className="mt-2 text-center text-lg opacity-90">Create your perfect personalized travel experience</p>
           </div>
@@ -406,7 +406,7 @@ export default function FastPlanPage() {
                     disabled={!formData.destination}
                     className={`relative overflow-hidden rounded-full px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all duration-300 ease-in-out ${
                       formData.destination
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
+                        ? 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
                         : 'cursor-not-allowed bg-gray-400'
                     }`}
                   >
@@ -483,7 +483,7 @@ export default function FastPlanPage() {
                     disabled={!formData.startDate || !formData.endDate}
                     className={`rounded-full px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300 ease-in-out ${
                       formData.startDate && formData.endDate
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
+                        ? 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
                         : 'cursor-not-allowed bg-gray-400'
                     }`}
                   >
@@ -534,7 +534,7 @@ export default function FastPlanPage() {
                     disabled={formData.tripStyle.length === 0}
                     className={`rounded-full px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300 ease-in-out ${
                       formData.tripStyle.length > 0
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
+                        ? 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
                         : 'cursor-not-allowed bg-gray-400'
                     }`}
                   >
@@ -585,7 +585,7 @@ export default function FastPlanPage() {
                     disabled={formData.interests.length === 0}
                     className={`rounded-full px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300 ease-in-out ${
                       formData.interests.length > 0
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
+                        ? 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
                         : 'cursor-not-allowed bg-gray-400'
                     }`}
                   >
@@ -659,7 +659,7 @@ export default function FastPlanPage() {
                   <button
                     type="button"
                     onClick={nextStep}
-                    className="rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300 ease-in-out hover:from-blue-700 hover:to-indigo-700"
+                    className="rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300 ease-in-out hover:from-blue-700 hover:to-indigo-700"
                   >
                     Next →
                   </button>
@@ -751,7 +751,7 @@ export default function FastPlanPage() {
                   <button
                     type="button"
                     onClick={nextStep}
-                    className="rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300 ease-in-out hover:from-blue-700 hover:to-indigo-700"
+                    className="rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300 ease-in-out hover:from-blue-700 hover:to-indigo-700"
                   >
                     Next →
                   </button>
@@ -835,7 +835,7 @@ export default function FastPlanPage() {
                     className={`rounded-full px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300
                       ${isLoading
                         ? 'cursor-not-allowed bg-gray-400'
-                        : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'}
+                        : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'}
                     `}
                     aria-label="Continue to search mode selection"
                   >
@@ -926,7 +926,7 @@ export default function FastPlanPage() {
                     disabled={!searchMode || isLoading}
                     className={`group relative overflow-hidden rounded-full px-8 py-4 text-center text-lg font-bold text-white shadow-lg transition-all duration-300
                       ${searchMode && !isLoading
-                        ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:scale-105'
+                        ? 'bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-600 hover:scale-105'
                         : 'cursor-not-allowed bg-gray-400'}
                     `}
                     aria-label="Generate My Dream Trip"

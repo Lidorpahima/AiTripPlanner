@@ -25,7 +25,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ plan, originalRequest }) => {
       className="flex flex-col items-center text-center mb-8"
     >
       <div className="flex items-center justify-center gap-2">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4 mt-17">
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4 mt-20">
           Your {plan.destination_info?.city || originalRequest.destination.split(',')[0]} Adventure
         </h1>
         {plan && <ShareButton plan={plan} />}

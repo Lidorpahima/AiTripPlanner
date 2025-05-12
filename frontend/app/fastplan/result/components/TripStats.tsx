@@ -25,7 +25,7 @@ const TripStats: React.FC<TripStatsProps> = ({ plan, originalRequest, formatCurr
   const duration = startDate && endDate ? Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) : plan.days.length;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 w-full max-w-4xl">
+    <div className="grid justify-center grid-cols-2 md:grid-cols-4 gap-4 mt-8 w-full max-w-4xl mx-auto">
       <motion.div 
         variants={fadeInUp}
         className="bg-white rounded-xl p-4 shadow-md border border-gray-100 flex flex-col items-center"

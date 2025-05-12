@@ -335,7 +335,7 @@ const ChatBubble: React.FC<{
                 <button onClick={onClose} className="text-gray-600 hover:text-black text-sm">Cancel</button>
                 <button
                     onClick={() => { if (message.trim()) onSubmit(message); }}
-                    className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
+                    className="bg-primary-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
                     disabled={loading || !message.trim()}
                 >
                     {loading ? 'Sending...' : 'Send'}
@@ -599,7 +599,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
                         focus:outline-none focus:ring-2 focus:ring-offset-2 
                         ${isSaving ? 'bg-gray-400 cursor-not-allowed' : ''} 
                         ${isSaved ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500 cursor-default' 
-                                  : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 hover:scale-105' 
+                                  : 'bg-primary-600 hover:bg-primary-700 focus:ring-primary-500 hover:scale-105' 
                         }
                     `}
                 >

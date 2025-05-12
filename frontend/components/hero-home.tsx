@@ -46,7 +46,7 @@ export default function HeroHome() {
                   >
                     {/* Start Free Trial Button - Link to /login */}
                     <a
-                      className="btn group mb-4 w-full bg-linear-to-t from-blue-600 to-blue-500 bg-[length:100%_100%] bg-[bottom] text-white shadow-sm hover:bg-[length:100%_150%] sm:mb-0 sm:w-auto"
+                      className="btn group mb-4 w-full bg-linear-to-t from-blue-500 to-blue-500 bg-[length:100%_100%] bg-[bottom] text-white shadow-sm hover:bg-[length:100%_150%] sm:mb-0 sm:w-auto"
                       href="/fastplan" // Changed href to /login
                     >
                       <span className="relative inline-flex items-center">

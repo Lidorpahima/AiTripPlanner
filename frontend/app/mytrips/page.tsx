@@ -136,7 +136,7 @@ export default function MyTripsPage() {
                 <p className="mb-6">{error}</p>
                 <button
                     onClick={() => router.push("/fastplan")} 
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    className="bg-primary-600 hover:bg-primary-700 text-white font-bold py-2 px-4 rounded"
                 >
                     Plan a New Trip
                 </button>
@@ -154,7 +154,7 @@ export default function MyTripsPage() {
                 <p className="mb-6">You haven&apos;t saved any trip plans. Start planning your next adventure!</p>
                 <button
                     onClick={() => router.push("/fastplan")}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md"
+                    className="bg-primary-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md"
                 >
                     Plan Your First Trip
                 </button>

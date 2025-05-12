@@ -116,14 +116,14 @@ const ShareButton: React.FC<{ plan: TripPlan }> = ({ plan }) => {
     <div className="relative inline-block text-left ml-2">
       <button
         ref={buttonRef}
-        className="p-2 rounded-full bg-blue-100 hover:bg-blue-200 border border-blue-300 shadow-md transition focus:outline-none focus:ring-2 focus:ring-blue-400 mt-5"
+        className="p-2 rounded-full bg-primary-100 hover:bg-primary-200 border border-primary-300 shadow-md transition focus:outline-none focus:ring-2 focus:ring-primary-400 mt-5"
         onClick={() => setOpen((v) => !v)}
         title="Share"
         aria-label="Share itinerary"
         aria-expanded={open}
         aria-haspopup="true"
       >
-        <Share2 size={22} className="text-blue-600" />
+        <Share2 size={22} className="text-primary-600" />
       </button>
       
       {open && (
@@ -137,7 +137,7 @@ const ShareButton: React.FC<{ plan: TripPlan }> = ({ plan }) => {
           `}
         >
           <div className="px-4 py-3 border-b border-gray-100 font-semibold text-gray-700 text-sm flex items-center gap-2">
-            <Share2 size={16} className="text-blue-500 flex-shrink-0" /> 
+            <Share2 size={16} className="text-primary-500 flex-shrink-0" /> 
             <span className="truncate">Share this itinerary</span>
           </div>
           
@@ -145,7 +145,7 @@ const ShareButton: React.FC<{ plan: TripPlan }> = ({ plan }) => {
             onClick={handleCopy}
             className="flex items-center w-full px-4 py-3 hover:bg-gray-50 text-sm transition group"
           >
-            <Copy size={18} className="mr-3 text-gray-500 group-hover:text-blue-600 flex-shrink-0" />
+            <Copy size={18} className="mr-3 text-gray-500 group-hover:text-primary-600 flex-shrink-0" />
             <span>Copy Itinerary</span>
           </button>
           
@@ -165,8 +165,8 @@ const ShareButton: React.FC<{ plan: TripPlan }> = ({ plan }) => {
             onClick={handleEmail}
             className="flex items-center w-full px-4 py-3 hover:bg-blue-50 text-sm transition group"
           >
-            <Mail size={18} className="mr-3 text-blue-500 group-hover:text-blue-700 flex-shrink-0" />
-            <span className="text-blue-700 group-hover:underline">Send by Email</span>
+            <Mail size={18} className="mr-3 text-primary-500 group-hover:text-primary-700 flex-shrink-0" />
+            <span className="text-primary-700 group-hover:underline">Send by Email</span>
           </button>
         </div>
       )}

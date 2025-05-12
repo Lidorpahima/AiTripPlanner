@@ -8,27 +8,27 @@ interface datatype {
 
 const Aboutdata: datatype[] = [
     {
-        imgSrc: "/assets/network/bangladesh.svg",
-        country: "Bangladesh",
-        paragraph: 'Event madness gathering innoies, & tech enthusiasts in Speced.',
+        imgSrc: "/assets/network/paris.svg",
+        country: "Paris, France",
+        paragraph: "Romantic getaways, iconic landmarks, and culinary delights.",
 
     },
     {
-        imgSrc: "/assets/network/america.svg",
-        country: "United States",
-        paragraph: 'Event madness gathering innoies, & tech enthusiasts in Speced.',
+        imgSrc: "/assets/network/tokyo.svg",
+        country: "Tokyo, Japan",
+        paragraph: "A vibrant blend of ancient traditions and futuristic technology.",
 
     },
     {
-        imgSrc: "/assets/network/australia.svg",
-        country: "Australia",
-        paragraph: 'Event madness gathering innoies, & tech enthusiasts in Speced.',
+        imgSrc: "/assets/network/rome.svg",
+        country: "Rome, Italy",
+        paragraph: "Step back in time with historic ruins, art, and delicious pasta.",
 
     },
     {
-        imgSrc: "/assets/network/china.svg",
-        country: "China",
-        paragraph: 'Event madness gathering innoies, & tech enthusiasts in Speced.',
+        imgSrc: "/assets/network/bali.svg",
+        country: "Bali, Indonesia",
+        paragraph: "Lush landscapes, serene beaches, and a spiritual atmosphere.",
 
     },
 ]
@@ -36,10 +36,10 @@ const Aboutdata: datatype[] = [
 const Network = () => {
     return (
         <div className="bg-babyblue" id="project">
-            <div className="mx-auto max-w-2xl py-20 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-                <h3 className="text-4xl sm:text-6xl font-semibold text-center my-10 lh-81">Our network & world <br /> work details.</h3>
+            <div className="mx-auto max-w-2xl py-20 px-4 sm:px-6 lg:max-w-7xl lg:px-8 ">
+                <h3 className="text-4xl sm:text-6xl font-semibold text-center my-10 lh-81">Explore the World with Us</h3>
 
-                <Image src={'/assets/network/map.png'} alt={"map-image"} width={1400} height={800} />
+                <Image src={'/assets/network/cca5022c86f67861746d7cf2eb486de8.gif'} alt={"map-image"} width={1400} height={800} />
 
                 <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-16 gap-y-4 lg:gap-x-8'>
                     {Aboutdata.map((item, i) => (
@@ -49,7 +49,8 @@ const Network = () => {
                                 <h4 className="text-xl font-medium text-midnightblue">{item.country}</h4>
                             </div>
                             <hr />
-                            <h4 className='text-lg font-normal text-bluegrey my-2'>{item.paragraph}</h4>
+                            <h4 className='text-lg font-normal text-bluegrey my-2 text-center '>{item.paragraph}</h4>
+                            
                         </div>
                     ))}
                 </div>

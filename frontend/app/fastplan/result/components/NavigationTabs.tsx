@@ -11,7 +11,7 @@ const NavigationTabs: React.FC<NavigationTabsProps> = ({ activeTab, setActiveTab
       <div className="bg-white rounded-full shadow-md p-1 border border-gray-200 flex">
         <button
           className={`px-6 py-2 rounded-full transition-all font-medium text-sm ${
-            activeTab === 'itinerary' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
+            activeTab === 'itinerary' ? 'bg-blue-500 text-white shadow-sm' : 'text-gray-700 hover:bg-gray-100'
           }`}
           onClick={() => setActiveTab('itinerary')}
         >
@@ -19,7 +19,7 @@ const NavigationTabs: React.FC<NavigationTabsProps> = ({ activeTab, setActiveTab
         </button>
         <button
           className={`px-6 py-2 rounded-full transition-all font-medium text-sm ${
-            activeTab === 'costs' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
+            activeTab === 'costs' ? 'bg-blue-500 text-white shadow-sm' : 'text-gray-700 hover:bg-gray-100'
           }`}
           onClick={() => setActiveTab('costs')}
         >
@@ -27,7 +27,7 @@ const NavigationTabs: React.FC<NavigationTabsProps> = ({ activeTab, setActiveTab
         </button>
         <button
           className={`px-6 py-2 rounded-full transition-all font-medium text-sm ${
-            activeTab === 'tips' ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'
+            activeTab === 'tips' ? 'bg-blue-500 text-white shadow-sm' : 'text-gray-700 hover:bg-gray-100'
           }`}
           onClick={() => setActiveTab('tips')}
         >

@@ -7,16 +7,16 @@ interface whydata {
 
 const whydata: whydata[] = [
     {
-        heading: "Quality",
-        subheading: "Follow a hashtag growth total posts, videos and images.more revitions",
+        heading: "Smarter Planning",
+        subheading: "Our AI crafts personalized itineraries and suggests hidden gems tailored to your interests.",
     },
     {
-        heading: "Communication",
-        subheading: "Follow a hashtag growth total posts, videos and images.more revitions",
+        heading: "Always Up-to-Date",
+        subheading: "Access real-time information on local events, reviews, and interactive maps.",
     },
     {
-        heading: "Reliability",
-        subheading: "Follow a hashtag growth total posts, videos and images.more revitions",
+        heading: "Effortless & Flexible",
+        subheading: "Easily create, modify, and save your travel plans with our intuitive interface.",
     }
 ]
 
@@ -35,8 +35,8 @@ const Why = () => {
 
                     {/* COLUMN-2 */}
                     <div>
-                        <h3 className="text-4xl lg:text-5xl pt-4 font-semibold sm:leading-tight mt-5 text-center lg:text-start">Why we best?</h3>
-                        <h4 className="text-lg pt-4 font-normal sm:leading-tight text-center text-beach lg:text-start">Dont waste time on search manual tasks. Let Automation do it for you. Simplify workflows, reduce errors, and save time.</h4>
+                        <h3 className="text-4xl lg:text-5xl pt-4 font-semibold sm:leading-tight mt-5 text-center lg:text-start">Your Smartest Travel Companion</h3>
+                        <h4 className="text-lg pt-4 font-normal sm:leading-tight text-center text-beach lg:text-start">Experience seamless travel planning with AI-powered personalization, real-time data, and effortless itinerary management.</h4>
 
                         <div className="mt-10">
                             {whydata.map((items, i) => (
