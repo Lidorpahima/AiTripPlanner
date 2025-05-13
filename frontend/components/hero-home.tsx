@@ -33,7 +33,7 @@ export default function HeroHome() {
                   data-aos-once="true"
                   data-aos-delay={150}
                 >
-                  Pick Your Dates, <br className="max-lg:hidden" />We'll<span className={`${lobster.className} text-blue-700`}>  Plan  </span>the Rest.
+                  Pick Your Dates, <br className="max-lg:hidden" />We'll<span className={`${lobster.className} text-indigo-600`}>  Plan the Rest. </span>
                 </h1>
                 <div className="max-w-3xl">
                   <p
@@ -63,14 +63,14 @@ export default function HeroHome() {
                     </a>
                     {/* Learn More Button - Changed to Watch Demo */}
                     <a
-                      className="btn w-full bg-white text-gray-800 shadow-sm hover:bg-gray-50 sm:ml-4 sm:w-auto flex items-center justify-center" // Added flex, items-center, justify-center for icon alignment
+                      className="btn group w-full border border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white sm:ml-4 sm:w-auto flex items-center justify-center shadow-sm"
                       href="#" // Changed href to #
                     >
                        {/* Added Play Icon SVG */}
-                       <svg className="mr-2 h-4 w-4 shrink-0 fill-current text-gray-600" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                       <svg className="mr-2 h-4 w-4 shrink-0 fill-current text-indigo-600 group-hover:text-white" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
                            <path d="M15.679 7.126a.998.998 0 0 0-.023-.113l-.002-.005a1.005 1.005 0 0 0-.144-.27L1.593.324A.999.999 0 0 0 .141.996v14.008a.999.999 0 0 0 1.452.874l13.918-6.409a1 1 0 0 0 .168-.873Z"/>
                        </svg>
-                       <span>Watch <span className={`${lobster.className} text-indigo-600`}>Magic</span></span> {/* Changed text */}
+                       <span>Watch <span className={`${lobster.className} text-indigo-600 group-hover:text-white`}>Magic</span></span> {/* Changed text, ensure nested span also changes color on hover */}
                     </a>
                   </div>
                 </div>

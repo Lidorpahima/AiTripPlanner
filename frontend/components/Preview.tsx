@@ -10,17 +10,7 @@ const lobster = Lobster({
 export function CompactDeviceShowcase() {
   return (
     <div className="relative w-full max-w-7xl mx-auto min-h-[50vh] flex items-start justify-center">
-      {/* Text Overlay - Positioned absolutely over devices */}
-      <div className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none">
-        <div className="bg-white/40 backdrop-blur-md p-6 rounded-2xl text-center shadow-lg max-w-xl pointer-events-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Plan Your <span className={lobster.className}>Dream</span> Trip</h2>
-          <p className="text-gray-700 mb-6 text-lg">Our AI-powered platform makes travel planning simple, personalized, and delightful. See your plans come to life across all your devices.</p>
-          <button className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2 px-6 rounded-full font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md">
-            Start Planning Now
-          </button>
-        </div>
-      </div>
-      
+
       <div className="flex items-center justify-center">
         <div className="relative flex flex-col md:flex-row items-center justify-center gap-8 md:gap-0">
           {/* Desktop Monitor - Destination Grid */}

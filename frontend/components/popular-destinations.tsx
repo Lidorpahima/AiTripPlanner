@@ -113,7 +113,7 @@ const PopularDestinations: React.FC = () => {
               onClick={() => handleDestinationClick(destination.query)}
               className="group cursor-pointer overflow-hidden rounded-xl shadow-lg transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl"
             >
-              <div className="relative h-64 w-full overflow-hidden">
+              <div className="relative w-full overflow-hidden">
                 <Image
                   src={destination.image}
                   alt={destination.name}
