@@ -1,5 +1,5 @@
 import React from "react";
-import { ImageIcon, MapPin, MessageSquare } from "lucide-react";
+import { ImageIcon, MapPin, MessageSquare, Ticket } from "lucide-react";
 import { Activity, PlaceDetailsData } from "@/constants/planTypes";
 
 interface ActivityCardProps {
@@ -43,11 +43,11 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
         </div>
         <div className="flex-grow">
           <p className="text-sm text-gray-800">{activity.description}</p>
-          <div className="mt-2 flex space-x-2">
+          <div className="mt-2 flex space-x-2 flex-wrap">
             {activity.place_name_for_lookup && (
               <button
                 onClick={() => onPlaceClick(dayIndex, activityIndex, activity.place_name_for_lookup)}
-                className="text-xs text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+                className="text-xs text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 mb-1 md:mb-0"
               >
                 <ImageIcon size={12} /> Details
               </button>
@@ -55,17 +55,27 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
             <button
               id={`chat-button-${dayIndex}-${activityIndex}`}
               onClick={e => onChatRequest(dayIndex, activityIndex, e.currentTarget)}
-              className="text-xs text-green-600 hover:text-green-800 hover:underline flex items-center gap-1"
+              className="text-xs text-green-600 hover:text-green-800 hover:underline flex items-center gap-1 mb-1 md:mb-0"
             >
               <MessageSquare size={12} /> Suggest Alternative
             </button>
             {activity.place_name_for_lookup && (
               <button
                 onClick={() => onOpenInMaps(activity.place_name_for_lookup)}
-                className="text-xs text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+                className="text-xs text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 mb-1 md:mb-0"
               >
                 <MapPin size={12} /> View Location
               </button>
+            )}
+            {activity.ticket_url && (
+              <a
+                href={activity.ticket_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-purple-600 hover:text-purple-800 hover:underline flex items-center gap-1 mb-1 md:mb-0"
+              >
+                <Ticket size={12} /> Tickets
+              </a>
             )}
           </div>
         </div>

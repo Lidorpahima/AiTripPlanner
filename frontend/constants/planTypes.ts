@@ -1,4 +1,3 @@
-
 export interface Review {
   author_name: string;
   rating: number;
@@ -31,6 +30,7 @@ export interface Activity {
     max: number;
     currency: string;
   };
+  ticket_url?: string | null;
 }
 export type ActivityCategory =
   | 'food'

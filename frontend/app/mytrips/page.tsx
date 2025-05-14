@@ -63,41 +63,138 @@ export default function MyTripsPage() {
             setIsLoading(true);
             setError(null);
 
-            try {
+            const tryFetch = async (tokenToUse: string): Promise<SavedTripData[]> => {
+                console.log("Attempting to fetch trips with access token:", tokenToUse.substring(0, 10) + "...");
                 const response = await fetch(`${API_BASE}/api/my-trips/`, {
                     method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
+                        'Authorization': `Bearer ${tokenToUse}`,
                         'Accept': 'application/json',
                     },
                     credentials: 'include' 
                 });
 
                 if (response.status === 401) {
-                    toast.error("Session expired. Please log in again.");
-                    logout?.(); 
-                    router.push('/signin'); 
-                    return; 
+                    console.log("Access token expired or invalid. Attempting refresh...");
+                    // Check cookies and localStorage for the refresh token
+                    const cookieRefresh = Cookies.get('refresh');
+                    const localStorageRefresh = localStorage.getItem('refreshToken');
+                    const refresh = cookieRefresh || localStorageRefresh;
+                    
+                    console.log("Refresh token found in cookies:", cookieRefresh ? "Yes" : "No");
+                    console.log("Refresh token found in localStorage:", localStorageRefresh ? "Yes" : "No");
+
+                    if (!refresh) {
+                        toast.error("Session expired. Please log in again.");
+                        logout?.();
+                        router.push('/signin');
+                        throw new Error("Session expired. Please log in again.");
+                    }
+
+                    try {
+                        // Log all request details for debugging
+                        console.log("All cookies:", document.cookie);
+                        console.log("Using refresh token (first 10 chars):", refresh.substring(0, 10) + "...");
+                        console.log("Preparing refresh request to:", `${API_BASE}/api/token/refresh/`);
+                        
+                        // This is the correct format for DRF Simple JWT TokenObtainPairView
+                        const refreshRequestBody = { refresh: refresh };
+                        console.log("Request body:", JSON.stringify(refreshRequestBody));
+                        
+                        const refreshRes = await fetch(`${API_BASE}/api/token/refresh/`, {
+                            method: 'POST',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify(refreshRequestBody)
+                        });
+
+                        console.log("Refresh response status:", refreshRes.status);
+                        
+                        if (!refreshRes.ok) {
+                            // Try to get the error details
+                            let errorData = { detail: `Error ${refreshRes.status}`};
+                            try {
+                                const errorText = await refreshRes.text();
+                                console.error("Raw error response:", errorText);
+                                try {
+                                    errorData = JSON.parse(errorText);
+                                } catch (e) {
+                                    console.error("Failed to parse error response as JSON");
+                                }
+                                console.error("Token refresh error details:", errorData);
+                            } catch (e) { 
+                                console.error("Failed to read error response");
+                            }
+                            
+                            logout?.();
+                            toast.error("Token refresh failed. Please log in again.");
+                            router.push('/signin');
+                            throw new Error(`Token refresh failed: ${JSON.stringify(errorData)}`);
+                        }
+
+                        const refreshData = await refreshRes.json();
+                        console.log("Token refresh response received:", refreshData ? "Yes" : "No");
+                        console.log("Token refresh access token received:", refreshData.access ? "Yes" : "No");
+                        
+                        if (!refreshData.access) {
+                            logout?.();
+                            toast.error("Invalid refresh response. Please log in again.");
+                            router.push('/signin');
+                            throw new Error("Invalid refresh response. Please log in again.");
+                        }
+
+                        console.log("Token refreshed successfully.");
+                        // Store the new access token with proper settings
+                        Cookies.set('access', refreshData.access, { 
+                            path: '/', 
+                            expires: 7,
+                            sameSite: 'lax'  // Changed from 'strict' to 'lax' for better compatibility
+                        });
+                        localStorage.setItem('authToken', refreshData.access);
+                        
+                        // Store new refresh token if provided
+                        if (refreshData.refresh) {
+                            Cookies.set('refresh', refreshData.refresh, { 
+                                path: '/', 
+                                expires: 30,
+                                sameSite: 'lax'  // Changed from 'strict' to 'lax'
+                            });
+                            localStorage.setItem('refreshToken', refreshData.refresh);
+                        }
+                        
+                        return await tryFetch(refreshData.access);
+                    } catch (refreshErr: any) {
+                        console.error("Refresh error:", refreshErr);
+                        logout?.();
+                        toast.error("Could not refresh session. Please log in again.");
+                        router.push('/signin');
+                        throw new Error("Could not refresh session. Please log in again.");
+                    }
                 }
 
                 if (!response.ok) {
-                     let errorData = { detail: `Error ${response.status}`};
-                     try {
-                         errorData = await response.json();
-                     } catch { /* Ignore if parsing fails */ }
+                    let errorData = { detail: `Error ${response.status}`};
+                    try {
+                        errorData = await response.json();
+                    } catch { /* Ignore if parsing fails */ }
                     throw new Error(errorData.detail || `Failed to fetch trips (Status: ${response.status})`);
                 }
 
-                const data: SavedTripData[] = await response.json();
-                setTrips(data); 
+                return await response.json();
+            };
 
-            } catch (err) {
+            try {
+                const data = await tryFetch(token);
+                setTrips(data);
+            } catch (err: unknown) {
                 console.error("Error fetching saved trips:", err);
                 const message = err instanceof Error ? err.message : "An unknown error occurred.";
                 // Avoid showing toast again if already redirected due to 401 inside try
-                if (!(err instanceof Error && err.message.includes("401"))) { 
-                     setError(`Failed to load trips: ${message}`);
-                     toast.error(`Failed to load trips: ${message}`);
+                if (!(err instanceof Error && (err.message.includes("Session expired") || err.message.includes("Token refresh failed") || err.message.includes("Could not refresh session")))) { 
+                    setError(`Failed to load trips: ${message}`);
+                    toast.error(`Failed to load trips: ${message}`);
                 }
             } finally {
                 setIsLoading(false); 

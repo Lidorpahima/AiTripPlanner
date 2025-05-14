@@ -92,7 +92,7 @@ const POPULAR_DESTINATIONS = [
   { name: "Paris, France", image: "/images/destinations/paris.jpg", emoji: "🗼" },
   { name: "Tokyo, Japan", image: "/images/destinations/tokyo.jpg", emoji: "🏯" },
   { name: "Rome, Italy", image: "/images/destinations/rome.jpg", emoji: "🏛️" },
-  { name: "Bali, Indonesia", image: "/images/destinations/bali.jpg", emoji: "🌴" },
+  { name: "Greece, Mykonos", image: "/images/destinations/mykonos.jpg", emoji: "⛱️" },
   { name: "New York, USA", image: "/images/destinations/new-york.jpg", emoji: "🗽" },
   { name: "Bangkok, Thailand", image: "/images/destinations/bangkok.jpg", emoji: "🛕" },
 ];
@@ -139,6 +139,8 @@ export default function FastPlanPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [dateError, setDateError] = useState<string | null>(null);
 
+  const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+
   // Auto-scroll to top when changing steps
   useEffect(() => {
     if (containerRef.current) {
@@ -180,8 +182,25 @@ export default function FastPlanPage() {
         toast.warn("Please select both start and end dates.");
         return;
       }
-      if (formData.endDate < formData.startDate) {
+
+      const todayDate = new Date();
+      todayDate.setHours(0, 0, 0, 0); // Normalize today's date to the beginning of the day
+
+      const startDateObj = new Date(formData.startDate);
+      startDateObj.setUTCHours(0, 0, 0, 0); // Normalize to UTC start of day to avoid timezone issues with comparison
+      
+      const endDateObj = new Date(formData.endDate);
+      endDateObj.setUTCHours(0, 0, 0, 0); // Normalize to UTC start of day
+
+      if (startDateObj < todayDate) {
+        setDateError("Start date cannot be in the past.");
+        toast.warn("Start date cannot be in the past.");
+        return;
+      }
+
+      if (endDateObj < startDateObj) {
         setDateError("End date cannot be before start date.");
+        toast.warn("End date cannot be before start date.");
         return;
       }
       setDateError(null);
@@ -435,6 +454,7 @@ export default function FastPlanPage() {
                       name="startDate"
                       value={formData.startDate}
                       onChange={handleInputChange}
+                      min={today}
                       className="w-full rounded-lg border border-gray-300 py-3 pl-4 text-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     />
                     
@@ -449,6 +469,7 @@ export default function FastPlanPage() {
                       name="endDate"
                       value={formData.endDate}
                       onChange={handleInputChange}
+                      min={formData.startDate || today}
                       className="w-full rounded-lg border border-gray-300 py-3 pl-4 text-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     />
                     {dateError && (
@@ -604,7 +625,17 @@ export default function FastPlanPage() {
                 
                 {/* Trip Pace */}
                 <div>
-                  <h3 className="mb-3 font-medium text-gray-700">What pace do you prefer for your trip?</h3>
+                  <h3 className="mb-3 font-medium text-gray-700 flex items-center">
+                    What pace do you prefer for your trip?
+                    <span className="group relative ml-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-gray-400 hover:text-blue-500 cursor-pointer">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      <span className="absolute left-1/2 -translate-x-1/2 -top-2 translate-y-full w-48 px-2 py-1 bg-gray-700 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                        Knowing your preferred pace helps us balance activities and free time, ensuring a comfortable trip.
+                      </span>
+                    </span>
+                  </h3>
                   <div className="grid gap-4 sm:grid-cols-3">
                     {PACE_OPTIONS.map((option) => (
                       <button
@@ -627,7 +658,17 @@ export default function FastPlanPage() {
                 
                 {/* Budget */}
                 <div className="mt-8">
-                  <h3 className="mb-3 font-medium text-gray-700">What's your budget level?</h3>
+                  <h3 className="mb-3 font-medium text-gray-700 flex items-center">
+                    What's your budget level?
+                    <span className="group relative ml-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-gray-400 hover:text-blue-500 cursor-pointer">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      <span className="absolute left-1/2 -translate-x-1/2 -top-2 translate-y-full w-56 px-2 py-1 bg-gray-700 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                        Understanding your budget helps us suggest suitable accommodations, activities, and dining options.
+                      </span>
+                    </span>
+                  </h3>
                   <div className="grid gap-4 sm:grid-cols-3">
                     {BUDGET_OPTIONS.map((option) => (
                       <button

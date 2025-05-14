@@ -25,56 +25,82 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
 
   useEffect(() => {
-    console.log("Auth Context: Checking localStorage for token...");
-    const token = Cookies.get('access'); 
-    console.log("Auth Context: Attempting to store token in localStorage...");
-    if (token) {
-      localStorage.setItem('authToken', token);
-      console.log("Auth Context: Token stored successfully.");
+    console.log("Auth Context: Checking for auth tokens...");
+    // Try to get tokens from multiple sources
+    const accessToken = Cookies.get('access') || localStorage.getItem('authToken');
+    const refreshToken = Cookies.get('refresh') || localStorage.getItem('refreshToken');
+    
+    // Ensure cookies have the tokens (in case they were only in localStorage)
+    if (accessToken) {
+      Cookies.set('access', accessToken, { 
+        path: '/', 
+        expires: 7,
+        // Using less restrictive settings for cookie
+        sameSite: 'lax'
+      });
+      localStorage.setItem('authToken', accessToken);
+      console.log("Auth Context: Access token found and stored in both cookie and localStorage");
     } else {
-      console.warn("Auth Context: No token provided to store.");
+      console.warn("Auth Context: No access token found in any storage");
+    }
+    
+    if (refreshToken) {
+      Cookies.set('refresh', refreshToken, { 
+        path: '/', 
+        expires: 30,
+        // Using less restrictive settings for cookie
+        sameSite: 'lax'
+      });
+      localStorage.setItem('refreshToken', refreshToken);
+      console.log("Auth Context: Refresh token found and stored in both cookie and localStorage");
+    } else {
+      console.warn("Auth Context: No refresh token found in any storage");
     }
 
-    console.log("Auth Context: Checking localStorage for token...");
-    const storedToken = localStorage.getItem('authToken');
-    if (storedToken) {
-      console.log("Auth Context: Token found in localStorage.", storedToken);
-    } else {
-      console.warn("Auth Context: No token found in localStorage.");
-    }
-
-    if (token) {
-      console.log("Auth Context: Token found, setting authenticated.");
+    if (accessToken) {
+      console.log("Auth Context: Access token found, setting authenticated");
       setIsAuthenticated(true);
     } else {
-      console.log("Auth Context: No token found.");
+      console.log("Auth Context: No access token found, user not authenticated");
+      setIsAuthenticated(false);
     }
     setIsLoading(false); 
   }, []);
 
   const login = (access: string, refresh: string) => {
-    console.log("Auth Context: Logging in...");
-    Cookies.set('access', access, { path: '/', expires: 7 });
-    Cookies.set('refresh', refresh, { path: '/', expires: 7 });
+    console.log("Auth Context: Logging in with new tokens...");
+    // Store in cookies with proper settings
+    Cookies.set('access', access, { 
+      path: '/', 
+      expires: 7,
+      // Using less restrictive settings for cookie
+      sameSite: 'lax'
+    });
+    Cookies.set('refresh', refresh, { 
+      path: '/', 
+      expires: 30,
+      // Using less restrictive settings for cookie
+      sameSite: 'lax'
+    });
+    
+    // Backup in localStorage
+    localStorage.setItem('authToken', access);
+    localStorage.setItem('refreshToken', refresh);
     
     setIsAuthenticated(true); 
-   
   };
 
 
   const logout = () => {
     console.log("Auth Context: Logging out...");
+    // Clear all authentication tokens from all storage locations
     Cookies.remove('access'); 
     Cookies.remove('refresh');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('refreshToken');
+    
     setIsAuthenticated(false); 
     router.push('/');
-  };
-
-  const value = {
-    isAuthenticated,
-    isLoading,
-    login,
-    logout,
   };
 
   return (

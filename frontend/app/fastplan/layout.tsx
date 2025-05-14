@@ -1,6 +1,7 @@
 'use client';
 
 import Header from "@/components/ui/header";
+import Footer from "@/components/ui/footer";
 
 export default function FastPlanLayout({
   children,
@@ -13,7 +14,7 @@ export default function FastPlanLayout({
       <main className="relative z-10">
         {children}
       </main>
-
+      <Footer/>
       <div className="absolute bottom-0 left-0 right-0 w-full h-64 md:h-72 lg:h-100 z-0 overflow-hidden"> 
       </div>
     </div>

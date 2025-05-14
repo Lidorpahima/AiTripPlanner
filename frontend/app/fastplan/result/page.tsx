@@ -18,7 +18,7 @@ import CostsTab from "./components/CostsTab";
 import TipsTab from "@/components/TipsTab";
 import LoadingDisplay from "./components/LoadingDisplay";
 import ErrorDisplay from "./components/ErrorDisplay";
-import ChatBubble from "./components/ChatBubble";
+import SideChatPanel, { ChatMessage } from "./components/SideChatPanel";
 
 // Types import
 import { Activity, PlaceDetailsData, TripPlan, OriginalRequestData } from "@/constants/planTypes";
@@ -61,15 +61,84 @@ export default function TripResultPage() {
   const [activePopupKey, setActivePopupKey] = useState<string | null>(null);
   const [activePopupQuery, setActivePopupQuery] = useState<string>("");
 
-  // Chat state for activity replacement
-  const [chatOpen, setChatOpen] = useState(false);
-  const [chatLoading, setChatLoading] = useState(false);
-  const [chatDayIdx, setChatDayIdx] = useState<number|null>(null);
-  const [chatActIdx, setChatActIdx] = useState<number|null>(null);
-  const chatAnchor = useRef<HTMLButtonElement | null>(null);
+  // New state for SideChatPanel
+  const [isSideChatOpen, setIsSideChatOpen] = useState(false);
+  const [currentChatActivity, setCurrentChatActivity] = useState<Activity | null>(null);
+  const [currentChatDayIndex, setCurrentChatDayIndex] = useState<number | null>(null);
+  const [currentChatActivityIndex, setCurrentChatActivityIndex] = useState<number | null>(null);
+  const [conversationHistory, setConversationHistory] = useState<ChatMessage[]>([]);
+  const [sideChatLoading, setSideChatLoading] = useState(false);
   
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Effect to hide/show third-party chat widget (Brevo)
+  useEffect(() => {
+    const selectors = [
+      'div.brevo-conversations__iframe-wrapper',      // PRIMARY TARGET: The wrapper div you found
+      'iframe[id="brevo-chat-frame"]',
+      'iframe[id="brevo-conversations-widget_chat-window"]',
+      'div[data-brevo-chat-widget-container]',
+      '#brevo-chat-widget-container',
+      '.brevo-launcher-frame iframe',
+      'button.header.js-header[aria-label*="Chat with us"]' 
+    ];
+
+    let widgetToHide: HTMLElement | null = null;
+
+    for (const selector of selectors) {
+      const element = document.querySelector(selector);
+      if (element) {
+        // If we found the button itself, try to get its parent wrapper if it matches the primary target
+        if (selector.startsWith('button.header')) {
+            const wrapper = element.closest('div.brevo-conversations__iframe-wrapper');
+            widgetToHide = wrapper as HTMLElement || element as HTMLElement; // Hide wrapper if found, else the button
+        } else {
+            widgetToHide = element as HTMLElement;
+        }
+        break; 
+      }
+    }
+    
+    // Fallback for other iframe patterns if the primary target or specific selectors aren't found
+    if (!widgetToHide) {
+      const iframes = document.querySelectorAll('iframe');
+      iframes.forEach(iframe => {
+        if (iframe.src.includes('brevo.com') || iframe.src.includes('sendinblue.com')) {
+          // If it's a brevo iframe, its parent might be the wrapper we want
+          if (iframe.parentElement && iframe.parentElement.classList.contains('brevo-conversations__iframe-wrapper')) {
+            widgetToHide = iframe.parentElement;
+          } else {
+            widgetToHide = iframe; // Hide the iframe itself as a fallback
+          }
+        } else if (window.getComputedStyle(iframe).position === 'fixed' && 
+                   window.getComputedStyle(iframe).bottom === '0px' && 
+                   window.getComputedStyle(iframe).right === '0px') {
+          widgetToHide = iframe;
+        }
+      });
+    }
+
+    if (widgetToHide) {
+      console.log('Attempting to hide widget:', widgetToHide);
+      const originalDisplayStyle = widgetToHide.style.display;
+      const originalVisibilityStyle = widgetToHide.style.visibility;
+
+      if (isSideChatOpen) {
+        widgetToHide.style.setProperty('display', 'none', 'important');
+      } else {
+        widgetToHide.style.display = originalDisplayStyle || ''; 
+      }
+      
+      return () => {
+        if (widgetToHide) { 
+            widgetToHide.style.display = originalDisplayStyle || '';
+        }
+      };
+    } else {
+      console.log('Brevo chat widget or its wrapper not found by specified selectors.');
+    }
+  }, [isSideChatOpen]);
 
   // Load trip data from session storage
   useEffect(() => {
@@ -346,61 +415,171 @@ export default function TripResultPage() {
 
   // Function to handle chat request for activity replacement
   const handleChatRequest = useCallback((dayIndex: number, activityIndex: number, buttonRef: HTMLButtonElement) => {
-    setChatDayIdx(dayIndex);
-    setChatActIdx(activityIndex);
-    chatAnchor.current = buttonRef;
-    setChatOpen(true);
+    // New logic for SideChatPanel
+    setCurrentChatDayIndex(dayIndex);
+    setCurrentChatActivityIndex(activityIndex);
+    
+    const activity = plan?.days[dayIndex]?.activities[activityIndex];
+    if (activity) {
+      setCurrentChatActivity(activity);
+      // Initialize conversation with a system message or clear it
+      setConversationHistory([
+        {
+          id: `system-${Date.now()}`,
+          text: `Let's find an alternative for: "${activity.description}". What are you looking for?`,
+          sender: 'system',
+          timestamp: new Date(),
+        }
+      ]);
+    } else {
+      setCurrentChatActivity(null); // Should not happen if plan is loaded
+      setConversationHistory([]);
+      toast.error("Could not load activity details for chat.");
+    }
+
+    setIsSideChatOpen(true);
+  }, [plan]); 
+
+  const handleSideChatClose = useCallback(() => {
+    console.log('Closing side chat panel...');
+    
+    // Force close with immediate visual feedback
+    document.body.style.overflow = ''; // Restore scroll if it was disabled
+    
+    // Reset all related state
+    setIsSideChatOpen(false);
+    
+    // Use a small timeout to ensure the panel closes visually before resetting the other states
+    setTimeout(() => {
+      setCurrentChatActivity(null);
+      setCurrentChatDayIndex(null);
+      setCurrentChatActivityIndex(null);
+      setConversationHistory([]);
+      setSideChatLoading(false);
+    }, 300); // Matches the transition duration in the panel
+    
+    console.log('Side chat panel closed');
   }, []);
 
-  // Function to handle chat submission for activity replacement
-  const handleChatSubmit = async (message: string) => {
-    if (chatDayIdx === null || chatActIdx === null || !plan) return;
-    
-    setChatLoading(true);
+  const handleSideChatSubmit = async (message: string /*, activityContext: Activity | null */) => {
+    if (currentChatDayIndex === null || currentChatActivityIndex === null || !plan || !currentChatActivity) {
+      toast.error("Cannot process chat request: missing context.");
+      return;
+    }
+
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      text: message,
+      sender: 'user',
+      timestamp: new Date(),
+    };
+    setConversationHistory(prev => [...prev, userMessage]);
+    setSideChatLoading(true);
+
     try {
       const response = await fetch(`${API_BASE}/api/chat-replace-activity/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message,
-          dayIndex: chatDayIdx,
-          activityIndex: chatActIdx,
+          dayIndex: currentChatDayIndex,
+          activityIndex: currentChatActivityIndex,
           plan: plan
         })
       });
       
-      if (!response.ok) throw new Error('Server error');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || errorData.details || 'Server error from chat API');
+      }
       
       const data = await response.json();
-      if (!data || !data.activity) throw new Error('No new activity received');
-      
-      // Update the plan with the new activity
-      setPlan(prevPlan => {
-        if (!prevPlan) return prevPlan;
-        
-        const updatedPlan = { ...prevPlan };
-        updatedPlan.days = [...prevPlan.days];
-        updatedPlan.days[chatDayIdx] = { ...prevPlan.days[chatDayIdx] };
-        updatedPlan.days[chatDayIdx].activities = [...prevPlan.days[chatDayIdx].activities];
-        updatedPlan.days[chatDayIdx].activities[chatActIdx] = data.activity;
-        return updatedPlan;
-      });
-      
-      // Remove any cached place details for this activity
-      const key = `${chatDayIdx}-${chatActIdx}`;
-      setPlaceDetails(prev => {
-        const newDetails = { ...prev };
-        delete newDetails[key];
-        return newDetails;
-      });
-      
-      toast.success('Activity replaced successfully!');
+      if (!data || !data.activity) {
+        throw new Error('No new activity received from AI');
+      }
+
+      const aiSuggestedActivity: Activity = data.activity;
+
+      const aiMessage: ChatMessage = {
+        id: `ai-${Date.now()}`,
+        text: `Okay, how about this instead of "${currentChatActivity.description}"?\n\nSuggestion: ${aiSuggestedActivity.description}`,
+        sender: 'ai',
+        timestamp: new Date(),
+        suggestedActivity: aiSuggestedActivity // Include the suggested activity
+      };
+      setConversationHistory(prev => [...prev, aiMessage]);
+
+      // For now, we don't automatically update the plan. User will need to accept.
+      // toast.success('AI suggested an alternative!');
+
     } catch (e: any) {
-      toast.error(e.message || 'An error occurred');
+      console.error("Error in side chat submit:", e);
+      const errorMessage: ChatMessage = {
+        id: `error-${Date.now()}`,
+        text: `Error: ${e.message || 'Could not get suggestion.'}`,
+        sender: 'system',
+        timestamp: new Date(),
+      };
+      setConversationHistory(prev => [...prev, errorMessage]);
+      toast.error(e.message || 'An error occurred while getting suggestion.');
     } finally {
-      setChatLoading(false);
-      setChatOpen(false);
+      setSideChatLoading(false);
     }
+  };
+
+  // New handler for accepting a suggestion
+  const handleAcceptSuggestion = (activity: Activity) => {
+    if (currentChatDayIndex === null || currentChatActivityIndex === null || !plan) {
+      toast.error("Cannot accept suggestion: missing context.");
+      return;
+    }
+
+    // Update the plan with the accepted activity
+    setPlan(prevPlan => {
+      if (!prevPlan) return prevPlan;
+      
+      const updatedPlan = { ...prevPlan };
+      updatedPlan.days = [...prevPlan.days];
+      updatedPlan.days[currentChatDayIndex] = { ...prevPlan.days[currentChatDayIndex] };
+      updatedPlan.days[currentChatDayIndex].activities = [...prevPlan.days[currentChatDayIndex].activities];
+      updatedPlan.days[currentChatDayIndex].activities[currentChatActivityIndex] = activity;
+      return updatedPlan;
+    });
+    
+    // Remove any cached place details for this activity
+    const key = `${currentChatDayIndex}-${currentChatActivityIndex}`;
+    setPlaceDetails(prev => {
+      const newDetails = { ...prev };
+      delete newDetails[key];
+      return newDetails;
+    });
+    
+    // Add a system message confirming the update
+    const confirmationMessage: ChatMessage = {
+      id: `system-${Date.now()}`,
+      text: `✅ Activity updated successfully! You can close this chat or continue discussing alternatives.`,
+      sender: 'system',
+      timestamp: new Date(),
+    };
+    setConversationHistory(prev => [...prev, confirmationMessage]);
+    
+    toast.success('Activity updated successfully!');
+  };
+
+  // New handler for rejecting a suggestion
+  const handleRejectSuggestion = (messageId: string) => {
+    // Find the rejected message in the conversation
+    const rejectedMessageIndex = conversationHistory.findIndex(msg => msg.id === messageId);
+    if (rejectedMessageIndex < 0) return;
+    
+    // Add a system message asking for more details
+    const followUpMessage: ChatMessage = {
+      id: `system-${Date.now()}`,
+      text: `Would you like to try again with more specific requirements? Please provide more details about what you're looking for.`,
+      sender: 'system',
+      timestamp: new Date(),
+    };
+    setConversationHistory(prev => [...prev, followUpMessage]);
   };
 
   // Show loading state
@@ -483,12 +662,16 @@ export default function TripResultPage() {
           placeNameQuery={activePopupQuery}
         />
       )}
-      <ChatBubble
-        isOpen={chatOpen}
-        anchorRef={chatAnchor}
-        onClose={() => setChatOpen(false)}
-        onSubmit={handleChatSubmit}
-        loading={chatLoading}
+      {/* Add new SideChatPanel */}
+      <SideChatPanel
+        isOpen={isSideChatOpen}
+        onClose={handleSideChatClose}
+        onSubmit={handleSideChatSubmit}
+        activityContext={currentChatActivity}
+        isLoading={sideChatLoading}
+        conversation={conversationHistory}
+        onAcceptSuggestion={handleAcceptSuggestion}
+        onRejectSuggestion={handleRejectSuggestion}
       />
     </div>
   );

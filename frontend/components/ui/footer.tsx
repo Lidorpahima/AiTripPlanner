@@ -8,18 +8,16 @@ interface FooterProps {
 
 export default function Footer({ border = true, showBigText = true }: FooterProps) {
   return (
-    <footer>
+    <footer className="bg-gray-900 text-white">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         {/* Top area: Blocks */}
         <div
-          className={`grid gap-8 py-8 sm:grid-cols-12 md:py-12 ${border ? "border-t [border-image:linear-gradient(to_right,transparent,var(--color-slate-200),transparent)1]" : ""}`}
+          className={`grid gap-8 py-8 sm:grid-cols-12 md:py-12 ${border ? "border-t [border-image:linear-gradient(to_right,transparent,var(--color-slate-600),transparent)1]" : ""}`}
         >
           {/* 1st block */}
           <div className="space-y-2 sm:col-span-12 lg:col-span-4">
-            <div>
-              <Logo />
-            </div>
-            <div className="text-sm text-gray-600">
+
+            <div className="text-sm text-gray-300">
               &copy; AiTripPlanner.com - All rights reserved.
             </div>
           </div>
@@ -31,7 +29,7 @@ export default function Footer({ border = true, showBigText = true }: FooterProp
               <li>
                 <Link
                   href="/terms"
-                  className="text-gray-600 transition hover:text-gray-900"
+                  className="text-gray-300 transition hover:text-white"
                 >
                   Terms of Service
                 </Link>
@@ -39,7 +37,7 @@ export default function Footer({ border = true, showBigText = true }: FooterProp
               <li>
                 <Link
                   href="/privacy"
-                  className="text-gray-600 transition hover:text-gray-900"
+                  className="text-gray-300 transition hover:text-white"
                 >
                   Privacy Policy
                 </Link>
@@ -54,7 +52,7 @@ export default function Footer({ border = true, showBigText = true }: FooterProp
               <li>
                 <Link
                   href="/about"
-                  className="text-gray-600 transition hover:text-gray-900"
+                  className="text-gray-300 transition hover:text-white"
                 >
                   About Us
                 </Link>
@@ -62,7 +60,7 @@ export default function Footer({ border = true, showBigText = true }: FooterProp
               <li>
                 <Link
                   href="/blog"
-                  className="text-gray-600 transition hover:text-gray-900"
+                  className="text-gray-300 transition hover:text-white"
                 >
                   Blog
                 </Link>
@@ -76,7 +74,7 @@ export default function Footer({ border = true, showBigText = true }: FooterProp
             <ul className="flex gap-3">
               <li>
                 <Link
-                  className="flex items-center justify-center text-gray-600 transition hover:text-gray-900"
+                  className="flex items-center justify-center text-gray-300 transition hover:text-white"
                   href="https://github.com/Lidorpahima"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -89,7 +87,7 @@ export default function Footer({ border = true, showBigText = true }: FooterProp
               </li>
               <li>
                 <Link
-                  className="flex items-center justify-center text-gray-600 transition hover:text-gray-900"
+                  className="flex items-center justify-center text-gray-300 transition hover:text-white"
                   href="https://www.linkedin.com/in/lidor-pahima/"
                   target="_blank"
                   rel="noopener noreferrer"

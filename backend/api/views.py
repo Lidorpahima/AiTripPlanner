@@ -280,6 +280,7 @@ You are an expert travel planner and researcher AI assistant. Your task is to cr
       * `min` (number): Minimum estimated cost in USD
       * `max` (number): Maximum estimated cost in USD
       * `currency` (string): Always set to "USD"
+    *   `ticket_url` (string or null, optional): If the activity requires booking or tickets (e.g., museum, concert, specific tour), provide a direct URL for booking or purchasing tickets. If booking is not required, not typically done online, or no direct link is available, set this to `null`.
 6.  **Event Integration:** If your research finds relevant specific events (festivals, concerts, markets) happening during the trip dates, integrate them logically into the schedule as activities. Ensure `description` mentions the event and `place_name_for_lookup` is the venue name (if known and searchable).
 7.  **Pace Adherence:** Ensure the number and density of activities per day reflect the requested pace ('{pace}'). A 'relaxed' pace should have fewer scheduled items than 'moderate' or 'fast-paced'. Include buffer time or 'Free time' entries for relaxed paces.
 8.  **Cost Estimates at Day Level:** For each day, include a `day_cost_estimate` object with `min`, `max`, and `currency` properties (always in USD).
@@ -349,7 +350,8 @@ You are an expert travel planner and researcher AI assistant. Your task is to cr
           "min": 5,
           "max": 10,
           "currency": "USD"
-        }}
+        }},
+        "ticket_url": "https://example.com/kinkaku-ji-tickets"
         }}
     ],
     "day_cost_estimate": {{
@@ -685,11 +687,12 @@ def chat_replace_activity(request):
             f"- description: (detailed description of the new activity)\n"
             f"- place_name_for_lookup: (specific location name for map lookup, or null if not applicable)\n"
             f"- place_details: (object with name, category, and optional price_level properties)\n"
-            f"- cost_estimate: (object with min, max, and currency properties)"
+            f"- cost_estimate: (object with min, max, and currency properties)\n"
+            f"- ticket_url: (string or null, direct URL for booking/tickets if applicable, otherwise null)"
         )
 
         from .chat_request import ask_gemini, extract_json_from_response
-        model_name = 'gemini-2.5-pro-exp-03-25'
+        model_name = 'gemini-1.5-flash'
         raw_response = ask_gemini(prompt, model_name)
         if not raw_response:
             return Response({"error": "No response from AI."}, status=500)
@@ -698,6 +701,9 @@ def chat_replace_activity(request):
         try:
             activity = json.loads(cleaned_json)
             required_fields = ["time", "description", "place_name_for_lookup"]
+            if "ticket_url" not in activity:
+                activity["ticket_url"] = None 
+
             if not all(k in activity for k in required_fields):
                 # If some fields are missing, add defaults
                 if "time" not in activity:
@@ -721,6 +727,9 @@ def chat_replace_activity(request):
                     "name": activity["place_name_for_lookup"],
                     "category": "attraction"  # Default category
                 }
+            # Ensure ticket_url is present, defaulting to null if not already set
+            if "ticket_url" not in activity:
+                activity["ticket_url"] = None
             
             return Response({"activity": activity}, status=200)
         except Exception as e:

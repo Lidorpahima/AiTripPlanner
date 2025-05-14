@@ -49,10 +49,10 @@ const destinations = [
     query: "Rome, Italy"
   },
   {
-    name: "Bali, Indonesia",
-    image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=500&h=300&auto=format",
-    description: "Paradise beaches and spiritual experiences",
-    query: "Bali, Indonesia"
+    name: "Santorini, Greece",
+    image: "https://plus.unsplash.com/premium_photo-1661964149725-fbf14eabd38c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    description: "Iconic whitewashed villages and stunning sunsets",
+    query: "Santorini, Greece"
   },
   {
     name: "New York, USA",
@@ -113,7 +113,7 @@ const PopularDestinations: React.FC = () => {
               onClick={() => handleDestinationClick(destination.query)}
               className="group cursor-pointer overflow-hidden rounded-xl shadow-lg transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl"
             >
-              <div className="relative w-full overflow-hidden">
+              <div className="relative w-full h-64 overflow-hidden">
                 <Image
                   src={destination.image}
                   alt={destination.name}

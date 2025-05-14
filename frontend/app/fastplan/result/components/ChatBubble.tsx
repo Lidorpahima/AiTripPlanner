@@ -12,10 +12,17 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ isOpen, anchorRef, onClose, onS
   const [message, setMessage] = useState("");
   const bubbleRef = useRef<HTMLDivElement>(null);
 
+  // Effect to reset message when bubble is closed
+  useEffect(() => {
+    if (!isOpen) {
+      setMessage("");
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (bubbleRef.current && !bubbleRef.current.contains(event.target as Node)) {
-        onClose();
+        onClose(); // This will trigger the above useEffect to clear the message
       }
     }
     if (isOpen) {
@@ -48,9 +55,22 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ isOpen, anchorRef, onClose, onS
         autoFocus
       />
       <div className="flex justify-end space-x-2">
-        <button onClick={onClose} className="text-gray-600 hover:text-black text-sm">Cancel</button>
+        <button 
+          onClick={() => {
+            onClose(); // This will trigger the above useEffect to clear the message
+          }} 
+          className="text-gray-600 hover:text-black text-sm"
+        >
+          Cancel
+        </button>
         <button
-          onClick={() => { if (message.trim()) onSubmit(message); }}
+          onClick={() => { 
+            if (message.trim()) {
+              onSubmit(message); 
+              // Optionally clear message on submit, or let onClose handle it when chatLoading becomes false and chatOpen becomes false
+              // setMessage(""); // If we want to clear immediately after clicking send
+            }
+          }}
           className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
           disabled={loading || !message.trim()}
         >
