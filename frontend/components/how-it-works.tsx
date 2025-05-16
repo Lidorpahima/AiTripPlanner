@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { MapPin, Calendar, ListChecks, Plane } from 'lucide-react';
+import { MapPin, Calendar, ListChecks, Plane, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const fadeIn = {
@@ -30,23 +30,23 @@ const HowItWorksSection: React.FC = () => {
   const steps = [
     {
       icon: <MapPin className="h-10 w-10 text-blue-600" />,
-      title: "Choose Destination",
-      description: "Select your dream location from our wide range of supported destinations across the globe."
-    },
-    {
-      icon: <Calendar className="h-10 w-10 text-blue-600" />,
-      title: "Set Your Dates",
-      description: "Choose when you want to travel and how long you'll stay to create your perfect trip schedule."
+      title: "Select Your Destination",
+      description: "Choose where and when you want to travel - our AI planning assistant handles the rest."
     },
     {
       icon: <ListChecks className="h-10 w-10 text-blue-600" />,
-      title: "Customize Preferences",
-      description: "Tell us about your interests, travel style, and pace to help us personalize your journey."
+      title: "Personalize Your Experience",
+      description: "Customize your preferences, interests, and travel style to create your perfect adventure."
     },
     {
       icon: <Plane className="h-10 w-10 text-blue-600" />,
-      title: "Get Your Itinerary",
-      description: "Receive your custom day-by-day plan with optimized routes and local insider recommendations."
+      title: "Get Instant Itinerary",
+      description: "Our AI instantly creates a day-by-day plan with optimized routes and local recommendations."
+    },
+    {
+      icon: <MessageSquare className="h-10 w-10 text-blue-600" />,
+      title: "Chat & Refine in Real-Time",
+      description: "Don't like an activity? Chat with our AI and get instant alternatives tailored just for you."
     }
   ];
 

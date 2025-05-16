@@ -362,6 +362,7 @@ export default function FastPlanPage() {
                           src={dest.image}
                           alt={dest.name}
                           fill
+                          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                           style={{ objectFit: 'cover' }}
                           className="transition-transform duration-700 ease-in-out group-hover:scale-110"
                         />
@@ -970,7 +971,7 @@ export default function FastPlanPage() {
                         ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:scale-105'
                         : 'cursor-not-allowed bg-gray-400'}
                     `}
-                    aria-label="Generate My Dream Trip"
+                    aria-label="Generate Trip"
                   >
                     {isLoading ? (
                       <span className="flex items-center justify-center space-x-2">
@@ -984,7 +985,7 @@ export default function FastPlanPage() {
                       <div className="flex items-center justify-center">
                         <span className="mr-2 text-yellow-300 animate-pulse">✨</span>
                         <span className="relative">
-                          Generate My Dream Trip
+                          Generate Trip
                           <span className="absolute -bottom-1 left-0 h-0.5 w-full bg-white/50 rounded-full transform scale-x-0 transition-transform group-hover:scale-x-100 duration-300 origin-left"></span>
                         </span>
                         <span className="ml-2 text-yellow-300 animate-pulse">✨</span>

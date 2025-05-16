@@ -87,7 +87,7 @@ export default function ProfilePage() {
                 toast.error("Session expired. Please log in again.");
                 logout();
                 router.push('/signin');
-              throw new Error("Session expired. Please log in again.");
+                throw new Error("Session expired. Please log in again.");
             }
 
             try {
@@ -113,9 +113,21 @@ export default function ProfilePage() {
                 }
 
                 console.log("Token refreshed successfully.");
-                Cookies.set('access', refreshData.access);
+                Cookies.set('access', refreshData.access, {
+                    path: '/',
+                    expires: 7,
+                    sameSite: 'lax'
+                });
+                
+                if (refreshData.refresh) {
+                    Cookies.set('refresh', refreshData.refresh, {
+                        path: '/',
+                        expires: 30,
+                        sameSite: 'lax'
+                    });
+                }
+                
                 return await tryFetch(refreshData.access);
-
             } catch (refreshErr: any) {
                 logout();
                 toast.error("Could not refresh session. Please log in again.");
@@ -154,7 +166,6 @@ export default function ProfilePage() {
             timestamp: new Date().getTime()
           }));
           
-          console.log("Profile data fetched successfully:", data);
         } catch (err: any) {
           console.error("Failed to fetch profile data after potentially trying refresh:", err);
           setError(err.message || "Failed to load profile data.");

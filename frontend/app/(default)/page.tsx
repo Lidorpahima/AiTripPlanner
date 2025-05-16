@@ -34,6 +34,18 @@ export default function Home() {
       </div>
         </div>
         <div className="relative z-10 mx-auto w-auto max-w-7xl">
+          <div 
+            data-aos="fade-up"
+            data-aos-duration="800"
+            data-aos-once="true"
+            className="text-center mb-8 md:mb-12">
+            <h2 className="text-3xl font-bold mb-4 text-gray-800 md:text-4xl">
+              Interactive AI Planning
+            </h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Get real-time activity suggestions from our AI assistant. Chat directly with our AI to refine your itinerary, discover alternatives, or get personalized recommendations instantly.
+            </p>
+          </div>
           <CompactDeviceShowcase />
         </div>
       </section>

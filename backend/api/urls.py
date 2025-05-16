@@ -1,6 +1,8 @@
 from django.urls import path
 from rest_framework_simplejwt.views import (
-    TokenObtainPairView,)
+    TokenObtainPairView,
+    TokenRefreshView
+    )
 from .views import (
     RegisterView, 
     get_place_details_view, 
@@ -21,7 +23,7 @@ urlpatterns = [
     path('csrf/', get_csrf_token, name='csrf'),
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenObtainPairView.as_view(), name='token_refresh'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('plantrip/', plan_trip_view, name='plan_trip'),
     path('place-details/',get_place_details_view , name='place_details'),
     path('place-photo/', proxy_place_photo, name='place_photo'),

@@ -26,37 +26,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     console.log("Auth Context: Checking for auth tokens...");
-    // Try to get tokens from multiple sources
-    const accessToken = Cookies.get('access') || localStorage.getItem('authToken');
-    const refreshToken = Cookies.get('refresh') || localStorage.getItem('refreshToken');
+    // Only check cookies for tokens
+    const accessToken = Cookies.get('access');
     
-    // Ensure cookies have the tokens (in case they were only in localStorage)
-    if (accessToken) {
-      Cookies.set('access', accessToken, { 
-        path: '/', 
-        expires: 7,
-        // Using less restrictive settings for cookie
-        sameSite: 'lax'
-      });
-      localStorage.setItem('authToken', accessToken);
-      console.log("Auth Context: Access token found and stored in both cookie and localStorage");
-    } else {
-      console.warn("Auth Context: No access token found in any storage");
-    }
-    
-    if (refreshToken) {
-      Cookies.set('refresh', refreshToken, { 
-        path: '/', 
-        expires: 30,
-        // Using less restrictive settings for cookie
-        sameSite: 'lax'
-      });
-      localStorage.setItem('refreshToken', refreshToken);
-      console.log("Auth Context: Refresh token found and stored in both cookie and localStorage");
-    } else {
-      console.warn("Auth Context: No refresh token found in any storage");
-    }
-
     if (accessToken) {
       console.log("Auth Context: Access token found, setting authenticated");
       setIsAuthenticated(true);
@@ -73,19 +45,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     Cookies.set('access', access, { 
       path: '/', 
       expires: 7,
-      // Using less restrictive settings for cookie
       sameSite: 'lax'
     });
     Cookies.set('refresh', refresh, { 
       path: '/', 
       expires: 30,
-      // Using less restrictive settings for cookie
       sameSite: 'lax'
     });
-    
-    // Backup in localStorage
-    localStorage.setItem('authToken', access);
-    localStorage.setItem('refreshToken', refresh);
     
     setIsAuthenticated(true); 
   };
@@ -93,11 +59,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = () => {
     console.log("Auth Context: Logging out...");
-    // Clear all authentication tokens from all storage locations
+    // Clear all authentication tokens from cookies
     Cookies.remove('access'); 
     Cookies.remove('refresh');
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('refreshToken');
     
     setIsAuthenticated(false); 
     router.push('/');
