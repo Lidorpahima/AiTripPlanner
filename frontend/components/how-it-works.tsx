@@ -31,27 +31,31 @@ const HowItWorksSection: React.FC = () => {
     {
       icon: <MapPin className="h-10 w-10 text-blue-600" />,
       title: "Select Your Destination",
-      description: "Choose where and when you want to travel - our AI planning assistant handles the rest."
+      description: "Choose where you want to travel.",
+      subtext: "Our AI handles all the planning details."
     },
     {
       icon: <ListChecks className="h-10 w-10 text-blue-600" />,
       title: "Personalize Your Experience",
-      description: "Customize your preferences, interests, and travel style to create your perfect adventure."
+      description: "Share your travel preferences.",
+      subtext: "We'll craft your perfect adventure."
     },
     {
       icon: <Plane className="h-10 w-10 text-blue-600" />,
       title: "Get Instant Itinerary",
-      description: "Our AI instantly creates a day-by-day plan with optimized routes and local recommendations."
+      description: "Receive a detailed daily plan.",
+      subtext: "With local insights and optimal routes."
     },
     {
       icon: <MessageSquare className="h-10 w-10 text-blue-600" />,
       title: "Chat & Refine in Real-Time",
-      description: "Don't like an activity? Chat with our AI and get instant alternatives tailored just for you."
+      description: "Need changes? Just ask.",
+      subtext: "Get instant personalized alternatives."
     }
   ];
 
   return (
-    <section className=" py-16 md:py-24 verflow-hidden">
+    <section className="py-16 md:py-24 overflow-hidden">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <motion.div 
           initial="hidden"
@@ -84,18 +88,23 @@ const HowItWorksSection: React.FC = () => {
             <motion.div 
               key={index} 
               variants={fadeIn}
-              className="flex flex-col items-center p-6 rounded-xl shadow-md transform transition-all duration-300 scale-105 shadow-lg bg-gray-50"
+              className="flex flex-col items-center p-6 rounded-xl shadow-md transform transition-all duration-300 scale-105 shadow-lg bg-gray-50 h-[320px] relative"
             >
               <div className="mb-4 p-3 bg-blue-50 rounded-full">
                 {step.icon}
               </div>
-              <h3 className="text-xl text-center font-semibold mb-2 text-gray-800">
+              <h3 className="text-xl text-center font-semibold mb-4 text-gray-800">
                 {step.title}
               </h3>
-              <p className="text-center text-gray-600 h-[85px] flex items-center">
-                {step.description}
-              </p>
-              <div className="mt-4 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-semibold">
+              <div className="flex flex-col items-center text-center w-full mb-8">
+                <p className="text-gray-600 font-medium mb-2">
+                  {step.description}
+                </p>
+                <p className="text-gray-500 text-sm">
+                  {step.subtext}
+                </p>
+              </div>
+              <div className="absolute bottom-6 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-semibold">
                 {index + 1}
               </div>
             </motion.div>

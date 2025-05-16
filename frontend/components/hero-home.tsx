@@ -50,15 +50,19 @@ export default function HeroHome() {
                     data-aos="zoom-y-out"
                     data-aos-delay={450}
                   >
-                    {/* Start Free Trial Button - Link to /login */}
                     <a
-                      className="btn group mb-4 w-full bg-linear-to-t from-blue-600 to-blue-500 bg-[length:100%_100%] bg-[bottom] text-white shadow-sm hover:bg-[length:100%_150%] sm:mb-0 sm:w-auto"
-                      href="/fastplan" // Changed href to /login
+                      className="btn group mb-4 w-full  text-white bg-indigo-600 hover:text-white sm:mb-0 sm:w-auto"
+                      href="/fastplan" 
                     >
                       <span className="relative inline-flex items-center">
                         Plan Your Journey</span>{" "}
-                        <span className="ml-1 tracking-normal text-blue-300 transition-transform group-hover:translate-x-0.5">
-                          -&gt;
+                        <span className="ml-1 tracking-normal transition-transform group-hover:translate-x-0.5">
+                          <img 
+                            src="https://images.emojiterra.com/google/noto-emoji/animated-emoji/1f680.gif" 
+                            alt="Rocket" 
+                            width="20" 
+                            height="20" 
+                          />
                         </span>
                     </a>
                     {/* Learn More Button - Changed to Watch Demo */}
