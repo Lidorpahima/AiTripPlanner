@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, MouseEvent } from 'react';
-import { X, Send, Check, AlertTriangle } from 'lucide-react'; // Added Check, AlertTriangle icons
-import { Activity, TripPlan } from "@/constants/planTypes"; // Import Activity and TripPlan
+import { X, Send, Check, AlertTriangle, Star, MapPin, Globe } from 'lucide-react'; // Added Star, MapPin, Globe icons
+import { Activity, TripPlan } from "@/constants/planTypes"; // Removed DestinationInfo import
 
 // Define the structure for a chat message
 export interface ChatMessage { // Exporting for use in parent component
@@ -8,7 +8,7 @@ export interface ChatMessage { // Exporting for use in parent component
   text: string;
   sender: 'user' | 'ai' | 'system'; // System messages can be for initial context
   timestamp: Date;
-  suggestedActivity?: Activity; // Add the suggested activity for AI messages
+  suggestedActivities?: Activity[]; // Changed from suggestedActivity: Activity
 }
 
 interface SideChatPanelProps {
@@ -18,13 +18,27 @@ interface SideChatPanelProps {
   activityContext: Activity | null; // The activity being discussed
   isLoading: boolean;
   conversation: ChatMessage[]; // Pass the conversation history as a prop
-  onAcceptSuggestion?: (activity: Activity) => void; // New prop for accepting a suggestion
-  onRejectSuggestion?: (messageId: string) => void; // New prop for rejecting a suggestion
-  // currentTripPlan: TripPlan | null; // We might not need the full trip plan here yet
+  onAcceptSuggestion?: (activity: Activity) => void; // Changed to single Activity
+  onRejectIndividualActivity?: (activityToReject: Activity, messageId: string) => void; // New prop
+  onRejectSuggestion?: (messageId: string) => void; // Keep for rejecting whole message if needed later or for single suggestions
+  destinationInfo?: TripPlan['destination_info']; // Use type from TripPlan
 }
 
 const SideChatPanel = React.forwardRef<HTMLDivElement, SideChatPanelProps>(
-  ({ isOpen, onClose, onSubmit, activityContext, isLoading, conversation, onAcceptSuggestion, onRejectSuggestion }, ref) => {
+  (props: SideChatPanelProps, ref: React.ForwardedRef<HTMLDivElement>) => {
+    const {
+      isOpen,
+      onClose,
+      onSubmit,
+      activityContext,
+      isLoading,
+      conversation,
+      onAcceptSuggestion,
+      onRejectIndividualActivity,
+      onRejectSuggestion,
+      destinationInfo
+    } = props;
+
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef<null | HTMLDivElement>(null);
 
@@ -157,24 +171,88 @@ const SideChatPanel = React.forwardRef<HTMLDivElement, SideChatPanelProps>(
                   >
                     <p className="text-sm whitespace-pre-wrap break-words">{msg.text}</p>
                     
-                    {/* Add Accept/Reject buttons if this is an AI message with a suggestion */}
-                    {msg.sender === 'ai' && msg.suggestedActivity && onAcceptSuggestion && onRejectSuggestion && (
-                      <div className="flex justify-end mt-3 pt-2 border-t border-gray-200">
-                        <button 
-                          onClick={() => onAcceptSuggestion(msg.suggestedActivity!)}
-                          className="text-xs flex items-center gap-1 text-green-600 hover:text-green-800 bg-green-50 hover:bg-green-100 py-1 px-2 rounded mr-2 transition-all"
-                          title="Accept this suggestion"
-                        >
-                          <Check size={14} /> Accept
-                        </button>
-                        <button 
-                          onClick={() => onRejectSuggestion(msg.id)}
-                          className="text-xs flex items-center gap-1 text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 py-1 px-2 rounded transition-all"
-                          title="Reject this suggestion"
-                        >
-                          <X size={14} /> Reject
-                        </button>
+                    {/* Enhanced AI Suggestion Details - now handles an array of activities with individual controls */}
+                    {msg.sender === 'ai' && msg.suggestedActivities && Array.isArray(msg.suggestedActivities) && msg.suggestedActivities.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-gray-300 dark:border-gray-600 space-y-3">
+                        {msg.suggestedActivities.map((suggestedActivityItem, index) => (
+                          <div key={index} className="p-2.5 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm bg-white dark:bg-gray-750">
+                            <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                              {msg.suggestedActivities && msg.suggestedActivities.length > 1 ? `Option ${index + 1}: ` : "Suggested: "}
+                              { (suggestedActivityItem as any).name || suggestedActivityItem.description }
+                            </p>
+                            
+                            {/* Display Rating, Map Link, Website Link for suggestedActivityItem */}
+                            {typeof (suggestedActivityItem as any).rating === 'number' && (suggestedActivityItem as any).rating > 0 && (
+                              <div className="flex items-center text-xs text-gray-600 dark:text-gray-400 mb-1.5">
+                                <span className="font-medium mr-1.5">Rating:</span>
+                                {[...Array(5)].map((_, i) => (
+                                  <Star key={i} size={14} className={i < Math.round((suggestedActivityItem as any).rating!) ? "text-yellow-400 fill-yellow-400" : "text-gray-400 dark:text-gray-500"} />
+                                ))}
+                                <span className="ml-1.5 font-medium">({(suggestedActivityItem as any).rating.toFixed(1)})</span>
+                                {typeof (suggestedActivityItem as any).user_ratings_total === 'number' && (
+                                  <span className="ml-1 text-gray-500 dark:text-gray-400"> - {(suggestedActivityItem as any).user_ratings_total.toLocaleString()} reviews</span>
+                                )}
+                              </div>
+                            )}
+                            {((suggestedActivityItem as any).google_maps_url || (suggestedActivityItem as any).location_query || (suggestedActivityItem as any).place_details?.name || suggestedActivityItem.description) && (() => {
+                              const activity = suggestedActivityItem as any;
+                              let mapUrl = activity.google_maps_url;
+                              if (!mapUrl) {
+                                let queryBase = activity.location_query || activity.place_details?.name || suggestedActivityItem.description;
+                                if (activity.location_query) {
+                                  mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(queryBase)}`;
+                                } else {
+                                  const fullQuery = [queryBase, destinationInfo?.city, destinationInfo?.country].filter(Boolean).join(', ');
+                                  mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullQuery)}`;
+                                }
+                              }
+                              return (
+                                <a href={mapUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 hover:underline flex items-center mb-1">
+                                  <MapPin size={13} className="mr-1.5 flex-shrink-0" /> View on Map
+                                </a>
+                              );
+                            })()}
+                            {(suggestedActivityItem as any).website && (
+                                <a href={(suggestedActivityItem as any).website} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 hover:underline flex items-center">
+                                  <Globe size={13} className="mr-1.5 flex-shrink-0" /> Visit Website
+                                </a>
+                            )}
+
+                            {/* Individual Accept/Reject buttons for this item */}
+                            {onAcceptSuggestion && onRejectIndividualActivity && (
+                              <div className="flex justify-end mt-3 pt-2 border-t border-gray-200 dark:border-gray-600">
+                                <button 
+                                  onClick={() => onAcceptSuggestion(suggestedActivityItem)} 
+                                  className="text-xs flex items-center gap-1 text-green-600 hover:text-green-800 bg-green-50 hover:bg-green-100 py-1 px-2 rounded mr-2 transition-all"
+                                  title="Accept this option"
+                                >
+                                  <Check size={14} /> Accept
+                                </button>
+                                <button 
+                                  onClick={() => onRejectIndividualActivity(suggestedActivityItem, msg.id)}
+                                  className="text-xs flex items-center gap-1 text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 py-1 px-2 rounded transition-all"
+                                  title="Reject this option"
+                                >
+                                  <X size={14} /> Reject
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
                       </div>
+                    )}
+                    
+                    {/* Fallback for rejecting the whole message IF it's a single non-array suggestion (legacy or future use) */}
+                    {msg.sender === 'ai' && !(msg.suggestedActivities && Array.isArray(msg.suggestedActivities)) && (msg.suggestedActivities as unknown as Activity) && onRejectSuggestion && (
+                       <div className="flex justify-end mt-3 pt-2 border-t border-gray-300 dark:border-gray-700">
+                         <button 
+                           onClick={() => onRejectSuggestion(msg.id)}
+                           className="text-xs flex items-center gap-1 text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 py-1 px-2 rounded transition-all"
+                           title="Reject this suggestion"
+                         >
+                           <X size={14} /> Reject Suggestion
+                         </button>
+                       </div>
                     )}
                   </div>
                   <p className={`text-xs mt-1.5 ${msg.sender === 'user' ? 'text-gray-500 mr-1' : 'text-gray-500 ml-1'}`}>

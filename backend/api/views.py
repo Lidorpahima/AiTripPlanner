@@ -224,9 +224,8 @@ def generate_trip_prompt(form_data: dict) -> str:
     trip_style = ', '.join(form_data.get("tripStyle", [])) or "standard"
     pace = form_data.get("pace", "moderate")
     budget = form_data.get("budget", "Mid-range")
-    accommodation = form_data.get("accommodation", "")
-    local_experiences = ', '.join(form_data.get("localExperiences", [])) or "various experiences"
     travel_with = ', '.join(form_data.get("travelWith", [])) or "solo traveler"
+    transportation_mode = form_data.get("transportationMode", "Walking & Public Transit")
 
     # stringify safely
     start_date_str = start_date_obj.isoformat() if isinstance(start_date_obj, date) else str(start_date_obj or "")
@@ -258,13 +257,12 @@ You are an expert travel planner and researcher AI assistant. Your task is to cr
 - Trip Style: {trip_style}
 - Pace: {pace}
 - Budget Level: {budget}
-- Preferred Accommodation: {accommodation}
-- Desired Local Experiences: {local_experiences}
+- Primary Transportation Mode: {transportation_mode}
 - Travel Companions: {travel_with}
 
 **Your Combined Task & Output Requirements:**
 
-1.  **Implicit Research:** Based *only* on the preferences above, identify key attractions, activities, relevant food/cafe types/locations, and any specific real-world events (concerts, festivals, markets, etc.) occurring in {destination} during the specified dates ({date_range_str}) that align with the traveler's interests ({interests}) and style ({trip_style}). Use your internal knowledge and search capabilities for this. **Do not show the research findings separately.**
+1.  **Implicit Research:** Based *only* on the preferences above, identify key attractions, activities, relevant food/cafe types/locations, and any specific real-world events (concerts, festivals, markets, etc.) occurring in {destination} during the specified dates ({date_range_str}) that align with the traveler's interests ({interests}), style ({trip_style}), and consider their primary transportation mode ({transportation_mode}). Use your internal knowledge and search capabilities for this. **Do not show the research findings separately.**
 2.  **Directly Create JSON Itinerary:** Use the information gathered (implicitly) to construct a day-by-day travel itinerary.
 3.  **Strict JSON Output Format:** Format the *entire* output **strictly** as a single JSON object adhering precisely to the format specified below. **ABSOLUTELY NO TEXT BEFORE OR AFTER THE JSON OBJECT.** Your entire response must start with `{{` and end with `}}`.
 4.  **Currency Standardization:** For all cost estimates, use USD (US Dollars) as the standard currency, regardless of the destination country. This makes it easier for travelers to compare costs.
@@ -650,91 +648,159 @@ from rest_framework import status
 
 @api_view(['POST'])
 def chat_replace_activity(request):
-
     try:
         message = request.data.get('message')
         day_index = request.data.get('dayIndex')
         activity_index = request.data.get('activityIndex')
         plan = request.data.get('plan')
+        # New context fields
+        previous_activity_data = request.data.get('previousActivity') 
+        next_activity_data = request.data.get('nextActivity')
 
         if not message or day_index is None or activity_index is None or not plan:
             return Response({"error": "Missing required fields."}, status=400)
 
-        # Get current location, budget, etc. for context
         destination_info = plan.get('destination_info', {})
         destination = destination_info.get('city', 'the destination')
         country = destination_info.get('country', '')
-        currency = destination_info.get('currency', 'USD')
-        current_activity = plan['days'][day_index]['activities'][activity_index] if day_index < len(plan['days']) and activity_index < len(plan['days'][day_index]['activities']) else {}
-        budget_level = "Mid-range"  # Default if not specified
+        currency = destination_info.get('currency', 'USD') # Default to USD as per general plan spec
         
-        # Extract the time from the current activity to maintain schedule
-        current_time = current_activity.get('time', '')
+        original_activity = plan['days'][day_index]['activities'][activity_index] if day_index < len(plan['days']) and activity_index < len(plan['days'][day_index]['activities']) else {}
+        
+        # Try to get original request data from the plan structure
+        original_request_data = plan.get('original_request', plan.get('original_request_data', {}))
+
+        budget_level = original_request_data.get('budget', 'Mid-range')
+        pace_from_plan = original_request_data.get('pace', 'Moderate')
+        interests_from_plan = ", ".join(original_request_data.get('interests', [])) if original_request_data.get('interests') else "not specified"
+        trip_style_from_plan = ", ".join(original_request_data.get('tripStyle', [])) if original_request_data.get('tripStyle') else "not specified"
+        # Get transportationMode from original request data
+        transportation_mode_from_plan = original_request_data.get('transportationMode', 'Walking & Public Transit')
+
+        original_time = original_activity.get('time', 'any suitable time')
+
+        # Build context strings for the prompt
+        original_activity_str = json.dumps(original_activity)
+        previous_activity_str = json.dumps(previous_activity_data) if previous_activity_data else "No specific previous activity to consider."
+        next_activity_str = json.dumps(next_activity_data) if next_activity_data else "No specific next activity to consider."
 
         prompt = (
             f"You are an expert travel assistant. The user wants to replace an activity in their trip plan for {destination}, {country}.\n"
-            f"User message: {message}\n"
-            f"Current day index: {day_index}, activity index: {activity_index}\n"
-            f"The current activity details are: {json.dumps(current_activity)}\n"
-            f"Here is relevant context from the trip plan:\n"
+            f"User message: '{message}'\n\n"
+            f"Current Itinerary Context:\n"
+            f"- The activity to be replaced (Day {day_index + 1}, Activity Index {activity_index}): {original_activity_str}\n"
+            f"- Activity immediately before (if any): {previous_activity_str}\n"
+            f"- Activity immediately after (if any): {next_activity_str}\n\n"
+            f"Trip Plan Details:\n"
             f"- Location: {destination}, {country}\n"
-            f"- Local currency: {currency}\n"
-            f"- Budget level: {budget_level}\n\n"
-            f"Suggest a single new activity (in JSON) that fits the user's request and maintains the time from the original schedule."
-            f"Include cost estimates based on the destination and budget level.\n\n"
-            f"Return ONLY a JSON object with these keys:\n"
-            f"- time: (same time as original activity to maintain schedule)\n"
-            f"- description: (detailed description of the new activity)\n"
-            f"- place_name_for_lookup: (specific location name for map lookup, or null if not applicable)\n"
-            f"- place_details: (object with name, category, and optional price_level properties)\n"
-            f"- cost_estimate: (object with min, max, and currency properties)\n"
-            f"- ticket_url: (string or null, direct URL for booking/tickets if applicable, otherwise null)"
+            f"- Local Currency (for AI reference, output must be USD): {currency}\n"
+            f"- Original Trip Budget Level: {budget_level}\n"
+            f"- Original Trip Pace: {pace_from_plan}\n"
+            f"- Original Trip Interests: {interests_from_plan}\n"
+            f"- Original Trip Style: {trip_style_from_plan}\n"
+            f"- Original Trip Primary Transportation: {transportation_mode_from_plan}\n\n"
+            f"Task:\n"
+            f"1. Analyze the user's request: '{message}'.\n"
+            f"2. Consider the original activity's time slot (around {original_time}). Also consider the traveler's original preferences: budget '{budget_level}', pace '{pace_from_plan}', interests '{interests_from_plan}', trip style '{trip_style_from_plan}', and primary transportation '{transportation_mode_from_plan}'.\n"
+            f"3. IMPORTANT: Evaluate travel time/distance, especially concerning the primary transportation mode ('{transportation_mode_from_plan}'). If replacing the activity creates a very long travel segment (e.g., >30-40 mins walk or >20-25 mins transit if they rely on it, or a significant drive if they have a car but the suggestion is far from parking/next point), try to suggest a sequence of 1 to 3 smaller, related activities that can logically fill the time, break up the travel, or provide a better flow. These activities should collectively fit the spirit of the user's request and the overall time window and original preferences.\n"
+            f"4. If a simple direct replacement is best, suggest one activity. Ensure it aligns with the traveler's original preferences.\n"
+            f"5. Ensure all cost estimates are in USD.\n\n"
+            f"Output Format (CRITICAL):\n"
+            f"Return ONLY a JSON object. This object must have a key named 'activities'.\n"
+            f"- If you suggest a SINGLE replacement, 'activities' should be a JSON OBJECT representing that activity.\n"
+            f"- If you suggest a SEQUENCE of replacements, 'activities' should be an ARRAY of JSON OBJECTS, each representing an activity in the sequence.\n"
+            f"Each activity object (whether single or in an array) MUST include these keys:\n"
+            f"  - 'time': (string, HH:MM format, adjusted logically for the sequence if multiple activities)\n"
+            f"  - 'description': (string, detailed description of the new activity)\n"
+            f"  - 'place_name_for_lookup': (string or null, specific, concise, searchable name for map lookup, e.g., 'Eiffel Tower', 'Louvre Museum'. Use null only if truly not applicable, like 'Relax at hotel')\n"
+            f"  - 'place_details': (object or null, with 'name': string (official), 'category': string (e.g., 'restaurant', 'museum'), 'price_level': number (optional, 1-4))\n"
+            f"  - 'cost_estimate': (object, with 'min': number, 'max': number, 'currency': 'USD')\n"
+            f"  - 'ticket_url': (string or null, direct URL for booking if applicable)\n\n"
+            f"Example for single activity:\n"
+            f"{{ \"activities\": {{ \"time\": \"{original_time}\", \"description\": \"Visit the Colosseum\", ...}} }}\n"
+            f"Example for multiple activities:\n"
+            f"{{ \"activities\": [ {{ \"time\": \"14:00\", \"description\": \"Quick coffee at a local cafe near Colosseum\", ... }}, {{ \"time\": \"14:45\", \"description\": \"Explore the Roman Forum\", ... }} ] }}\n"
+            f"Focus on providing relevant, actionable suggestions."
         )
 
         from .chat_request import ask_gemini, extract_json_from_response
-        model_name = 'gemini-1.5-flash'
+        model_name = 'gemini-1.5-flash' # Using a capable model
         raw_response = ask_gemini(prompt, model_name)
+
         if not raw_response:
-            return Response({"error": "No response from AI."}, status=500)
+            return Response({"error": "No response from AI."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        cleaned_json = extract_json_from_response(raw_response)
+        cleaned_json_str = extract_json_from_response(raw_response)
+        if not cleaned_json_str:
+            return Response({"error": "AI response was empty after cleaning."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
         try:
-            activity = json.loads(cleaned_json)
-            required_fields = ["time", "description", "place_name_for_lookup"]
-            if "ticket_url" not in activity:
-                activity["ticket_url"] = None 
+            parsed_data = json.loads(cleaned_json_str)
+            if not isinstance(parsed_data, dict) or 'activities' not in parsed_data:
+                raise ValueError("AI response missing 'activities' key or is not a dictionary.")
 
-            if not all(k in activity for k in required_fields):
-                # If some fields are missing, add defaults
-                if "time" not in activity:
-                    activity["time"] = current_time
-                if "description" not in activity:
-                    return Response({"error": "AI response missing required 'description' field."}, status=500)
-                if "place_name_for_lookup" not in activity:
-                    activity["place_name_for_lookup"] = None
+            suggested_items = parsed_data['activities']
+
+            # Standardize: Ensure suggested_items is always a list for easier frontend handling.
+            # The frontend will now always expect an array for suggestedActivities.
+            if isinstance(suggested_items, dict):
+                activities_to_return = [suggested_items]
+            elif isinstance(suggested_items, list):
+                activities_to_return = suggested_items
+            else:
+                raise ValueError("'activities' key must be an object or an array of objects.")
+
+            # Validate and provide defaults for each activity in the list
+            final_activities = []
+            for activity_obj in activities_to_return:
+                if not isinstance(activity_obj, dict):
+                    # If any item in a list is not a dict, skip or error
+                    # For simplicity, we can choose to return an error or filter it out.
+                    # Here, let's assume valid activities are dicts.
+                    continue 
+
+                # Ensure required fields and add defaults if missing
+                if "time" not in activity_obj:
+                    activity_obj["time"] = original_time # Fallback to original time
+                if "description" not in activity_obj:
+                    # This is critical, if AI fails to provide it, it's a bad suggestion
+                    return Response({"error": "AI response missing required 'description' field in one of the activities."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                if "place_name_for_lookup" not in activity_obj:
+                    activity_obj["place_name_for_lookup"] = None
+                
+                if "cost_estimate" not in activity_obj:
+                    activity_obj["cost_estimate"] = {"min": 10, "max": 30, "currency": "USD"}
+                elif "currency" not in activity_obj["cost_estimate"]:
+                     activity_obj["cost_estimate"]["currency"] = "USD"
+
+
+                if "place_details" not in activity_obj and activity_obj.get("place_name_for_lookup"):
+                    activity_obj["place_details"] = {
+                        "name": str(activity_obj["place_name_for_lookup"]), # Ensure it's a string
+                        "category": "attraction" # Default category
+                    }
+                elif "place_details" in activity_obj and activity_obj["place_details"] is not None and "name" not in activity_obj["place_details"] and activity_obj.get("place_name_for_lookup"):
+                     activity_obj["place_details"]["name"] = str(activity_obj.get("place_name_for_lookup"))
+
+
+                if "ticket_url" not in activity_obj:
+                    activity_obj["ticket_url"] = None
+                
+                final_activities.append(activity_obj)
             
-            # Ensure cost_estimate is present
-            if "cost_estimate" not in activity:
-                activity["cost_estimate"] = {
-                    "min": 10,
-                    "max": 50,
-                    "currency": currency
-                }
-            
-            # Ensure place_details is present
-            if "place_details" not in activity and activity.get("place_name_for_lookup"):
-                activity["place_details"] = {
-                    "name": activity["place_name_for_lookup"],
-                    "category": "attraction"  # Default category
-                }
-            # Ensure ticket_url is present, defaulting to null if not already set
-            if "ticket_url" not in activity:
-                activity["ticket_url"] = None
-            
-            return Response({"activity": activity}, status=200)
-        except Exception as e:
-            return Response({"error": "Failed to parse AI response.", "details": str(e)}, status=500)
+            if not final_activities:
+                 return Response({"error": "AI did not return any valid activities."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+            # The key here matches the frontend's expected structure from before, but now it's always a list.
+            return Response({"activities": final_activities}, status=status.HTTP_200_OK)
+
+        except ValueError as ve:
+            return Response({"error": "AI response format error.", "details": str(ve), "raw_cleaned_response": cleaned_json_str[:500]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except json.JSONDecodeError as e:
+            return Response({"error": "Failed to parse AI response as JSON.", "details": str(e), "raw_cleaned_response": cleaned_json_str[:500]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     except Exception as e:
-        return Response({"error": "Internal server error.", "details": str(e)}, status=500)
+        import traceback
+        return Response({"error": "Internal server error.", "details": str(e), "trace": traceback.format_exc()}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

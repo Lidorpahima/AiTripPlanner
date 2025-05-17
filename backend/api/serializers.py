@@ -124,9 +124,9 @@ class PlanTripSerializer(serializers.Serializer):
     interests = serializers.ListField(child=serializers.CharField(), required=False, default=list)
     pace = serializers.CharField(required=False, default="moderate")
     budget = serializers.CharField(required=False, default="Mid-range")
-    accommodation = serializers.CharField(required=False, allow_blank=True, default="")
-    localExperiences = serializers.ListField(child=serializers.CharField(), required=False, default=list)
+    transportationMode = serializers.CharField(max_length=100, required=False, default="Walking & Public Transit")
     travelWith = serializers.ListField(child=serializers.CharField(), required=False, default=list)
+    mustSeeAttractions = serializers.CharField(required=False, allow_blank=True, default="")
     searchMode = serializers.CharField(required=True)
 
 class SavedTripSerializer(serializers.ModelSerializer):

@@ -120,7 +120,6 @@ export default function TripResultPage() {
     }
 
     if (widgetToHide) {
-      console.log('Attempting to hide widget:', widgetToHide);
       const originalDisplayStyle = widgetToHide.style.display;
       const originalVisibilityStyle = widgetToHide.style.visibility;
 
@@ -199,7 +198,7 @@ export default function TripResultPage() {
           router.push("/fastplan");
         }, 2000);
     }
-  }, [router, loadingError]); 
+  }, [router]); 
 
   // Function to enhance plan data with cost estimates if not already present
   const enhancePlanWithEstimates = (planData: TripPlan) => {
@@ -462,10 +461,13 @@ export default function TripResultPage() {
   }, []);
 
   const handleSideChatSubmit = async (message: string /*, activityContext: Activity | null */) => {
+
     if (currentChatDayIndex === null || currentChatActivityIndex === null || !plan || !currentChatActivity) {
       toast.error("Cannot process chat request: missing context.");
+      console.warn("handleSideChatSubmit: Exiting due to missing context.");
       return;
     }
+
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -475,98 +477,231 @@ export default function TripResultPage() {
     };
     setConversationHistory(prev => [...prev, userMessage]);
     setSideChatLoading(true);
+    console.log("handleSideChatSubmit: State for user message and loading set.");
 
+    let previousActivity = null;
+    try {
+      if (currentChatActivityIndex > 0 && plan.days[currentChatDayIndex] && plan.days[currentChatDayIndex].activities) {
+        previousActivity = plan.days[currentChatDayIndex].activities[currentChatActivityIndex - 1];
+      }
+      console.log("handleSideChatSubmit: previousActivity determined:", previousActivity);
+    } catch (e) {
+      console.error("handleSideChatSubmit: Error determining previousActivity:", e);
+    }
+
+    let nextActivity = null;
+    try {
+      if (plan.days[currentChatDayIndex] && plan.days[currentChatDayIndex].activities && currentChatActivityIndex < plan.days[currentChatDayIndex].activities.length - 1) {
+        nextActivity = plan.days[currentChatDayIndex].activities[currentChatActivityIndex + 1];
+      }
+      console.log("handleSideChatSubmit: nextActivity determined:", nextActivity);
+    } catch (e) {
+      console.error("handleSideChatSubmit: Error determining nextActivity:", e);
+    }
+    
+    console.log("handleSideChatSubmit: API_BASE:", API_BASE);
+    let stringifiedBody = "";
+    try {
+      stringifiedBody = JSON.stringify({
+        message,
+        dayIndex: currentChatDayIndex,
+        activityIndex: currentChatActivityIndex,
+        plan: plan, 
+        previousActivity: previousActivity, 
+        nextActivity: nextActivity,       
+      });
+      console.log("handleSideChatSubmit: Body stringified successfully.");
+    } catch (e) {
+      console.error("handleSideChatSubmit: Error stringifying body:", e);
+      toast.error("Error preparing request for AI.");
+      setSideChatLoading(false);
+      return;
+    }
+
+    console.log("handleSideChatSubmit: Attempting fetch...");
     try {
       const response = await fetch(`${API_BASE}/api/chat-replace-activity/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message,
-          dayIndex: currentChatDayIndex,
-          activityIndex: currentChatActivityIndex,
-          plan: plan
-        })
+        body: stringifiedBody
       });
       
+      console.log("Fetch response status:", response.status); // Log status
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || errorData.details || 'Server error from chat API');
+        console.error("Server returned an error status:", response.status, response.statusText);
+        let errorText = await response.text(); // Get raw text of the error response
+        console.error("Raw error response from server:", errorText);
+        try {
+            const errorData = JSON.parse(errorText); // Try to parse it as JSON
+            throw new Error(errorData.error || errorData.details || `Server error: ${response.status}`);
+        } catch (parseError) {
+            // If parsing failed, use the raw text or a generic message
+            throw new Error(errorText || `Server error: ${response.status} - Non-JSON response`);
+        }
       }
       
-      const data = await response.json();
-      if (!data || !data.activity) {
-        throw new Error('No new activity received from AI');
+      const responseText = await response.text(); // Get response as text first
+      console.log("Raw backend response text:", responseText); // Log raw text
+      const data = JSON.parse(responseText); // Then parse
+      console.log("Parsed backend response data:", data); // Your original log line
+      
+      if (!data || !data.activities || !Array.isArray(data.activities) || data.activities.length === 0) {
+        throw new Error('No new activity suggestions received from AI.');
       }
 
-      const aiSuggestedActivity: Activity = data.activity;
+      const aiSuggestedActivities: Activity[] = data.activities;
+      let aiResponseMessageText = "";
+
+      if (aiSuggestedActivities.length === 1) {
+        const singleActivity = aiSuggestedActivities[0];
+        aiResponseMessageText = `I've found an alternative for '${currentChatActivity.description}'! 🤩\n\nHow about this: **${singleActivity.description}**? \nThis option looks really promising! ✨ What do you think? 😉`;
+      } else {
+        aiResponseMessageText = `I've found a few ideas to replace '${currentChatActivity.description}'! 🤩\n\nHere's a sequence that might work well:\n`;
+        aiSuggestedActivities.forEach((act, index) => {
+          aiResponseMessageText += `\n${index + 1}. **${act.description}** (around ${act.time || 'flexible time'})`;
+        });
+        aiResponseMessageText += "\n\nWhat do you think of this sequence? 🤔";
+      }
 
       const aiMessage: ChatMessage = {
         id: `ai-${Date.now()}`,
-        text: `Okay, how about this instead of "${currentChatActivity.description}"?\n\nSuggestion: ${aiSuggestedActivity.description}`,
+        text: aiResponseMessageText,
         sender: 'ai',
         timestamp: new Date(),
-        suggestedActivity: aiSuggestedActivity // Include the suggested activity
+        suggestedActivities: aiSuggestedActivities // Store the array of activities
       };
       setConversationHistory(prev => [...prev, aiMessage]);
 
-      // For now, we don't automatically update the plan. User will need to accept.
-      // toast.success('AI suggested an alternative!');
-
     } catch (e: any) {
       console.error("Error in side chat submit:", e);
+      const errorMessageText = e.message && e.message.includes('AI') 
+        ? e.message 
+        : `Error: ${e.message || 'Could not get suggestion.'}`;
       const errorMessage: ChatMessage = {
         id: `error-${Date.now()}`,
-        text: `Error: ${e.message || 'Could not get suggestion.'}`,
+        text: errorMessageText,
         sender: 'system',
         timestamp: new Date(),
       };
       setConversationHistory(prev => [...prev, errorMessage]);
-      toast.error(e.message || 'An error occurred while getting suggestion.');
+      toast.error(errorMessageText);
     } finally {
       setSideChatLoading(false);
     }
   };
 
-  // New handler for accepting a suggestion
-  const handleAcceptSuggestion = (activity: Activity) => {
+  // Modified handler for accepting a single suggestion
+  const handleAcceptSuggestion = (activityToAccept: Activity) => { 
     if (currentChatDayIndex === null || currentChatActivityIndex === null || !plan) {
       toast.error("Cannot accept suggestion: missing context.");
       return;
     }
 
-    // Update the plan with the accepted activity
     setPlan(prevPlan => {
       if (!prevPlan) return prevPlan;
       
+      // Calculate cost differences first, so they are in scope for both day and total updates
+      let minDiff = 0;
+      let maxDiff = 0;
+
+      const dayOfChange = prevPlan.days[currentChatDayIndex!];
+      const oldActivityForCost = dayOfChange.activities[currentChatActivityIndex!];
+
+      const oldMinCost = oldActivityForCost?.cost_estimate?.min || 0;
+      const oldMaxCost = oldActivityForCost?.cost_estimate?.max || 0;
+      const newMinCost = activityToAccept?.cost_estimate?.min || 0;
+      const newMaxCost = activityToAccept?.cost_estimate?.max || 0;
+
+      minDiff = newMinCost - oldMinCost;
+      maxDiff = newMaxCost - oldMaxCost;
+      
       const updatedPlan = { ...prevPlan };
-      updatedPlan.days = [...prevPlan.days];
-      updatedPlan.days[currentChatDayIndex] = { ...prevPlan.days[currentChatDayIndex] };
-      updatedPlan.days[currentChatDayIndex].activities = [...prevPlan.days[currentChatDayIndex].activities];
-      updatedPlan.days[currentChatDayIndex].activities[currentChatActivityIndex] = activity;
+      updatedPlan.days = prevPlan.days.map((day, dayIdx) => {
+        if (dayIdx === currentChatDayIndex) {
+          const currentActivities = [...day.activities];
+          // const oldActivity = currentActivities[currentChatActivityIndex!]; // No longer needed here for cost
+
+          currentActivities.splice(currentChatActivityIndex!, 1, activityToAccept); // Splice in the single activity
+          
+          // Update day_cost_estimate for the current day using pre-calculated diffs
+          const updatedDayCostEstimate = {
+            min: (day.day_cost_estimate?.min || 0) + minDiff,
+            max: (day.day_cost_estimate?.max || 0) + maxDiff,
+            currency: day.day_cost_estimate?.currency || 'USD',
+          };
+
+          return { ...day, activities: currentActivities, day_cost_estimate: updatedDayCostEstimate };
+        }
+        return day;
+      });
+
+      // Update total_cost_estimate for the entire plan
+      if (updatedPlan.total_cost_estimate) {
+        updatedPlan.total_cost_estimate = {
+          ...updatedPlan.total_cost_estimate,
+          min: (updatedPlan.total_cost_estimate.min || 0) + minDiff, 
+          max: (updatedPlan.total_cost_estimate.max || 0) + maxDiff, 
+        };
+      }
+      
       return updatedPlan;
     });
     
-    // Remove any cached place details for this activity
-    const key = `${currentChatDayIndex}-${currentChatActivityIndex}`;
+    const originalKey = `${currentChatDayIndex}-${currentChatActivityIndex}`;
     setPlaceDetails(prev => {
       const newDetails = { ...prev };
-      delete newDetails[key];
+      delete newDetails[originalKey];
       return newDetails;
     });
     
-    // Add a system message confirming the update
+    const confirmationText = `✅ Activity '${activityToAccept.description.substring(0, 30)}...' updated successfully!`;
+
     const confirmationMessage: ChatMessage = {
       id: `system-${Date.now()}`,
-      text: `✅ Activity updated successfully! You can close this chat or continue discussing alternatives.`,
+      text: `${confirmationText} Closing chat.`, // Updated message
       sender: 'system',
       timestamp: new Date(),
     };
     setConversationHistory(prev => [...prev, confirmationMessage]);
     
-    toast.success('Activity updated successfully!');
+    toast.success(confirmationText);
+    handleSideChatClose(); // Close chat after accepting
   };
 
-  // New handler for rejecting a suggestion
+  // New handler for rejecting an individual activity from a list of suggestions
+  const handleRejectIndividualActivity = (activityToReject: Activity, messageId: string) => {
+    setConversationHistory(prevHistory => {
+      const historyCopy = [...prevHistory];
+      const messageIndex = historyCopy.findIndex(msg => msg.id === messageId);
+
+      if (messageIndex !== -1 && historyCopy[messageIndex].suggestedActivities) {
+        const updatedSuggestedActivities = historyCopy[messageIndex].suggestedActivities!.filter(
+          activity => activity.description !== activityToReject.description // Simple comparison; consider more robust ID if available
+        );
+
+        historyCopy[messageIndex] = {
+          ...historyCopy[messageIndex],
+          suggestedActivities: updatedSuggestedActivities,
+        };
+
+        // If all sub-suggestions are rejected, add a follow-up system message
+        if (updatedSuggestedActivities.length === 0) {
+          const allRejectedMessage: ChatMessage = {
+            id: `system-${Date.now()}`,
+            text: "All specific options here have been addressed. You can ask for different suggestions or close the chat.",
+            sender: 'system',
+            timestamp: new Date(),
+          };
+          // Insert after the AI message that has been depleted
+          historyCopy.splice(messageIndex + 1, 0, allRejectedMessage);
+        }
+      }
+      return historyCopy;
+    });
+  };
+
+  // Existing handler for rejecting a whole suggestion message (can be kept for single suggestions or future use)
   const handleRejectSuggestion = (messageId: string) => {
     // Find the rejected message in the conversation
     const rejectedMessageIndex = conversationHistory.findIndex(msg => msg.id === messageId);
@@ -671,7 +806,9 @@ export default function TripResultPage() {
         isLoading={sideChatLoading}
         conversation={conversationHistory}
         onAcceptSuggestion={handleAcceptSuggestion}
+        onRejectIndividualActivity={handleRejectIndividualActivity}
         onRejectSuggestion={handleRejectSuggestion}
+        destinationInfo={plan?.destination_info}
       />
     </div>
   );

@@ -16,8 +16,7 @@ interface FormData {
   interests: string[];
   pace: string;
   budget: string;
-  accommodation: string;
-  localExperiences: string[];
+  transportationMode: string;
   travelWith: string[];
   mustSeeAttractions: string;
 }
@@ -28,9 +27,6 @@ const TRIP_STYLE_OPTIONS = [
   { value: "Adventurous", icon: "🧗‍♂️" }, 
   { value: "Cultural", icon: "🏛️" },
   { value: "Romantic", icon: "💑" },
-  { value: "Family", icon: "👨‍👩‍👧‍👦" },
-  { value: "Budget", icon: "💰" },
-  { value: "Luxury", icon: "✨" }
 ];
 
 const INTEREST_OPTIONS = [
@@ -58,25 +54,11 @@ const BUDGET_OPTIONS = [
   { value: "Luxury", icon: "💰💰💰", description: "Premium experiences & accommodations" },
 ];
 
-const ACCOMMODATION_OPTIONS = [
-  { value: "Hostel", icon: "🛏️" },
-  { value: "Budget Hotel", icon: "🏨" },
-  { value: "Mid-range Hotel", icon: "🏨+" },
-  { value: "Luxury Hotel", icon: "🏨✨" },
-  { value: "Apartment/Airbnb", icon: "🏠" },
-  { value: "Resort", icon: "🌴" },
-  { value: "Local Homestay", icon: "👨‍👩‍👧" }
-];
-
-const LOCAL_EXPERIENCES = [
-  { value: "Local Cuisine", icon: "🍽️" },
-  { value: "Guided Tours", icon: "🧭" },
-  { value: "Cultural Workshops", icon: "🧵" },
-  { value: "Hidden Gems", icon: "💎" },
-  { value: "Off-the-beaten-path", icon: "🗺️" },
-  { value: "Local Festivals", icon: "🎭" },
-  { value: "Cooking Classes", icon: "👨‍🍳" },
-  { value: "Local Markets", icon: "🛒" }
+const TRANSPORTATION_MODE_OPTIONS = [
+  { value: "Walking & Public Transit", icon: "🚶‍♀️🚇", description: "Exploring on foot and using local transport." },
+  { value: "Rental Car / Own Vehicle", icon: "🚗💨", description: "Flexibility to drive and explore widely." },
+  { value: "Mix of Both", icon: "🚶‍♂️🚗", description: "Combining driving with walking/public transit." },
+  { value: "Ride-sharing & Taxis", icon: "🚕", description: "Mainly using taxis or ride-sharing services." }
 ];
 
 const TRAVEL_WITH = [
@@ -126,8 +108,7 @@ export default function FastPlanPage() {
     interests: [],
     pace: 'Moderate',
     budget: 'Mid-range',
-    accommodation: '',
-    localExperiences: [],
+    transportationMode: 'Walking & Public Transit',
     travelWith: [],
     mustSeeAttractions: '',
   });
@@ -231,7 +212,7 @@ export default function FastPlanPage() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleCheckboxChange = (value: string, field: 'tripStyle' | 'interests' | 'localExperiences' | 'travelWith') => {
+  const handleCheckboxChange = (value: string, field: 'tripStyle' | 'interests' | 'travelWith') => {
     setFormData(prev => {
       const currentValues = prev[field] as string[];
       if (currentValues.includes(value)) {
@@ -272,7 +253,19 @@ export default function FastPlanPage() {
           "Content-Type": "application/json",
         },
         credentials: "include", 
-        body: JSON.stringify({ ...formData, searchMode }),
+        body: JSON.stringify({ 
+          destination: formData.destination,
+          startDate: formData.startDate,
+          endDate: formData.endDate,
+          tripStyle: formData.tripStyle,
+          interests: formData.interests,
+          pace: formData.pace,
+          budget: formData.budget,
+          transportationMode: formData.transportationMode,
+          travelWith: formData.travelWith,
+          mustSeeAttractions: formData.mustSeeAttractions,
+          searchMode 
+        }),
       });
   
       if (!response.ok) {
@@ -300,7 +293,7 @@ export default function FastPlanPage() {
   };
   
   // --- Progress bar calculation ---
-  const progressPercentage = ((currentStep - 1) / 8) * 100;
+  const progressPercentage = ((currentStep - 1) / 7) * 100;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
@@ -315,7 +308,7 @@ export default function FastPlanPage() {
           </div>
           <div className="mt-2 flex justify-between text-sm font-medium text-gray-500">
             <span>Start</span>
-            <span className="text-blue-600">Step {currentStep} of 8</span>
+            <span className="text-blue-600">Step {currentStep} of 7</span>
             <span>Finish</span>
           </div>
         </div>
@@ -541,7 +534,27 @@ export default function FastPlanPage() {
                     </button>
                   ))}
                 </div>
-
+                  {/* Travel With */}
+                  <div className="mt-8">
+                  <h3 className="mb-3 font-medium text-gray-700">Who are you traveling with?</h3>
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+                    {TRAVEL_WITH.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => handleCheckboxChange(option.value, 'travelWith')}
+                        className={`flex flex-col items-center rounded-xl border-2 p-3 text-center transition-all duration-200 hover:bg-blue-50 ${
+                          formData.travelWith.includes(option.value)
+                            ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
+                            : 'border-gray-200'
+                        }`}
+                      >
+                        <span className="mb-1 text-2xl">{option.icon}</span>
+                        <span className="text-sm font-medium">{option.value}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <div className="mt-8 flex justify-between">
                   <button
                     type="button"
@@ -592,7 +605,7 @@ export default function FastPlanPage() {
                     </button>
                   ))}
                 </div>
-
+                    
                 <div className="mt-8 flex justify-between">
                   <button
                     type="button"
@@ -690,6 +703,39 @@ export default function FastPlanPage() {
                   </div>
                 </div>
 
+                {/* Primary Transportation Mode */}
+                <div className="mt-8">
+                  <h3 className="mb-3 font-medium text-gray-700 flex items-center">
+                    Primary mode of transportation during your trip?
+                    <span className="group relative ml-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-gray-400 hover:text-blue-500 cursor-pointer">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      <span className="absolute left-1/2 -translate-x-1/2 -top-2 translate-y-full w-64 px-2 py-1 bg-gray-700 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                        This helps us suggest activities and routes that match how you plan to get around (e.g., walking tours if no car, driving routes if you have one).
+                      </span>
+                    </span>
+                  </h3>
+                  <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+                    {TRANSPORTATION_MODE_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => handleSingleSelectChange('transportationMode', option.value)}
+                        className={`flex flex-col items-center rounded-xl border-2 p-4 text-center transition-all duration-200 hover:bg-blue-50 ${
+                          formData.transportationMode === option.value
+                            ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
+                            : 'border-gray-200'
+                        }`}
+                      >
+                        <span className="mb-2 text-3xl">{option.icon}</span>
+                        <span className="font-medium text-sm">{option.value}</span>
+                        <span className="mt-1 text-xs text-gray-500">{option.description}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="mt-8 flex justify-between">
                   <button
                     type="button"
@@ -709,107 +755,17 @@ export default function FastPlanPage() {
               </motion.div>
             )}
 
-            {/* Step 6: Accommodation and Local Experiences */}
+            {/* Step 6: Must-See (was Step 7) */}
             {currentStep === 6 && (
-              <motion.div variants={fadeIn} className="space-y-6">
-                <h2 className="text-center text-2xl font-bold text-gray-800 sm:text-3xl">
-                  Let's personalize your experience
-                </h2>
-                
-                {/* Accommodation */}
-                <div>
-                  <h3 className="mb-3 font-medium text-gray-700">Preferred accommodation type:</h3>
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    {ACCOMMODATION_OPTIONS.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => handleSingleSelectChange('accommodation', option.value)}
-                        className={`flex flex-col items-center rounded-xl border-2 p-3 text-center transition-all duration-200 hover:bg-blue-50 ${
-                          formData.accommodation === option.value
-                            ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
-                            : 'border-gray-200'
-                        }`}
-                      >
-                        <span className="mb-1 text-2xl">{option.icon}</span>
-                        <span className="text-sm font-medium">{option.value}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Travel With */}
-                <div className="mt-8">
-                  <h3 className="mb-3 font-medium text-gray-700">Who are you traveling with?</h3>
-                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
-                    {TRAVEL_WITH.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => handleCheckboxChange(option.value, 'travelWith')}
-                        className={`flex flex-col items-center rounded-xl border-2 p-3 text-center transition-all duration-200 hover:bg-blue-50 ${
-                          formData.travelWith.includes(option.value)
-                            ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
-                            : 'border-gray-200'
-                        }`}
-                      >
-                        <span className="mb-1 text-2xl">{option.icon}</span>
-                        <span className="text-sm font-medium">{option.value}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Local Experiences */}
-                <div className="mt-8">
-                  <h3 className="mb-3 font-medium text-gray-700">What local experiences are you interested in?</h3>
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    {LOCAL_EXPERIENCES.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => handleCheckboxChange(option.value, 'localExperiences')}
-                        className={`flex flex-col items-center rounded-xl border-2 p-3 text-center transition-all duration-200 hover:bg-blue-50 ${
-                          formData.localExperiences.includes(option.value)
-                            ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
-                            : 'border-gray-200'
-                        }`}
-                      >
-                        <span className="mb-1 text-2xl">{option.icon}</span>
-                        <span className="text-sm font-medium">{option.value}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mt-8 flex justify-between">
-                  <button
-                    type="button"
-                    onClick={prevStep}
-                    className="rounded-full border border-gray-300 bg-white px-6 py-3 text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
-                  >
-                    ← Back
-                  </button>
-                  <button
-                    type="button"
-                    onClick={nextStep}
-                    className="rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300 ease-in-out hover:from-blue-700 hover:to-indigo-700"
-                  >
-                    Next →
-                  </button>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Step 7: Final Details */}
-            {currentStep === 7 && (
               <motion.div variants={fadeIn} className="space-y-6">
                 <h2 className="text-center text-2xl font-bold text-gray-800 sm:text-3xl">
                   Final touches for your perfect trip
                 </h2>
                 
+
+                
                 {/* Must-see attractions */}
-                <div>
+                <div className="mt-8">
                   <label htmlFor="mustSeeAttractions" className="mb-2 block font-medium text-gray-700">
                     Any must-see attractions or special requests? (optional)
                   </label>
@@ -855,8 +811,8 @@ export default function FastPlanPage() {
                     <div className="flex items-center space-x-3">
                       <span className="text-2xl">💼</span>
                       <div>
-                        <p className="text-sm text-gray-500">Budget & Pace</p>
-                        <p className="font-medium">{formData.budget} · {formData.pace} pace</p>
+                        <p className="text-sm text-gray-500">Preferences</p>
+                        <p className="font-medium">{formData.budget} · {formData.pace} pace · {formData.transportationMode}</p>
                       </div>
                     </div>
                   </div>
@@ -872,7 +828,7 @@ export default function FastPlanPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setCurrentStep(8)}
+                    onClick={() => setCurrentStep(7)}
                     disabled={isLoading}
                     className={`rounded-full px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300
                       ${isLoading
@@ -887,8 +843,8 @@ export default function FastPlanPage() {
               </motion.div>
             )}
 
-            {/* Step 8: Search Mode */}
-            {currentStep === 8 && (
+            {/* Step 7: Search Mode (was step 8) */}
+            {currentStep === 7 && (
               <motion.div variants={fadeIn} className="space-y-8">
                 <h2 className="text-center text-2xl font-bold text-gray-800 sm:text-3xl">
                   Choose your itinerary search mode
