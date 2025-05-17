@@ -34,20 +34,15 @@ export default function RootLayout({
     });
 
     const ensureCsrfCookie = async () => {
-      console.log("Attempting to fetch CSRF cookie endpoint..."); 
       try {
         await fetch(`${API_BASE}/api/csrf/`, {
             method: 'GET',
             credentials: 'include'
         });
-        console.log("CSRF cookie endpoint fetched (cookie should be set if backend responded correctly).");
 
-        console.log("Layout: Checking if CSRF cookie is set...");
         const csrfCookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
         if (csrfCookie) {
-          console.log("Layout: CSRF cookie found.", csrfCookie);
         } else {
-          console.warn("Layout: CSRF cookie not found.");
         }
       } catch (err) {
         console.error("Failed to fetch CSRF token endpoint:", err);

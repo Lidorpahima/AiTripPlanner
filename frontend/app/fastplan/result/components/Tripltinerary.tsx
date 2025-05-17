@@ -352,7 +352,6 @@ async function refreshAuthToken(): Promise<string | null> {
 
   if (!refreshToken) {
     console.error("No refresh token found for token refresh.");
-    // toast.error("Your session has expired. Please log in again."); // Consider centralizing this
     return null;
   }
 
@@ -372,19 +371,17 @@ async function refreshAuthToken(): Promise<string | null> {
       const newAccessToken = data.access;
       if (newAccessToken) {
         Cookies.set('access', newAccessToken, { path: '/', sameSite: 'lax' });
-        console.log("Access token refreshed successfully.");
         return newAccessToken;
       } else {
-        console.error("Refresh successful but no new access token in response.");
+        console.error("Refresh successful but no new access token in response."); 
         return null;
       }
     } else {
-      console.error("Failed to refresh token:", response.status);
-      const errorData = await response.text(); // Get more details if refresh fails
-      console.error("Refresh error details:", errorData);
+      console.error("Failed to refresh token:", response.status); 
+      const errorData = await response.text();
+      console.error("Refresh error details:", errorData); 
       // If refresh fails, the refresh token itself might be invalid or expired.
       // It's often a good idea to clear tokens and prompt for re-login here.
-      // Cookies.remove('access'); // Handled by caller or auth context
       // Cookies.remove('refresh');
       // toast.error("Your session has expired. Please log in again.");
       return null;
@@ -420,13 +417,13 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
 
     const fetchPlaceDetails = useCallback(async (key: string, placeQuery: string) => {
       if (placeDetails[key] && placeDetails[key] !== 'error') {
-          console.log(`Details for '${placeQuery}' (key: ${key}) already available or loading.`);
+          // console.log(`Details for '${placeQuery}' (key: ${key}) already available or loading.`); // Removed console.log
           setActivePopupKey(key);
           setActivePopupQuery(placeQuery);
           return;
       }
   
-      console.log(`Fetching details for: "${placeQuery}" (key: ${key})`);
+      // console.log(`Fetching details for: "${placeQuery}" (key: ${key})`); // Removed console.log
       setPlaceDetails(prev => ({ ...prev, [key]: 'loading' }));
       setActivePopupKey(key);
       setActivePopupQuery(placeQuery);
@@ -436,7 +433,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
       url.searchParams.append('query', placeQuery);
   
       try {
-          const response = await fetch(url.toString()); // Use fetch
+          const response = await fetch(url.toString()); 
   
           // Check if the response status indicates success (2xx)
           if (!response.ok) {
@@ -446,11 +443,11 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
                   toast.error(`Place details not found for "${placeQuery}" on Google Maps.`);
               } else {
                   // Handle other non-successful statuses (e.g., 500 Internal Server Error)
-                  console.error(`[fetchPlaceDetails Error] HTTP error ${response.status}: ${response.statusText}`);
+                  console.error(`[fetchPlaceDetails Error] HTTP error ${response.status}: ${response.statusText}`); 
                   // Try to get error message from response body if backend provides one
                   let serverErrorMessage = `HTTP error ${response.status}`;
                   try {
-                      const errorBody = await response.json(); // Attempt to parse error body
+                      const errorBody = await response.json(); 
                       serverErrorMessage = errorBody?.error || errorBody?.message || serverErrorMessage;
                   } catch (parseError) {
                       // Ignore if error body isn't valid JSON
@@ -466,7 +463,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
   
           // Basic validation if needed (e.g., check if data has expected properties)
           if (!data || typeof data !== 'object' || !data.name) {
-               console.error("[fetchPlaceDetails Error] Invalid data received from API:", data);
+               console.error("[fetchPlaceDetails Error] Invalid data received from API:", data); 
                throw new Error("Invalid data format received from server.");
           }
   
@@ -474,7 +471,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
           setPlaceDetails(prev => ({ ...prev, [key]: data }));
   
       } catch (err) { // Catches network errors and errors thrown above
-          console.error(`[fetchPlaceDetails Error] Failed for query "${placeQuery}":`, err);
+          console.error(`[fetchPlaceDetails Error] Failed for query "${placeQuery}":`, err); 
           setPlaceDetails(prev => ({ ...prev, [key]: 'error' })); // Ensure state is 'error'
   
           // Check if the error is a standard Error object and show its message
@@ -503,7 +500,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
     const handleActivityClick = useCallback((dayIndex: number, activityIndex: number, placeNameLookup: string | null | undefined) => {
         // **** בדיקה אם יש שם לחיפוש ****
         if (!placeNameLookup) {
-            console.log("No place name provided for lookup for this activity.");
+
             toast.info("Detailed information not available for this activity.", { autoClose: 2000 });
             return;
         }
@@ -617,7 +614,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
                    try {
                        data = await response.json();
                    } catch (jsonError) {
-                       console.warn("Could not parse JSON response (status not 204):", jsonError);
+                       console.warn("Could not parse JSON response (status not 204):", jsonError); 
                        // If not OK, and not JSON, it might be the token error
                        if (!response.ok) {
                            const errorText = await response.text();
@@ -646,7 +643,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
             } catch (err: any) {
                 if (err.message === "TokenExpiredError") {
                     if (isRetry) {
-                        console.error("Token refresh failed or retried save also failed with token error.");
+                        console.error("Token refresh failed or retried save also failed with token error."); 
                         toast.error("Session issue. Please log out and log in again.");
                         setSaveError("Session invalid. Please re-login.");
                         // Potentially clear tokens or call a global logout function
@@ -655,7 +652,6 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
                         // router.push('/signin'); // Or use a context-based logout
                         return; // Stop retrying
                     }
-                    console.log("Access token expired or invalid. Attempting refresh...");
                     const newAccessToken = await refreshAuthToken();
                     if (newAccessToken) {
                         await attemptSave(newAccessToken, true); // Retry with the new token, mark as retry
@@ -666,7 +662,7 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
                         // router.push('/signin'); // if router is available
                     }
                 } else {
-                    console.error("Error saving trip:", err);
+                    console.error("Error saving trip:", err); 
                     const message = err instanceof Error ? err.message : "An unknown error occurred.";
                     setSaveError(`Error: ${message}`);
                     toast.error(`Error: ${message}`);

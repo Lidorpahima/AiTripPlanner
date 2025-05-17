@@ -135,7 +135,6 @@ export default function TripResultPage() {
         }
       };
     } else {
-      console.log('Brevo chat widget or its wrapper not found by specified selectors.');
     }
   }, [isSideChatOpen]);
 
@@ -152,7 +151,6 @@ export default function TripResultPage() {
       try {
         parsedPlan = JSON.parse(storedPlan);
       } catch (err) {
-        console.error("❌ Failed to parse stored plan:", err);
         setLoadingError("Failed to load trip plan data.");
         errorOccurred = true;
       }
@@ -165,7 +163,6 @@ export default function TripResultPage() {
       try {
         parsedRequest = JSON.parse(storedRequest);
       } catch (err) {
-        console.error("❌ Failed to parse stored request data:", err);
         setLoadingError(prev => prev ? `${prev} & Failed to load request details.` : "Failed to load request details.");
         errorOccurred = true;
       }
@@ -346,7 +343,6 @@ export default function TripResultPage() {
   const handleOpenInMaps = useCallback((placeNameLookup: string | null | undefined) => {
     const fullQuery = getFullPlaceQuery(placeNameLookup);
     if (!fullQuery) {
-      console.log("No place name provided for map lookup.");
       toast.info("Location information not available for this activity.", { autoClose: 2000 });
       return;
     }
@@ -358,7 +354,6 @@ export default function TripResultPage() {
   const handlePlaceClick = useCallback(async (dayIndex: number, activityIndex: number, placeNameLookup: string | null | undefined) => {
     const fullQuery = getFullPlaceQuery(placeNameLookup);
     if (!fullQuery) {
-      console.log("No place name provided for lookup for this activity.");
       toast.info("Detailed information not available for this activity.", { autoClose: 2000 });
       return;
     }
@@ -440,7 +435,6 @@ export default function TripResultPage() {
   }, [plan]); 
 
   const handleSideChatClose = useCallback(() => {
-    console.log('Closing side chat panel...');
     
     // Force close with immediate visual feedback
     document.body.style.overflow = ''; // Restore scroll if it was disabled
@@ -457,14 +451,12 @@ export default function TripResultPage() {
       setSideChatLoading(false);
     }, 300); // Matches the transition duration in the panel
     
-    console.log('Side chat panel closed');
   }, []);
 
   const handleSideChatSubmit = async (message: string /*, activityContext: Activity | null */) => {
 
     if (currentChatDayIndex === null || currentChatActivityIndex === null || !plan || !currentChatActivity) {
       toast.error("Cannot process chat request: missing context.");
-      console.warn("handleSideChatSubmit: Exiting due to missing context.");
       return;
     }
 
@@ -477,16 +469,14 @@ export default function TripResultPage() {
     };
     setConversationHistory(prev => [...prev, userMessage]);
     setSideChatLoading(true);
-    console.log("handleSideChatSubmit: State for user message and loading set.");
 
     let previousActivity = null;
     try {
       if (currentChatActivityIndex > 0 && plan.days[currentChatDayIndex] && plan.days[currentChatDayIndex].activities) {
         previousActivity = plan.days[currentChatDayIndex].activities[currentChatActivityIndex - 1];
       }
-      console.log("handleSideChatSubmit: previousActivity determined:", previousActivity);
     } catch (e) {
-      console.error("handleSideChatSubmit: Error determining previousActivity:", e);
+      console.error("handleSideChatSubmit: Error determining previousActivity:", e); // Kept console.error for actual errors
     }
 
     let nextActivity = null;
@@ -494,12 +484,10 @@ export default function TripResultPage() {
       if (plan.days[currentChatDayIndex] && plan.days[currentChatDayIndex].activities && currentChatActivityIndex < plan.days[currentChatDayIndex].activities.length - 1) {
         nextActivity = plan.days[currentChatDayIndex].activities[currentChatActivityIndex + 1];
       }
-      console.log("handleSideChatSubmit: nextActivity determined:", nextActivity);
     } catch (e) {
-      console.error("handleSideChatSubmit: Error determining nextActivity:", e);
+      console.error("handleSideChatSubmit: Error determining nextActivity:", e); // Kept console.error
     }
     
-    console.log("handleSideChatSubmit: API_BASE:", API_BASE);
     let stringifiedBody = "";
     try {
       stringifiedBody = JSON.stringify({
@@ -510,15 +498,13 @@ export default function TripResultPage() {
         previousActivity: previousActivity, 
         nextActivity: nextActivity,       
       });
-      console.log("handleSideChatSubmit: Body stringified successfully.");
     } catch (e) {
-      console.error("handleSideChatSubmit: Error stringifying body:", e);
+      console.error("handleSideChatSubmit: Error stringifying body:", e); // Kept console.error
       toast.error("Error preparing request for AI.");
       setSideChatLoading(false);
       return;
     }
 
-    console.log("handleSideChatSubmit: Attempting fetch...");
     try {
       const response = await fetch(`${API_BASE}/api/chat-replace-activity/`, {
         method: 'POST',
@@ -526,12 +512,12 @@ export default function TripResultPage() {
         body: stringifiedBody
       });
       
-      console.log("Fetch response status:", response.status); // Log status
+      // console.log("Fetch response status:", response.status); // Removed console.log
 
       if (!response.ok) {
-        console.error("Server returned an error status:", response.status, response.statusText);
+        console.error("Server returned an error status:", response.status, response.statusText); // Kept console.error
         let errorText = await response.text(); // Get raw text of the error response
-        console.error("Raw error response from server:", errorText);
+        console.error("Raw error response from server:", errorText); // Kept console.error
         try {
             const errorData = JSON.parse(errorText); // Try to parse it as JSON
             throw new Error(errorData.error || errorData.details || `Server error: ${response.status}`);
@@ -542,9 +528,7 @@ export default function TripResultPage() {
       }
       
       const responseText = await response.text(); // Get response as text first
-      console.log("Raw backend response text:", responseText); // Log raw text
       const data = JSON.parse(responseText); // Then parse
-      console.log("Parsed backend response data:", data); // Your original log line
       
       if (!data || !data.activities || !Array.isArray(data.activities) || data.activities.length === 0) {
         throw new Error('No new activity suggestions received from AI.');
@@ -574,7 +558,7 @@ export default function TripResultPage() {
       setConversationHistory(prev => [...prev, aiMessage]);
 
     } catch (e: any) {
-      console.error("Error in side chat submit:", e);
+      console.error("Error in side chat submit:", e); // Kept console.error
       const errorMessageText = e.message && e.message.includes('AI') 
         ? e.message 
         : `Error: ${e.message || 'Could not get suggestion.'}`;

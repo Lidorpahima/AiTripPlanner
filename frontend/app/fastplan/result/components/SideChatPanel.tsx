@@ -52,7 +52,6 @@ const SideChatPanel = React.forwardRef<HTMLDivElement, SideChatPanelProps>(
     const handleClosePanel = (e: MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log('Close handler triggered');
       onClose();
     };
 
@@ -75,7 +74,6 @@ const SideChatPanel = React.forwardRef<HTMLDivElement, SideChatPanelProps>(
     useEffect(() => {
       const handleEscapeKey = (e: KeyboardEvent) => {
         if (e.key === 'Escape' && isOpen) {
-          console.log('Escape key pressed, closing panel');
           onClose();
         }
       };
@@ -89,13 +87,11 @@ const SideChatPanel = React.forwardRef<HTMLDivElement, SideChatPanelProps>(
       const siteHeader = document.querySelector('header.fixed.top-3.z-50.w-full, header.fixed.top-4.z-50.w-full, header.fixed.top-5.z-50.w-full') as HTMLElement;
       
       if (siteHeader && isOpen) {
-        console.log('Hiding site header while chat panel is open');
         const originalDisplayStyle = siteHeader.style.display;
         siteHeader.style.display = 'none';
         
         return () => {
           if (siteHeader) {
-            console.log('Restoring site header display');
             siteHeader.style.display = originalDisplayStyle;
           }
         };

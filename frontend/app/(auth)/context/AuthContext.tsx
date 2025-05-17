@@ -25,22 +25,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
 
   useEffect(() => {
-    console.log("Auth Context: Checking for auth tokens...");
     // Only check cookies for tokens
     const accessToken = Cookies.get('access');
     
     if (accessToken) {
-      console.log("Auth Context: Access token found, setting authenticated");
       setIsAuthenticated(true);
     } else {
-      console.log("Auth Context: No access token found, user not authenticated");
       setIsAuthenticated(false);
     }
     setIsLoading(false); 
   }, []);
 
   const login = (access: string, refresh: string) => {
-    console.log("Auth Context: Logging in with new tokens...");
     // Store in cookies with proper settings
     Cookies.set('access', access, { 
       path: '/', 
@@ -58,7 +54,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
 
   const logout = () => {
-    console.log("Auth Context: Logging out...");
     // Clear all authentication tokens from cookies
     Cookies.remove('access'); 
     Cookies.remove('refresh');

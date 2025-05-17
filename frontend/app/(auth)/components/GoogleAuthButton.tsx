@@ -125,7 +125,6 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
     };
 
     const handleGoogleScriptLoad = () => {
-      console.log("Google script loaded");
       initializeGoogleSignIn();
     };
 
@@ -146,7 +145,6 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
         src="https://accounts.google.com/gsi/client"
         strategy="lazyOnload"
         onLoad={() => {
-          console.log("Google script loaded successfully");
           window.dispatchEvent(new Event('google-loaded'));
         }}
         onError={() => {

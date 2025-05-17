@@ -41,10 +41,11 @@ export default function Header() {
   }, [mobileNavOpen]);
 
   const navLinkClasses = "relative group text-sm font-medium text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md transition-colors duration-150 ease-in-out flex items-center gap-1.5";
-  const mobileNavLinkClasses = "text-lg font-medium text-gray-700 hover:text-blue-600 py-2 flex items-center gap-2";
+  const mobileNavLinkClasses = "font-medium text-gray-600 hover:text-blue-600 block py-2 px-3 transition duration-150 ease-in-out";
   const actionButtonClasses = "btn-sm text-gray-700 bg-white hover:bg-gray-100 shadow-sm border border-gray-200 transition-all duration-150 ease-in-out flex items-center gap-1.5";
-  const primaryButtonClasses = `btn-sm bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md hover:shadow-lg hover:scale-[1.03] transition-all duration-200 ease-in-out flex items-center gap-1.5${shake ? ' animate-shake' : ''}`;
-  const logoutButtonClasses = "btn-sm text-red-600 bg-white hover:bg-red-50 border border-red-200 shadow-sm transition-all duration-150 ease-in-out flex items-center gap-1.5";
+  const guestButtonClasses = "btn-sm text-gray-700 bg-white hover:bg-gray-100 shadow-sm hover:shadow-md transition-all duration-200 ease-in-out flex items-center gap-1.5";
+  const primaryButtonClasses = `btn-sm bg-gradient-to-r from-violet-600 to-sky-500 text-white shadow-md hover:shadow-xl hover:scale-[1.05] hover:from-pink-500 hover:to-violet-600 transition-all duration-300 ease-in-out flex items-center gap-1.5${shake ? ' animate-shake' : ''}`;
+  const logoutButtonClasses = "btn-sm text-red-600 bg-white border border-red-200 shadow-sm hover:bg-red-600 hover:text-white hover:scale-[1.05] hover:shadow-lg transition-all duration-300 ease-in-out flex items-center gap-1.5";
 
   const headerMotionProps = {
     initial: { opacity: 0, y: -20 },

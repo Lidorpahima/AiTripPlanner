@@ -17,7 +17,7 @@ interface FormData {
   pace: string;
   budget: string;
   transportationMode: string;
-  travelWith: string[];
+  travelWith: string;
   mustSeeAttractions: string;
 }
 
@@ -109,7 +109,7 @@ export default function FastPlanPage() {
     pace: 'Moderate',
     budget: 'Mid-range',
     transportationMode: 'Walking & Public Transit',
-    travelWith: [],
+    travelWith: '',
     mustSeeAttractions: '',
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -212,7 +212,7 @@ export default function FastPlanPage() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleCheckboxChange = (value: string, field: 'tripStyle' | 'interests' | 'travelWith') => {
+  const handleCheckboxChange = (value: string, field: 'tripStyle' | 'interests') => {
     setFormData(prev => {
       const currentValues = prev[field] as string[];
       if (currentValues.includes(value)) {
@@ -542,9 +542,9 @@ export default function FastPlanPage() {
                       <button
                         key={option.value}
                         type="button"
-                        onClick={() => handleCheckboxChange(option.value, 'travelWith')}
+                        onClick={() => handleSingleSelectChange('travelWith', option.value)}
                         className={`flex flex-col items-center rounded-xl border-2 p-3 text-center transition-all duration-200 hover:bg-blue-50 ${
-                          formData.travelWith.includes(option.value)
+                          formData.travelWith === option.value
                             ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
                             : 'border-gray-200'
                         }`}

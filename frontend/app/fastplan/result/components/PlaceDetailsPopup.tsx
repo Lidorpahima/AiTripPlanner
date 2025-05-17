@@ -44,7 +44,6 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
             const urlObj = new URL(url);
             return urlObj.searchParams.get('photoreference');
         } catch (e) {
-            console.error("Invalid URL:", e);
             return null;
         }
     };

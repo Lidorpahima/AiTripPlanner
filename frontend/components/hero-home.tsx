@@ -1,6 +1,9 @@
 "use client";
+import { useState } from 'react';
+import Link from "next/link";
 import Image from "next/image";
 import { Lobster } from "next/font/google";
+import { motion } from 'framer-motion';
 
 import ImgTokyo from "@/public/images/destinations/rhome.jpg";
 import ImgRome from "@/public/images/destinations/lhero.jpg";
@@ -14,6 +17,14 @@ const lobster = Lobster({
 });
 
 export default function HeroHome() {
+  const [isRocketLaunching, setIsRocketLaunching] = useState(false);
+
+  const handlePlanJourneyClick = () => {
+    setIsRocketLaunching(true);
+    // Optional: Reset after a delay if not navigating immediately
+    // setTimeout(() => setIsRocketLaunching(false), 2000); // Example reset
+  };
+
   return (
     <section className="relative overflow-hidden">
 
@@ -50,21 +61,37 @@ export default function HeroHome() {
                     data-aos="zoom-y-out"
                     data-aos-delay={450}
                   >
-                    <a
-                      className="btn group mb-4 w-full  text-white bg-indigo-600 hover:text-white sm:mb-0 sm:w-auto"
-                      href="/fastplan" 
+                    <Link
+                      href="/fastplan"
+                      className="btn group mb-4 w-full text-white bg-indigo-600 hover:bg-indigo-700 hover:scale-105 hover:shadow-lg transition-all duration-300 ease-in-out sm:mb-0 sm:w-auto"
+                      onClick={handlePlanJourneyClick}
                     >
                       <span className="relative inline-flex items-center">
-                        Plan Your Journey</span>{" "}
-                        <span className="ml-1 tracking-normal transition-transform group-hover:translate-x-0.5">
-                          <img 
-                            src="https://images.emojiterra.com/google/noto-emoji/animated-emoji/1f680.gif" 
-                            alt="Rocket" 
-                            width="20" 
-                            height="20" 
-                          />
-                        </span>
-                    </a>
+                        Plan Your Journey
+                      </span>
+                      <motion.img
+                        src="https://images.emojiterra.com/google/noto-emoji/animated-emoji/1f680.gif"
+                        alt="Rocket"
+                        width="20"
+                        height="20"
+                        className="ml-1 tracking-normal"
+                        animate={isRocketLaunching ? {
+                          y: -60,
+                          x: 70,
+                          scale: 1.8,
+                          opacity: 0,
+                          rotate: -15
+                        } : {
+                          y: 0, x: 0, scale: 1, opacity: 1, rotate: 0
+                        }}
+                        transition={isRocketLaunching ? {
+                          duration: 0.4,
+                          ease: "easeOut"
+                        } : {
+                          duration: 0.2
+                        }}
+                      />
+                    </Link>
                     {/* Learn More Button - Changed to Watch Demo */}
                     <a
                       className="btn group w-full border border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white sm:ml-4 sm:w-auto flex items-center justify-center shadow-sm"
