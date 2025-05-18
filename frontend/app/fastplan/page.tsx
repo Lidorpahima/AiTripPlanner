@@ -4,9 +4,9 @@ import { useState, ChangeEvent, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import Lottie from 'react-lottie'; // Import Lottie for animations
-import { motion } from 'framer-motion'; // For smooth animations
-
+import Lottie from 'react-lottie'; 
+import { motion } from 'framer-motion'; 
+import LoadingDisplay from './result/components/LoadingDisplay';
 // --- Interfaces ---
 interface FormData {
   destination: string;
@@ -114,6 +114,7 @@ export default function FastPlanPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [searchInput, setSearchInput] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchInput);
   const [destinationSuggestions, setDestinationSuggestions] = useState<string[]>([]);
   const [searchMode, setSearchMode] = useState<'quick' | 'normal' | 'deep' | null>(null);
   const router = useRouter();
@@ -129,7 +130,75 @@ export default function FastPlanPage() {
     }
   }, [currentStep]);
 
-  // --- Handlers ---
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearchTerm(searchInput);
+    }, 500); 
+
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [searchInput]);
+
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (debouncedSearchTerm.length > 2) { 
+        try {
+          const apiKey = process.env.NEXT_PUBLIC_SEARCH_KEY;
+          if (!apiKey) {
+            setDestinationSuggestions([]);
+            return;
+          }
+
+          const url = `https://city-and-state-search-api.p.rapidapi.com/cities/search?q=${encodeURIComponent(debouncedSearchTerm)}`;
+          const headers = {
+            "x-rapidapi-key": apiKey,
+            "x-rapidapi-host": "city-and-state-search-api.p.rapidapi.com"
+          };
+          
+          const apiResponse = await fetch(url, { headers });
+
+          if (!apiResponse.ok) {
+            const errorData = await apiResponse.json().catch(() => ({ message: `API Error: ${apiResponse.status}` }));
+
+            if (apiResponse.status === 429) { 
+            } else if (apiResponse.status === 401 || apiResponse.status === 403) { 
+            } else {
+            }
+            setDestinationSuggestions([]);
+            return;
+          }
+          
+          const data = await apiResponse.json();
+
+          if (Array.isArray(data)) {
+            const suggestions = data.map((item: any) => {
+              let suggestion = item.name;
+              if (item.state_name) {
+                suggestion += `, ${item.state_name}`;
+              }
+              if (item.country_name) {
+                suggestion += `, ${item.country_name}`;
+              }
+              return suggestion;
+            }).slice(0, 10); // Limit to 10 suggestions
+            setDestinationSuggestions(suggestions);
+          } else {
+            setDestinationSuggestions([]);
+          }
+        } catch (error: any) {
+          console.error("Failed to fetch destination suggestions:", error);
+
+          setDestinationSuggestions([]);
+        }
+      } else {
+        setDestinationSuggestions([]);
+      }
+    };
+
+    fetchSuggestions();
+  }, [debouncedSearchTerm]); 
+
   const handleDestinationChange = (value: string) => {
     setFormData(prev => ({ ...prev, destination: value }));
     setSearchInput(value);
@@ -138,22 +207,9 @@ export default function FastPlanPage() {
 
   const handleDestinationSearch = (value: string) => {
     setSearchInput(value);
-    // Simulate destination suggestions (would be replaced by real API call)
-    if (value.length > 2) {
-      const mockSuggestions = [
-        `${value} City, Country`,
-        `${value} Beach, Island`,
-        `${value}town, Europe`,
-        `${value} Mountains, Asia`
-      ];
-      setDestinationSuggestions(mockSuggestions);
-    } else {
-      setDestinationSuggestions([]);
-    }
   };
 
   const nextStep = () => {
-    // Validation logic based on current step
     if (currentStep === 1 && !formData.destination) {
       toast.warn("Please select or enter a destination.");
       return;
@@ -294,6 +350,10 @@ export default function FastPlanPage() {
   
   // --- Progress bar calculation ---
   const progressPercentage = ((currentStep - 1) / 7) * 100;
+
+  if (isLoading) {
+    return <LoadingDisplay />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
@@ -921,35 +981,23 @@ export default function FastPlanPage() {
                   <button
                     type="button"
                     onClick={handleSubmit}
-                    disabled={!searchMode || isLoading}
+                    disabled={!searchMode}
                     className={`group relative overflow-hidden rounded-full px-8 py-4 text-center text-lg font-bold text-white shadow-lg transition-all duration-300
-                      ${searchMode && !isLoading
+                      ${searchMode
                         ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:scale-105'
                         : 'cursor-not-allowed bg-gray-400'}
                     `}
                     aria-label="Generate Trip"
                   >
-                    {isLoading ? (
-                      <span className="flex items-center justify-center space-x-2">
-                        <svg className="h-5 w-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span>Creating Your Perfect Trip...</span>
+                    <div className="flex items-center justify-center">
+                      <span className="mr-2 text-yellow-300 animate-pulse">✨</span>
+                      <span className="relative">
+                        Generate Trip
+                        <span className="absolute -bottom-1 left-0 h-0.5 w-full bg-white/50 rounded-full transform scale-x-0 transition-transform group-hover:scale-x-100 duration-300 origin-left"></span>
                       </span>
-                    ) : (
-                      <div className="flex items-center justify-center">
-                        <span className="mr-2 text-yellow-300 animate-pulse">✨</span>
-                        <span className="relative">
-                          Generate Trip
-                          <span className="absolute -bottom-1 left-0 h-0.5 w-full bg-white/50 rounded-full transform scale-x-0 transition-transform group-hover:scale-x-100 duration-300 origin-left"></span>
-                        </span>
-                        <span className="ml-2 text-yellow-300 animate-pulse">✨</span>
-                      </div>
-                    )}
-                    {!isLoading && (
-                      <span className="absolute -inset-full top-0 block h-full w-1/2 -skew-x-12 transform bg-gradient-to-r from-transparent to-white opacity-30 group-hover:animate-shine"></span>
-                    )}
+                      <span className="ml-2 text-yellow-300 animate-pulse">✨</span>
+                    </div>
+                    <span className="absolute -inset-full top-0 block h-full w-1/2 -skew-x-12 transform bg-gradient-to-r from-transparent to-white opacity-30 group-hover:animate-shine"></span>
                   </button>
                 </div>
               </motion.div>
