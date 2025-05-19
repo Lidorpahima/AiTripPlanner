@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { ArrowLeft, CalendarDays, MapPin, Plus, CheckCircle, Edit3, Trash2, Navigation, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MessageSquarePlus } from 'lucide-react';
 import { SavedTripData } from '../../page'; // Assuming SavedTripData is exported from mytrips/page.tsx
 import Cookies from 'js-cookie'; // Added for accessing cookies
+import { useActivityNotes } from './hooks/useActivityNotes';
 
 // Import SideChatPanel and related types
 import SideChatPanel, { ChatMessage } from '@/app/fastplan/result/components/SideChatPanel';
@@ -18,6 +19,9 @@ import LoadingStateDisplay from './components/LoadingStateDisplay'; // Import Lo
 import ErrorStateDisplay from './components/ErrorStateDisplay'; // Import Error component
 import { useSideChat, SideChatContext } from './hooks/useSideChat'; // Import the new hook
 import DailyProgressBar from './components/DailyProgressBar';
+import SwipeableActivities from './components/SwipeableActivities';
+import NoteModal from './components/NoteModal';
+import { saveNote } from './components/saveNote';
 
 // Helper function to get current date in YYYY-MM-DD format
 const getCurrentDateString = () => {
@@ -27,6 +31,36 @@ const getCurrentDateString = () => {
     const dayNum = today.getDate().toString().padStart(2, '0'); // Renamed to avoid conflict
     return `${year}-${month}-${dayNum}`;
 };
+
+function isTokenExpired(token: string | undefined): boolean {
+    if (!token) return true;
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.exp * 1000 < Date.now();
+    } catch {
+        return true;
+    }
+}
+
+async function refreshAccessToken(refreshToken: string | undefined): Promise<string | null> {
+    if (!refreshToken) return null;
+    try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/token/refresh/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refresh: refreshToken }),
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (data.access) {
+            Cookies.set('token', data.access);
+            return data.access;
+        }
+        return null;
+    } catch {
+        return null;
+    }
+}
 
 // --- Constants ---
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -38,10 +72,42 @@ export default function TripLiveModePage() {
     const [currentDayIndex, setCurrentDayIndex] = useState<number>(0);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [authLoading, setAuthLoading] = useState(true);
+    const [tokenState, setTokenState] = useState<string>('');
+    const [noteModalOpen, setNoteModalOpen] = useState(false);
+    const [noteActivityId, setNoteActivityId] = useState<string | null>(null);
+    const [noteInitial, setNoteInitial] = useState('');
+    const [swipeView, setSwipeView] = useState(false);
     
     const router = useRouter();
     const params = useParams();
     const tripId = params.tripId as string;
+    const token = Cookies.get('access');
+    const refreshToken = Cookies.get('refresh');
+
+    // Token check and refresh logic
+    useEffect(() => {
+        async function checkAndRefreshToken() {
+            let currentToken = Cookies.get('token');
+            if (!currentToken || isTokenExpired(currentToken)) {
+                const newToken = await refreshAccessToken(refreshToken);
+                if (newToken) {
+                    setTokenState(newToken);
+                    setAuthLoading(false);
+                } else {
+                    toast.error('Session expired. Please log in again.');
+                    router.push('/signin');
+                }
+            } else {
+                setTokenState(currentToken);
+                setAuthLoading(false);
+            }
+        }
+        checkAndRefreshToken();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [refreshToken, router]);
+
+    const { notes, setNotes, loading: notesLoading } = useActivityNotes(tripId, tokenState);
 
     // Use the side chat hook
     const {
@@ -242,6 +308,54 @@ export default function TripLiveModePage() {
         window.open(googleMapsUrl, '_blank');
     };
 
+    // Handler for marking activity as completed and moving to next
+    const handleCompleteAndNext = (activityId: string) => {
+        handleToggleComplete(activityId);
+        // Optionally, you can scroll to next activity or let SwipeableActivities handle it
+    };
+
+    // Handler for skipping (just move to next activity)
+    const handleSkip = (activityId: string) => {
+        // No-op for now, SwipeableActivities will handle index
+    };
+
+    // Handler for opening note modal
+    const handleNote = (activityId: string) => {
+        setNoteActivityId(activityId);
+        // Find the note for this activity
+        const found = currentDayPlan?.activities.find(a => a.id === activityId);
+        const idx = currentDayPlan?.activities.findIndex(a => a.id === activityId) ?? 0;
+        const noteKey = `${currentDayIndex}-${idx}`;
+        setNoteInitial(notes[noteKey] || '');
+        setNoteModalOpen(true);
+    };
+
+    // Handler for saving note
+    const handleSaveNote = (newNote: string) => {
+        if (noteActivityId == null) return;
+        const idx = currentDayPlan?.activities.findIndex(a => a.id === noteActivityId) ?? 0;
+        saveNote({
+            tripId,
+            dayIndex: currentDayIndex,
+            activityIndex: idx,
+            note: newNote,
+            token: tokenState,
+        }).then(() => {
+            setNotes(prev => ({ ...prev, [`${currentDayIndex}-${idx}`]: newNote }));
+        });
+    };
+
+    // Handler for opening Google Maps for an activity
+    const handleMap = (activityId: string) => {
+        const activity = currentDayPlan?.activities.find(a => a.id === activityId);
+        if (!activity) return;
+        handleNavigate(activity.place_name_for_lookup);
+    };
+
+    if (authLoading) {
+        return <LoadingStateDisplay />;
+    }
+
     if (isLoading) {
         return <LoadingStateDisplay />;
     }
@@ -295,13 +409,64 @@ export default function TripLiveModePage() {
                   total={currentDayPlan.activities.length}
                 />
 
-                <ActivitiesList
-                    currentDayPlan={currentDayPlan}
-                    highlightedActivityId={highlightedActivityId}
-                    onToggleComplete={handleToggleComplete}
-                    onNavigate={handleNavigate}
-                    onOpenAddActivityChat={handleOpenAddActivityChat}
-                    currentDayIndex={currentDayIndex}
+                {/* Mobile-only Swipe View Toggle */}
+                <div className="md:hidden flex justify-center mb-2">
+                                    <button 
+                        className={`px-4 py-2 rounded-full font-semibold shadow transition-colors ${swipeView ? 'bg-blue-600 text-white' : 'bg-white text-blue-600 border border-blue-600'}`}
+                        onClick={() => setSwipeView(v => !v)}
+                    >
+                        {swipeView ? 'List View' : 'Swipe View'}
+                                    </button>
+                </div>
+
+                {/* Mobile: SwipeableActivities, Desktop: ActivitiesList */}
+                <div className="md:hidden">
+                    {swipeView ? (
+                        <SwipeableActivities
+                            activities={currentDayPlan.activities}
+                            currentDayIndex={currentDayIndex}
+                            highlightedActivityId={highlightedActivityId}
+                            onAdd={(afterActivityId) => handleOpenAddActivityChat(currentDayIndex, afterActivityId)}
+                            onComplete={handleCompleteAndNext}
+                            onMap={handleMap}
+                            onNote={handleNote}
+                        />
+                    ) : (
+                        <ActivitiesList
+                            currentDayPlan={currentDayPlan}
+                            highlightedActivityId={highlightedActivityId}
+                            onToggleComplete={handleToggleComplete}
+                            onNavigate={handleNavigate}
+                            onOpenAddActivityChat={handleOpenAddActivityChat}
+                            currentDayIndex={currentDayIndex}
+                            tripId={tripId}
+                            token={tokenState}
+                            notes={notes}
+                            setNotes={setNotes}
+                        />
+                                                )}
+                                            </div>
+                {/* Desktop: Always show ActivitiesList */}
+                <div className="hidden md:block">
+                    <ActivitiesList
+                        currentDayPlan={currentDayPlan}
+                        highlightedActivityId={highlightedActivityId}
+                        onToggleComplete={handleToggleComplete}
+                        onNavigate={handleNavigate}
+                        onOpenAddActivityChat={handleOpenAddActivityChat}
+                        currentDayIndex={currentDayIndex}
+                        tripId={tripId}
+                        token={tokenState}
+                        notes={notes}
+                        setNotes={setNotes}
+                    />
+                                        </div>
+                {/* Note Modal */}
+                <NoteModal
+                    isOpen={noteModalOpen}
+                    initialNote={noteInitial}
+                    onSave={handleSaveNote}
+                    onClose={() => setNoteModalOpen(false)}
                 />
             </main>
 

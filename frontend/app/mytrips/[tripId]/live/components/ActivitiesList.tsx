@@ -1,8 +1,8 @@
 import React from 'react';
-import { CheckCircle, MessageSquarePlus } from 'lucide-react';
+import { CheckCircle, MessageSquarePlus, PlusCircle } from 'lucide-react';
 import { LiveDay } from '../liveTypes'; // Changed import path for LiveDay
 import ActivityItem from './ActivityItem';
-// LiveActivity will be inferred from ActivityItem's props or implicitly via currentDayPlan.activities
+import { ActivityNotesMap } from '../hooks/useActivityNotes';
 
 interface ActivitiesListProps {
     currentDayPlan: LiveDay;
@@ -11,6 +11,10 @@ interface ActivitiesListProps {
     onNavigate: (placeName: string | null | undefined) => void;
     onOpenAddActivityChat: (dayIndex: number, afterActivityId: string | null) => void;
     currentDayIndex: number;
+    tripId: string;
+    token: string;
+    notes: ActivityNotesMap;
+    setNotes: React.Dispatch<React.SetStateAction<ActivityNotesMap>>;
 }
 
 const ActivitiesList: React.FC<ActivitiesListProps> = ({
@@ -20,6 +24,10 @@ const ActivitiesList: React.FC<ActivitiesListProps> = ({
     onNavigate,
     onOpenAddActivityChat,
     currentDayIndex,
+    tripId,
+    token,
+    notes,
+    setNotes,
 }) => {
     if (currentDayPlan.activities.length === 0) {
         return (
@@ -39,17 +47,55 @@ const ActivitiesList: React.FC<ActivitiesListProps> = ({
 
     return (
         <div className="space-y-3">
-            {currentDayPlan.activities.map((activity) => (
-                <ActivityItem
-                    key={activity.id}
-                    activity={activity}
-                    isHighlighted={activity.id === highlightedActivityId}
-                    onToggleComplete={onToggleComplete}
-                    onNavigate={onNavigate}
-                    onOpenAddActivityChat={(afterActivityId) => onOpenAddActivityChat(currentDayIndex, afterActivityId)}
-                    currentDayIndex={currentDayIndex} // Though onOpenAddActivityChat in ActivityItem now directly uses activity.id
-                />
-            ))}
+            <div className="flex items-center my-2">
+                <div className="flex-grow border-t border-gray-200" />
+                <button
+                    onClick={() => onOpenAddActivityChat(currentDayIndex, null)}
+                    className="mx-3 flex items-center justify-center w-8 h-8 bg-white border border-blue-300 hover:bg-blue-100 text-blue-500 hover:text-blue-700 rounded-full shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    aria-label="Add Activity"
+                    title="Add Activity"
+                >
+                    <PlusCircle size={22} />
+                </button>
+                <div className="flex-grow border-t border-gray-200" />
+            </div>
+            {currentDayPlan.activities.map((activity, activityIndex) => {
+                const isFirst = activityIndex === 0;
+                const isLast = activityIndex === currentDayPlan.activities.length - 1;
+                const isCurrent = false;
+                return (
+                    <React.Fragment key={activity.id}>
+                        <ActivityItem
+                            activity={activity}
+                            isHighlighted={activity.id === highlightedActivityId}
+                            isCurrent={isCurrent}
+                            isFirst={isFirst}
+                            isLast={isLast}
+                            onToggleComplete={onToggleComplete}
+                            onNavigate={onNavigate}
+                            onOpenAddActivityChat={(afterActivityId) => onOpenAddActivityChat(currentDayIndex, afterActivityId)}
+                            dayIndex={currentDayIndex}
+                            activityIndex={activityIndex}
+                            tripId={tripId}
+                            token={token}
+                            notes={notes}
+                            setNotes={setNotes}
+                        />
+                        <div className="flex items-center my-2">
+                            <div className="flex-grow border-t border-blue-400" />
+                            <button
+                                onClick={() => onOpenAddActivityChat(currentDayIndex, activity.id)}
+                                className="mx-3 flex items-center justify-center w-8 h-8 bg-white border border-blue-300 hover:bg-blue-100 text-blue-500 hover:text-blue-700 rounded-full shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                aria-label="Add Activity"
+                                title="Add Activity"
+                            >
+                                <PlusCircle size={22} />
+                            </button>
+                            <div className="flex-grow border-t border-blue-400" />
+                        </div>
+                    </React.Fragment>
+                );
+            })}
         </div>
     );
 };

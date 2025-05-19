@@ -6,6 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.db import transaction
 from rest_framework import serializers
 from django.db import transaction 
+from .models import ActivityNote
 
 class RegisterSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(required=True,write_only=True)
@@ -146,3 +147,9 @@ class SavedTripSerializer(serializers.ModelSerializer):
             'destination_image_urls',
         ]
         read_only_fields = ['id', 'user', 'saved_at', 'user_email']
+
+class ActivityNoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ActivityNote
+        fields = ['id', 'user', 'trip', 'day_index', 'activity_index', 'note', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'created_at', 'updated_at']

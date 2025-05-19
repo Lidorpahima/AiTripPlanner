@@ -1,7 +1,7 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
-from .serializers import RegisterSerializer ,  PlanTripSerializer ,UserProfileSerializer,SavedTripSerializer 
-from .models import VisitedCountry,UserProfile,SavedTrip
+from .serializers import RegisterSerializer ,  PlanTripSerializer ,UserProfileSerializer,SavedTripSerializer ,ActivityNoteSerializer
+from .models import VisitedCountry,UserProfile,SavedTrip,ActivityNote
 from rest_framework_simplejwt.tokens import RefreshToken
 from datetime import date
 import redis
@@ -969,3 +969,38 @@ def chat_add_activity(request):
         import traceback
         return Response({"error": "Internal server error in chat_add_activity.", "details": str(e), "trace": traceback.format_exc()}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+# ──────────────────────────────── Chat Add Activity Note ───────────────────────────────── #
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def save_activity_note(request):
+    user = request.user
+    trip_id = request.data.get('trip')
+    day_index = request.data.get('day_index')
+    activity_index = request.data.get('activity_index')
+    note = request.data.get('note', '')
+
+    if not (trip_id and day_index is not None and activity_index is not None):
+        return Response({'error': 'Missing required fields.'}, status=400)
+
+    try:
+        trip = SavedTrip.objects.get(id=trip_id, user=user)
+    except SavedTrip.DoesNotExist:
+        return Response({'error': 'Trip not found.'}, status=404)
+
+    activity_note, created = ActivityNote.objects.update_or_create(
+        user=user,
+        trip=trip,
+        day_index=day_index,
+        activity_index=activity_index,
+        defaults={'note': note}
+    )
+    serializer = ActivityNoteSerializer(activity_note)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_activity_notes(request, trip_id):
+    user = request.user
+    notes = ActivityNote.objects.filter(user=user, trip_id=trip_id)
+    serializer = ActivityNoteSerializer(notes, many=True)
+    return Response(serializer.data)

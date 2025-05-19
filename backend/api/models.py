@@ -30,3 +30,18 @@ class SavedTrip (models.Model):
 
     class Meta:
         ordering = ['-saved_at'] 
+
+class ActivityNote(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='activity_notes')
+    trip = models.ForeignKey(SavedTrip, on_delete=models.CASCADE, related_name='activity_notes')
+    day_index = models.IntegerField()
+    activity_index = models.IntegerField()
+    note = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['user', 'trip', 'day_index', 'activity_index']
+
+    def __str__(self):
+        return f"Note for trip {self.trip.id} day {self.day_index} activity {self.activity_index} by {self.user.username}"

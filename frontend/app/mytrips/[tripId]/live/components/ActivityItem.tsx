@@ -1,7 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { MapPin, CheckCircle, Navigation, Plus, Pencil } from 'lucide-react';
+import React, { useState } from 'react';
+import { MapPin, CheckCircle, Navigation, Plus, StickyNote } from 'lucide-react';
 import { LiveActivity } from '../liveTypes'; 
 import NoteModal from './NoteModal';
+import { saveNote } from '../hooks/saveNote';
+
+interface ActivityNotesMap {
+  [key: string]: string;
+}
 
 interface ActivityItemProps {
     activity: LiveActivity;
@@ -12,10 +17,13 @@ interface ActivityItemProps {
     onToggleComplete: (activityId: string) => void;
     onNavigate: (placeName: string | null | undefined) => void;
     onOpenAddActivityChat: (afterActivityId: string | null) => void;
-    currentDayIndex: number; 
+    dayIndex: number;
+    activityIndex: number;
+    tripId: string;
+    token: string;
+    notes: ActivityNotesMap;
+    setNotes: React.Dispatch<React.SetStateAction<ActivityNotesMap>>;
 }
-
-const getNoteKey = (activityId: string) => `activity-note-${activityId}`;
 
 const ActivityItem: React.FC<ActivityItemProps> = ({
     activity,
@@ -26,32 +34,26 @@ const ActivityItem: React.FC<ActivityItemProps> = ({
     onToggleComplete,
     onNavigate,
     onOpenAddActivityChat,
-    currentDayIndex
+    dayIndex,
+    activityIndex,
+    tripId,
+    token,
+    notes,
+    setNotes,
 }) => {
-    const [note, setNote] = useState('');
     const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
 
-    useEffect(() => {
-        if (activity.id) {
-            const saved = localStorage.getItem(getNoteKey(activity.id));
-            if (saved) setNote(saved);
-        }
-    }, [activity.id]);
+    const noteKey = `${dayIndex}-${activityIndex}`;
+    const note = notes[noteKey] || '';
 
-    const handleSaveNote = (newNote: string) => {
-        setNote(newNote);
-        if (activity.id) {
-            if (newNote.trim()) {
-                localStorage.setItem(getNoteKey(activity.id), newNote);
-            } else {
-                localStorage.removeItem(getNoteKey(activity.id));
-            }
-        }
+    const handleSaveNote = async (newNote: string) => {
+        await saveNote({ tripId, dayIndex, activityIndex, note: newNote, token });
+        setNotes(prev => ({ ...prev, [noteKey]: newNote }));
     };
 
     return (
         <div className="flex items-start relative group">
-            {/* Timeline bar and dot (if you want to keep timeline UI) */}
+            {/* Timeline bar and dot */}
             <div className="flex flex-col items-center mr-4">
                 {!isFirst && (
                     <div className="w-1 h-4 bg-gradient-to-b from-blue-300 to-blue-200 opacity-70"></div>
@@ -101,11 +103,11 @@ const ActivityItem: React.FC<ActivityItemProps> = ({
                                 )}
                                 {/* Note icon */}
                                 <button
-                                    className="ml-2 text-gray-400 hover:text-blue-600 focus:outline-none"
-                                    title={note ? "Edit note" : "Add a personal note"}
+                                    className="ml-2 text-yellow-500 hover:text-yellow-600 focus:outline-none"
+                                    title={note ? "Edit note" : "Add note"}
                                     onClick={() => setIsNoteModalOpen(true)}
                                 >
-                                    <Pencil size={18} />
+                                    <StickyNote size={18} />
                                 </button>
                             </div>
                         </div>
@@ -116,7 +118,7 @@ const ActivityItem: React.FC<ActivityItemProps> = ({
                         )}
                         {(activity.cost_estimate && (activity.cost_estimate.min > 0 || activity.cost_estimate.max > 0)) && (
                             <p className={`text-xs mt-0.5 ${activity.is_completed ? 'text-gray-400' : 'text-gray-500'}`}>
-                                Est. Cost: {activity.cost_estimate.min}$-{activity.cost_estimate.max}$ (USD)
+                                Est. Cost: {activity.cost_estimate.min}${'-'}{activity.cost_estimate.max}$ (USD)
                             </p>
                         )}
                         {/* Note preview */}
@@ -139,16 +141,6 @@ const ActivityItem: React.FC<ActivityItemProps> = ({
                         </button>
                     </div>
                 )}
-            </div>
-            {/* New '+ ' button between activities */}
-            <div className="flex flex-col justify-center items-center ml-2">
-                <button
-                    onClick={() => onOpenAddActivityChat(activity.id)}
-                    className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 bg-gray-200 hover:bg-blue-500 text-gray-500 hover:text-white rounded-full transition-all duration-200 ease-in-out transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-400 group"
-                    aria-label="Add new activity here"
-                >
-                    <Plus size={18} className="transition-transform group-hover:rotate-90" />
-                </button>
             </div>
             {/* Note Modal */}
             <NoteModal
