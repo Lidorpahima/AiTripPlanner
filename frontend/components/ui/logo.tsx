@@ -14,6 +14,7 @@ export default function Logo({ skipLink = false }: LogoProps) {
       width={40}
       height={40}
       priority
+      className="hover:scale-130 transition-all duration-300"
     />
   );
   

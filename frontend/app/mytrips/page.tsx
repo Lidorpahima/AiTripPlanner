@@ -8,7 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/app/(auth)/context/AuthContext'; 
 import TripDetailModal from '@/components/TripDetailModal';
-import { Loader, AlertTriangle, List, MapPin, Calendar, Eye, ImageOff } from 'lucide-react'; 
+import { Loader, AlertTriangle, List, MapPin, Calendar, Eye, ImageOff, PlayCircle } from 'lucide-react'; 
 
 // Configuration
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
@@ -221,6 +221,19 @@ export default function MyTripsPage() {
         setSelectedTrip(null);
     };
 
+    const handleStartLiveMode = (trip: SavedTripData) => {
+        // Store the trip ID or the whole trip object in sessionStorage
+        // For now, let's store the whole trip object as it might be useful for quick display
+        // In a more complex scenario, just storing trip.id and fetching fresh data on the live page might be better.
+        try {
+            sessionStorage.setItem('liveTripData', JSON.stringify(trip));
+            router.push(`/mytrips/${trip.id}/live`);
+        } catch (e) {
+            console.error("Error storing trip data for live mode:", e);
+            toast.error("Could not start Live Mode. Please try again.");
+        }
+    };
+
     // --- Display Trips List ---
     return (
         <div className="container mx-auto px-4"> 
@@ -278,12 +291,20 @@ export default function MyTripsPage() {
                              <span className="text-xs text-gray-400">
                                 Saved: {new Date(trip.saved_at).toLocaleDateString()}
                              </span>
-                            <button
-                                onClick={() => handleViewPlanClick(trip)}
-                                className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center"
-                            >
-                                <Eye size={16} className="mr-1" /> View Plan
-                            </button>
+                            <div className="flex items-center space-x-3">
+                                <button
+                                    onClick={() => handleViewPlanClick(trip)}
+                                    className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center"
+                                >
+                                    <Eye size={16} className="mr-1" /> View Plan
+                                </button>
+                                <button
+                                    onClick={() => handleStartLiveMode(trip)}
+                                    className="text-sm text-green-600 hover:text-green-800 font-medium flex items-center"
+                                >
+                                    <PlayCircle size={16} className="mr-1" /> Live Mode
+                                </button>
+                            </div>
                         </div>
                     </div>
                 ))}

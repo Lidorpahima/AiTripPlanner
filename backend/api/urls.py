@@ -17,6 +17,7 @@ from .views import (
     PasswordResetRequestView,
     PasswordResetConfirmView,
     GoogleLoginView,
+    chat_add_activity,
 )
 from django.contrib.auth import views as auth_views
 urlpatterns = [
@@ -32,6 +33,7 @@ urlpatterns = [
     path('trips/save/', SaveTripView.as_view(), name='save_trip'),  
     path('my-trips/', MyTripsListView.as_view(), name='my_trips'),
     path('chat-replace-activity/', chat_replace_activity, name='chat_replace_activity'),
+    path('chat-add-activity/', chat_add_activity, name='chat_add_activity'),
     path('password-reset/request/', PasswordResetRequestView.as_view(), name='password_reset_request_api'),
     path('password-reset/confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm_api'),
     path('auth/google/', GoogleLoginView.as_view(), name='google_login')

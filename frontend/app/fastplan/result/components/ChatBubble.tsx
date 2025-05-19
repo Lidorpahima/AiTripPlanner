@@ -67,8 +67,6 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ isOpen, anchorRef, onClose, onS
           onClick={() => { 
             if (message.trim()) {
               onSubmit(message); 
-              // Optionally clear message on submit, or let onClose handle it when chatLoading becomes false and chatOpen becomes false
-              // setMessage(""); // If we want to clear immediately after clicking send
             }
           }}
           className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"

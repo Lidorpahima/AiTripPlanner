@@ -804,3 +804,168 @@ def chat_replace_activity(request):
         import traceback
         return Response({"error": "Internal server error.", "details": str(e), "trace": traceback.format_exc()}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+# ──────────────────────────────── Chat Add Activity ───────────────────────────────── #
+@api_view(['POST'])
+@permission_classes([IsAuthenticated]) # Ensure user is authenticated
+def chat_add_activity(request):
+    try:
+        user_query = request.data.get('user_query')
+        destination = request.data.get('destination', 'the destination') # e.g., "Paris, France"
+        current_day_title = request.data.get('current_day_title', 'the current day')
+        # date_of_day = request.data.get('date') # Optional: if needed for very specific date-bound events
+        existing_activities_today = request.data.get('existing_activities_today', []) # List of {description, time}
+        insert_after_activity_description = request.data.get('insert_after_activity_description') # Description of preceding activity
+        next_activity_description = request.data.get('next_activity_description') # Description of subsequent activity
+        original_trip_preferences = request.data.get('original_trip_preferences', {}) # {interests, pace, budget, tripStyle, transportationMode}
+        
+        # Plan is optional but can provide more context like original_request or destination_info if not passed directly
+        plan = request.data.get('plan', {}) 
+        original_request_data = plan.get('original_request', plan.get('original_request_data', {}))
+        
+        # Fallback to original_request_data if specific preferences are not in original_trip_preferences
+        budget_level = original_trip_preferences.get('budget') or original_request_data.get('budget', 'Mid-range')
+        pace = original_trip_preferences.get('pace') or original_request_data.get('pace', 'Moderate')
+        interests = ", ".join(original_trip_preferences.get('interests', [])) or ", ".join(original_request_data.get('interests', [])) or "general interests"
+        trip_style = ", ".join(original_trip_preferences.get('tripStyle', [])) or ", ".join(original_request_data.get('tripStyle', [])) or "standard"
+        transportation_mode = original_trip_preferences.get('transportationMode') or original_request_data.get('transportationMode', 'Walking & Public Transit')
+
+        destination_info = plan.get('destination_info', {})
+        # Extract city and country from the destination string if available, or from destination_info
+        city_country_parts = [p.strip() for p in destination.split(',')]
+        city = city_country_parts[0] if len(city_country_parts) > 0 else destination_info.get('city', 'the destination city')
+        country = city_country_parts[1] if len(city_country_parts) > 1 else destination_info.get('country', 'the destination country')
+
+
+        if not user_query:
+            return Response({"error": "User query is missing."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Context for the prompt
+        existing_activities_str = json.dumps(existing_activities_today) if existing_activities_today else "This day is currently empty."
+        insertion_point_str = "at the beginning of the day."
+        if insert_after_activity_description and next_activity_description:
+            insertion_point_str = f"between '{insert_after_activity_description}' and '{next_activity_description}'."
+        elif insert_after_activity_description:
+            insertion_point_str = f"after '{insert_after_activity_description}'."
+        elif next_activity_description:
+            insertion_point_str = f"before '{next_activity_description}' (as the first activity)."
+        
+        prompt = (
+            f"You are an expert travel assistant. The user wants to add a new activity to their trip plan for {city}, {country} on {current_day_title}.\n"
+            f"User's request: '{user_query}'\n\n"
+            f"Current Itinerary Context for {current_day_title}:\n"
+            f"- Existing activities for this day: {existing_activities_str}\n"
+            f"- The new activity should be added: {insertion_point_str}\n\n"
+            f"Traveler's Original Preferences (use these as primary guidance):\n"
+            f"- Interests: {interests}\n"
+            f"- Pace: {pace}\n"
+            f"- Budget Level: {budget_level}\n"
+            f"- Trip Style: {trip_style}\n"
+            f"- Primary Transportation Mode: {transportation_mode}\n\n"
+            f"Task:\n"
+            f"1. Analyze the user's request: '{user_query}'.\n"
+            f"2. Based on the request and the traveler's preferences, suggest one or more suitable activities. If suggesting multiple, they should be a logical sequence and fit reasonably within a similar time block.\n"
+            f"3. Consider the insertion point. The time for the new activity/activities should make sense given the surrounding activities (if any). For example, if adding after an activity at 14:00 and before one at 18:00, the new activity should fit in between.\n"
+            f"4. Ensure the suggestion is feasible with the primary transportation mode '{transportation_mode}'. Avoid suggesting something very far if the user relies on walking or public transport unless it's a significant part of the request.\n"
+            f"5. All cost estimates MUST be in USD.\n\n"
+            f"Output Format (CRITICAL):\n"
+            f"Return ONLY a JSON object. This object MUST have a key named 'activities'.\n"
+            f"'activities' should be an ARRAY of JSON OBJECTS, each representing a suggested activity. Return an array even if suggesting only one activity.\n"
+            f"Each activity object in the array MUST include these keys:\n"
+            f"  - 'time': (string, HH:MM format, e.g., '10:30'. Be logical about this time based on the insertion context. If the day is empty, suggest a reasonable start time. If between activities, suggest a time that fits.)\n"
+            f"  - 'description': (string, detailed description of the new activity)\n"
+            f"  - 'place_name_for_lookup': (string or null, specific, concise, searchable name for map lookup, e.g., 'Eiffel Tower', 'Louvre Museum'. Use null only if truly not applicable, like 'Relax at hotel')\n"
+            f"  - 'place_details': (object or null, with 'name': string (official), 'category': string (e.g., 'restaurant', 'museum'), 'price_level': number (optional, 1-4))\n"
+            f"  - 'cost_estimate': (object, with 'min': number, 'max': number, 'currency': 'USD')\n"
+            f"  - 'ticket_url': (string or null, direct URL for booking if applicable)\n\n"
+            f"Example for suggesting one activity:\n"
+            f"{{ \"activities\": [ {{ \"time\": \"15:00\", \"description\": \"Visit the local art gallery\", ... }} ] }}\n"
+            f"Example for suggesting a sequence of two related activities:\n"
+            f"{{ \"activities\": [ {{ \"time\": \"15:00\", \"description\": \"Coffee at 'The Cozy Cafe'\", ... }}, {{ \"time\": \"16:00\", \"description\": \"Browse the nearby 'Old Town Bookstore'\", ... }} ] }}\n"
+            f"Focus on providing relevant, actionable suggestions that fit the user's request and the day's existing plan."
+        )
+        
+        from .chat_request import ask_gemini, extract_json_from_response
+        # Choose a model. gemini-1.5-flash is generally good for chat-like interactions and structured JSON.
+        model_name = 'gemini-1.5-flash' 
+        raw_response = ask_gemini(prompt, model_name)
+
+        if not raw_response:
+            return Response({"error": "No response from AI assistant."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        cleaned_json_str = extract_json_from_response(raw_response)
+        if not cleaned_json_str:
+            return Response({"error": "AI assistant response was empty after cleaning."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+        try:
+            parsed_data = json.loads(cleaned_json_str)
+            if not isinstance(parsed_data, dict) or 'activities' not in parsed_data:
+                raise ValueError("AI response missing 'activities' key or is not a dictionary.")
+
+            suggested_activities_list = parsed_data['activities']
+
+            if not isinstance(suggested_activities_list, list):
+                # This should ideally not happen if the prompt is followed, but good to check.
+                raise ValueError("'activities' key must be an array of activity objects.")
+
+            final_activities = []
+            for activity_obj in suggested_activities_list:
+                if not isinstance(activity_obj, dict):
+                    continue # Skip non-dict items if any
+
+                # Ensure required fields and add defaults if missing
+                if "time" not in activity_obj or not re.match(r"^\d{2}:\d{2}$", str(activity_obj.get("time", ""))):
+                    # Try to infer time based on context if AI fails to provide a valid one
+                    # This is a complex inference, for now, let's assign a placeholder or rely on AI.
+                    # If insert_after_activity_description and existing_activities_today, find its time.
+                    # For simplicity in this step, we can assign a generic time or let frontend handle refinement.
+                    # A better AI prompt should enforce time. If still missing, let's default.
+                    activity_obj["time"] = "12:00" # Default or placeholder if AI misses it
+                
+                if "description" not in activity_obj:
+                    # Critical field, if AI misses this, the suggestion is not useful.
+                    # Depending on strictness, could error out or skip.
+                    # For now, let's assume the AI will be prompted well enough.
+                    # If it happens, we should log it and improve the prompt.
+                    return Response({"error": "AI response missing required 'description' field in one of the activities."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+                if "place_name_for_lookup" not in activity_obj:
+                    activity_obj["place_name_for_lookup"] = None
+                
+                if "cost_estimate" not in activity_obj or not isinstance(activity_obj.get("cost_estimate"), dict):
+                    activity_obj["cost_estimate"] = {"min": 0, "max": 0, "currency": "USD"} # Default if missing or wrong type
+                else: # Ensure currency is USD
+                    activity_obj["cost_estimate"]["currency"] = "USD"
+                    activity_obj["cost_estimate"]["min"] = activity_obj["cost_estimate"].get("min", 0)
+                    activity_obj["cost_estimate"]["max"] = activity_obj["cost_estimate"].get("max", 0)
+
+
+                if "place_details" not in activity_obj and activity_obj.get("place_name_for_lookup"):
+                    activity_obj["place_details"] = {
+                        "name": str(activity_obj.get("place_name_for_lookup", "")),
+                        "category": "attraction" # Default category
+                    }
+                elif isinstance(activity_obj.get("place_details"), dict) and "name" not in activity_obj["place_details"] and activity_obj.get("place_name_for_lookup"):
+                     activity_obj["place_details"]["name"] = str(activity_obj.get("place_name_for_lookup",""))
+                elif activity_obj.get("place_details") is None and activity_obj.get("place_name_for_lookup"): # If place_details is explicitly null but there's a lookup name
+                    activity_obj["place_details"] = { "name": str(activity_obj.get("place_name_for_lookup", "")), "category": "attraction" }
+
+
+                if "ticket_url" not in activity_obj:
+                    activity_obj["ticket_url"] = None
+                
+                final_activities.append(activity_obj)
+            
+            if not final_activities: # If all suggested activities were invalid or filtered out
+                 return Response({"error": "AI did not return any valid activities after filtering."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            return Response({"activities": final_activities}, status=status.HTTP_200_OK)
+
+        except ValueError as ve:
+            return Response({"error": "AI response format error or validation issue.", "details": str(ve), "raw_cleaned_response": cleaned_json_str[:500]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except json.JSONDecodeError as e:
+            return Response({"error": "Failed to parse AI response as JSON.", "details": str(e), "raw_cleaned_response": cleaned_json_str[:500]}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    except Exception as e:
+        import traceback
+        return Response({"error": "Internal server error in chat_add_activity.", "details": str(e), "trace": traceback.format_exc()}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+

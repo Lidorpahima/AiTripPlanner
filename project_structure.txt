@@ -1,7 +1,8 @@
+📁 .github
+  📄 copilot-instructions.md
 📄 .gitignore
 📄 Procfile
 📄 README.md
-📄 Screenshot 2025-04-11 161510.png
 📁 backend
   📄 .env
   📄 Dockerfile
@@ -17,7 +18,6 @@
       📄 __init__.py
     📄 models.py
     📄 serializers.py
-    📄 test.py
     📄 urls.py
     📁 utils
       📄 redis_client.py
@@ -29,6 +29,7 @@
     📄 urls.py
     📄 wsgi.py
   📄 manage.py
+  📄 railway.json
   📄 requirements.txt
 📄 docker-compose.yml
 📁 frontend
@@ -42,8 +43,20 @@
   📁 app
     📁 (auth)
       📁 about
+      📁 components
+        📄 AuthButton.tsx
+        📄 AuthFooter.tsx
+        📄 AuthFormDivider.tsx
+        📄 AuthInput.tsx
+        📄 AuthLayout.tsx
+        📄 GoogleAuthButton.tsx
+        📄 LoginForm.tsx
+        📄 SigninForm.tsx
+        📄 SignupForm.tsx
       📁 context
         📄 AuthContext.tsx
+      📁 hooks
+        📄 useAuthForm.ts
       📄 layout.tsx
       📁 reset-password
         📄 page.tsx
@@ -51,6 +64,8 @@
         📄 page.tsx
       📁 signup
         📄 page.tsx
+      📁 utils
+        📄 authUtils.ts
     📁 (default)
       📁 about
         📄 page.tsx
@@ -64,6 +79,7 @@
         📄 page.tsx
       📁 terms
         📄 page.tsx
+    📁 api
     📁 css
       📁 additional-styles
         📄 custom-fonts.css
@@ -74,9 +90,27 @@
       📄 layout.tsx
       📄 page.tsx
       📁 result
+        📁 components
+          📄 ActivityCard.tsx
+          📄 ChatBubble.tsx
+          📄 CostBreakdownCard.tsx
+          📄 CostsTab.tsx
+          📄 DayCard.tsx
+          📄 ErrorDisplay.tsx
+          📄 HeroSection.tsx
+          📄 ItineraryTab.tsx
+          📄 LoadingDisplay.tsx
+          📄 NavigationTabs.tsx
+          📄 PlaceDetailsPopup.tsx
+          📄 ShareButton.tsx
+          📄 SideChatPanel.tsx
+          📄 TripStats.tsx
+          📄 Tripltinerary.tsx
         📄 page.tsx
+        📁 pages
     📄 globals.css
     📄 layout.tsx
+    📁 login
     📁 mytrips
       📄 layout.tsx
       📄 page.tsx
@@ -86,24 +120,38 @@
   📁 assets
     📄 globe-animation.json
   📁 components
-    📄 AnimatedWave.tsx
+    📄 AnimatedBlobs.tsx
+    📄 CostBreakdownCard.tsx
+    📄 CostsTab.tsx
+    📄 DayCard.tsx
+    📄 EffortlessPlanning.tsx
+    📄 ErrorSection.tsx
+    📄 ItineraryTab.tsx
+    📄 LoadingSection.tsx
     📄 MapChart.tsx
+    📄 Preview.tsx
+    📄 SectionBackground.tsx
+    📄 TipsTab.tsx
     📄 TripDetailModal.tsx
-    📄 Tripltinerary.tsx
     📄 accordion.tsx
-    📄 banner.tsx
-    📄 business-categories.tsx
-    📄 cta.tsx
+    📄 call-to-action.tsx
     📄 features-planet.tsx
     📄 hero-home.tsx
-    📄 large-testimonial.tsx
-    📄 page-illustration.tsx
+    📄 how-it-works.tsx
+    📄 popular-destinations.tsx
+    📄 testimonials.tsx
     📁 ui
+      📄 AnimatedSection.tsx
+      📄 MacbookFrame.tsx
+      📄 PageTransition.tsx
+      📄 SectionBlob.tsx
       📄 footer.tsx
       📄 header.tsx
       📄 logo.tsx
   📁 constants
     📄 landing.ts
+    📄 planTypes.ts
+  📁 lib
   📄 middleware.ts
   📄 next-env.d.ts
   📄 next.config.js
@@ -114,122 +162,91 @@
   📁 public
     📁 data
       📄 world-110m.json
+    📁 desktop
+      📄 1696388255210.gif
+      📄 60 - Copy.png
+      📄 60.png
+      📄 61 - Copy (2).png
+      📄 61.png
+      📄 62 - Copy.png
+      📄 62.png
+      📄 63 - Copy.png
+      📄 cca5022c86f67861746d7cf2eb486de8.gif
+      📄 w.png
     📄 favicon.ico
-    📁 image
-      📄 booking.png
-      📄 cloudy.png
-      📄 destination.png
-      📄 discount.png
-      📄 earth.png
-      📄 fb.png
-      📄 feature-object.png
-      📄 feature1.png
-      📄 feature2.png
-      📄 footer-object.png
-      📄 frame.png
-      📄 icon-feature.png
-      📄 icon-feature2.png
-      📄 icon-feature3.png
-      📄 icon-map.png
-      📄 icon-people.png
-      📄 icon-place.png
-      📄 icon1.png
-      📄 instagram.png
-      📄 location.png
-      📄 mountain.jpg
-      📄 newsletter-vector.png
-      📄 ocean.jpg
-      📄 orange-triangle.png
-      📄 play-circle.png
-      📄 star-yellow.png
-      📄 star.png
-      📄 travel-point-section.png
-      📄 travelpoin-object.png
-      📄 twitter.png
-      📄 yellowx.png
     📁 images
+      📄 404.png
+      📄 921j.gif
+      📄 Homepage.png
       📄 auth-bg.svg
+      📄 back.jpg
       📄 default-avatar.png
       📁 destinations
-        📄 bali.jpg
+        📄 bangkok.jpg
+        📄 lhero.jpg
+        📄 mHero.png
+        📄 mykonos.jpg
+        📄 new-york.jpg
         📄 paris.jpg
+        📄 parisHero.jpg
+        📄 rhome.jpg
         📄 rome.jpg
         📄 tokyo.jpg
-      📄 globe-traveler.svg
-      📄 globe-traveler1.svg
-      📄 large-testimonial.jpg
-      📄 loading.gif
-      📄 logo-01.svg
-      📄 logo-02.svg
-      📄 logo-03.svg
-      📄 logo-04.svg
-      📄 logo-05.svg
-      📄 logo-06.svg
-      📄 logo-07.svg
-      📄 logo-08.svg
-      📄 logo-09.svg
-      📄 planet-overlay.svg
-      📄 planet.png
-      📄 stripes-dark.svg
-      📄 stripes.svg
-    📄 index.html
-    📁 landing
-      📄 beach.jpg
-      📄 beach2.jpg
-      📄 bg-testimonial.png
-      📄 boat.jpg
-      📄 booking.png
-      📄 cloudy.png
-      📄 destination.png
-      📄 discount.png
       📄 earth.png
-      📄 fb.png
-      📄 feature-object.png
-      📄 feature1.png
-      📄 feature2.png
-      📄 fish.jpg
-      📄 footer-object.png
-      📄 frame.png
-      📄 fullpage.png
-      📄 header-travlog.png
-      📄 icon-feature.png
-      📄 icon-feature2.png
-      📄 icon-feature3.png
-      📄 icon-map.png
-      📄 icon-people.png
-      📄 icon-place.png
-      📄 icon1.png
-      📄 instagram.png
-      📄 location.png
-      📄 mountain.jpg
-      📄 newsletter-vector.png
-      📄 next.svg
-      📄 ocean.jpg
-      📄 orange-triangle.png
-      📄 person.png
-      📄 play-circle.png
-      📄 profile1.jpg
-      📄 profile2.jpg
-      📄 profile3.jpg
-      📄 snorkeling.jpg
-      📄 sponsor1.png
-      📄 sponsor2.png
-      📄 sponsor3.png
-      📄 sponsor4.png
-      📄 sponsor5.png
-      📄 star-yellow.png
-      📄 star.png
-      📄 travel-point-section.png
-      📄 travelpoin-object.png
-      📄 travlog_logo.svg
-      📄 twitter.png
-      📄 vercel.svg
-      📄 yellowx.png
+      📄 globe-traveler.svg
+      📄 loading.gif
+      📄 logo.png
+    📄 index.html
+    📁 mobile
+      📄 60 - Copy.png
+      📄 60.png
+      📄 61.png
+      📄 62.png
+      📄 63.png
+      📄 cca5022c86f67861746d7cf2eb486de8.gif
+      📄 w.png
+    📁 svg
+      📄 1696388255210.gif
+      📄 36.png
+      📄 37.png
+      📄 40.png
+      📄 48.png
+      📄 49.png
+      📄 50.png
+      📄 56.png
+      📄 60 - Copy.png
+      📄 60.png
+      📄 64.png
+      📄 69.png
+      📄 71.png
+      📄 73.png
+      📄 80.png
+      📄 87.png
+      📄 90.png
+      📄 @ Macbook Pro.svg
+      📄 Desktop Header Light - 1.png
+      📄 Rectangle 14326.png
+      📄 Rectangle 14327.png
+      📄 budget.jpg
+      📄 cca5022c86f67861746d7cf2eb486de8.gif
+      📄 desktop Hero Light 1.png
+      📄 desktop Hero Light 6.svg
+      📄 planner.png
+      📄 shapes.svg
+      📄 testimonials-blob.svg
+      📄 toolkit.png
+  📄 railway.json
+  📄 server.js
+  📁 styles
+    📄 globals.css
   📄 tailwind.config.js
   📄 tsconfig.json
+  📁 utils
 📄 list_structure.py
 📄 logo.svg
 📄 package-lock.json
 📄 package.json
 📄 project_structure.txt
+📁 public
+  📁 fonts
 📄 trip_output.json
