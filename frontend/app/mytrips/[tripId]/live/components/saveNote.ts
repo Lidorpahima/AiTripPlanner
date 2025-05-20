@@ -5,12 +5,14 @@ export async function saveNote({
   dayIndex,
   activityIndex,
   note,
+  is_done,
   token,
 }: {
   tripId: number | string,
   dayIndex: number,
   activityIndex: number,
   note: string,
+  is_done: boolean,
   token: string,
 }) {
   const csrfToken = Cookies.get('csrftoken');
@@ -26,9 +28,10 @@ export async function saveNote({
       trip: tripId,
       day_index: dayIndex,
       activity_index: activityIndex,
-      note,
+      ...(note !== undefined ? { note } : {}),
+      ...(is_done !== undefined ? { is_done } : {}),
     }),
   });
-  if (!res.ok) throw new Error('Failed to save note');
+  if (!res.ok) throw new Error('Failed to save ');
   return await res.json();
 } 

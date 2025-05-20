@@ -121,7 +121,7 @@ const SignInForm: React.FC = () => {
           label="Email"
           value={formData.email}
           onChange={handleChange}
-          placeholder="emaila@email.com"
+          placeholder="mail@example.com"
           autoComplete="email"
           required
         />

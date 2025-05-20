@@ -20,6 +20,7 @@ from .views import (
     chat_add_activity,
     save_activity_note,
     get_activity_notes,
+    GoogleOAuthCallbackView,
 )
 from django.contrib.auth import views as auth_views
 urlpatterns = [
@@ -41,4 +42,7 @@ urlpatterns = [
     path('auth/google/', GoogleLoginView.as_view(), name='google_login'),
     path('activity-note/', save_activity_note, name='save_activity_note'),
     path('activity-notes/<int:trip_id>/', get_activity_notes, name='get_activity_notes'),
+    path('auth/google/callback/', GoogleOAuthCallbackView.as_view(), name='google_oauth_callback'),
+
+
 ]

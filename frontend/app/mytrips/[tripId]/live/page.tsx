@@ -326,7 +326,7 @@ export default function TripLiveModePage() {
         const found = currentDayPlan?.activities.find(a => a.id === activityId);
         const idx = currentDayPlan?.activities.findIndex(a => a.id === activityId) ?? 0;
         const noteKey = `${currentDayIndex}-${idx}`;
-        setNoteInitial(notes[noteKey] || '');
+        setNoteInitial(notes[noteKey]?.note || '');
         setNoteModalOpen(true);
     };
 
@@ -339,9 +339,10 @@ export default function TripLiveModePage() {
             dayIndex: currentDayIndex,
             activityIndex: idx,
             note: newNote,
+            is_done: false,
             token: tokenState,
         }).then(() => {
-            setNotes(prev => ({ ...prev, [`${currentDayIndex}-${idx}`]: newNote }));
+            setNotes(prev => ({ ...prev, [`${currentDayIndex}-${idx}`]: { note: newNote, is_done: false } }));
         });
     };
 
@@ -365,29 +366,8 @@ export default function TripLiveModePage() {
     }
 
     // Find current/next activity for highlighting (basic version)
-    const now = new Date();
-    let highlightedActivityId: string | null = null;
-    const sortedActivities = [...currentDayPlan.activities].filter(a => !a.is_completed).sort((a, b) => {
-        const timeA = a.time ? parseInt(a.time.replace(':', '')) : 9999;
-        const timeB = b.time ? parseInt(b.time.replace(':', '')) : 9999;
-        return timeA - timeB;
-    });
-
-    for (const activity of sortedActivities) {
-        if (activity.time) {
-            const [hours, minutes] = activity.time.split(':').map(Number);
-            const activityDate = new Date(now);
-            activityDate.setHours(hours, minutes, 0, 0);
-            if (activityDate >= now) {
-                highlightedActivityId = activity.id;
-                break;
-            }
-        }
-    }
-    if (!highlightedActivityId && sortedActivities.length > 0) {
-        highlightedActivityId = sortedActivities[0].id; // Highlight the first upcoming if all past or no time
-    }
-
+    const firstIncomplete = currentDayPlan.activities.find(a => !a.is_completed);
+    const highlightedActivityId = firstIncomplete ? firstIncomplete.id : null;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-100 via-indigo-50 to-purple-100 flex flex-col">

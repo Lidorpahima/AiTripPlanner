@@ -27,9 +27,9 @@ from django.utils.http import urlsafe_base64_encode ,urlsafe_base64_decode
 from django.utils.encoding import force_bytes ,force_str
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
-from google.auth.transport import requests as google_requests
-from google.oauth2 import id_token
 from django.core.exceptions import ObjectDoesNotExist
+from google.oauth2 import id_token as google_id_token
+from google.auth.transport import requests as google_requests
 
 
 # ──────────────────────────────── CSRF Token ──────────────────────────────── #
@@ -978,6 +978,7 @@ def save_activity_note(request):
     day_index = request.data.get('day_index')
     activity_index = request.data.get('activity_index')
     note = request.data.get('note', '')
+    is_done = request.data.get('is_done', None)
 
     if not (trip_id and day_index is not None and activity_index is not None):
         return Response({'error': 'Missing required fields.'}, status=400)
@@ -987,12 +988,16 @@ def save_activity_note(request):
     except SavedTrip.DoesNotExist:
         return Response({'error': 'Trip not found.'}, status=404)
 
+    update_fields = {'note': note}
+    if is_done is not None:
+        update_fields['is_done'] = is_done
+
     activity_note, created = ActivityNote.objects.update_or_create(
         user=user,
         trip=trip,
         day_index=day_index,
         activity_index=activity_index,
-        defaults={'note': note}
+        defaults=update_fields
     )
     serializer = ActivityNoteSerializer(activity_note)
     return Response(serializer.data)
@@ -1004,3 +1009,59 @@ def get_activity_notes(request, trip_id):
     notes = ActivityNote.objects.filter(user=user, trip_id=trip_id)
     serializer = ActivityNoteSerializer(notes, many=True)
     return Response(serializer.data)
+
+# ──────────────────────────────── Google OAuth Callback ───────────────────────────────── #
+
+class GoogleOAuthCallbackView(APIView):
+    permission_classes = []
+
+    def get(self, request):
+        code = request.GET.get('code')
+        if not code:
+            return Response({'error': 'No code provided'}, status=400)
+
+        token_url = 'https://oauth2.googleapis.com/token'
+        data = {
+            'code': code,
+            'client_id': settings.GOOGLE_CLIENT_ID,
+            'client_secret': settings.GOOGLE_CLIENT_SECRET,
+            'redirect_uri': 'http://localhost:3000/api/auth/google/callback',  
+            'grant_type': 'authorization_code',
+        }
+        r = requests.post(token_url, data=data)
+        token_data = r.json()
+        print("Google token_data:", token_data)
+        id_token = token_data.get('id_token')
+
+        if not id_token:
+            print("Failed to get id_token from Google:", token_data)
+            return Response({'error': 'Failed to get id_token from Google', 'details': token_data}, status=400)
+
+        try:
+            idinfo = google_id_token.verify_oauth2_token(
+                id_token,
+                google_requests.Request(),
+                settings.GOOGLE_CLIENT_ID
+            )
+            email = idinfo['email']
+            name = idinfo.get('name', '')
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                user = User.objects.create_user(username=email, email=email)
+                UserProfile.objects.create(user=user, full_name=name)
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                }
+            })
+        except Exception as e:
+            print("Failed to verify id_token:", e)
+            return Response({'error': 'Failed to verify id_token', 'details': str(e)}, status=400)
+
+

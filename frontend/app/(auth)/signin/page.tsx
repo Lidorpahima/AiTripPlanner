@@ -14,7 +14,7 @@ export default function SignIn() {
       <SignInForm />
 
       <AuthFormDivider />
-      <GoogleAuthButton context="signup" />
+      <GoogleAuthButton context="signin" />
 
       <div className="mt-6 text-center">
         <Link

@@ -39,6 +39,7 @@ class ActivityNote(models.Model):
     note = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_done = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ['user', 'trip', 'day_index', 'activity_index']

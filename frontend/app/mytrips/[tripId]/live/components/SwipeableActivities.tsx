@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Plus, ChevronLeft, ChevronRight, CheckCircle, StickyNote, MapPin, ArrowLeftRight } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, CheckCircle, StickyNote, MapPin, ArrowLeftRight, Undo2 } from 'lucide-react';
 import { LiveActivity } from '../liveTypes';
 import { useSwipeable } from 'react-swipeable';
-import { motion, AnimatePresence, Position } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SwipeableActivitiesProps {
   activities: LiveActivity[];
@@ -13,24 +13,6 @@ interface SwipeableActivitiesProps {
   onMap: (activityId: string) => void;
   onNote: (activityId: string) => void;
 }
-
-const variants = {
-  enter: (direction: number) => ({
-    x: direction === 1 ? 300 : -300,
-    opacity: 0,
-    position: direction === 1 ? ('absolute' as Position) : ('absolute' as Position),
-  }),
-  center: {
-    x: 0,
-    opacity: 1,
-    position: 'relative' as Position,
-  },
-  exit: (direction: number) => ({
-    x: direction === 1 ? -300 : 300,
-    opacity: 0,
-    position: direction === 1 ? ('absolute' as Position) : ('absolute' as Position),
-  }),
-};
 
 const SwipeableActivities: React.FC<SwipeableActivitiesProps> = ({
   activities,
@@ -97,18 +79,46 @@ const SwipeableActivities: React.FC<SwipeableActivitiesProps> = ({
         />
       </div>
       {/* Activity Card with animation */}
-      <div className="relative w-full">
+      <div className="relative w-full" style={{ minHeight: 260 }}>
         <AnimatePresence initial={false} custom={direction}>
           <motion.div
             key={activity.id}
             custom={direction}
-            variants={variants}
+            variants={{
+              enter: (direction: number) => ({
+                x: direction === 1 ? 350 : -350,
+                opacity: 0,
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                zIndex: 1,
+              }),
+              center: {
+                x: 0,
+                opacity: 1,
+                position: 'relative',
+                width: '100%',
+                zIndex: 2,
+              },
+              exit: (direction: number) => ({
+                x: direction === 1 ? -350 : 350,
+                opacity: 0,
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                zIndex: 1,
+              }),
+            }}
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 32, mass: 0.7 }}
             {...swipeHandlers}
-            className="p-6 bg-white rounded-2xl shadow-2xl flex flex-col items-center w-full animate-fade-in select-none border border-blue-100"
+            className={`p-6 rounded-2xl shadow-2xl flex flex-col items-center w-full animate-fade-in select-none border
+              ${activity.is_completed ? 'bg-green-200/40 border-green-400 opacity-80' : 'bg-white border-blue-100'}
+            `}
             style={{ touchAction: 'pan-y', minHeight: 260 }}
           >
             <h2 className="text-xl font-bold mb-2 text-center text-gray-900">{activity.description}</h2>
@@ -118,27 +128,40 @@ const SwipeableActivities: React.FC<SwipeableActivitiesProps> = ({
             {activity.place_name_for_lookup && (
               <p className="text-gray-500 mb-3 text-sm">{activity.place_name_for_lookup}</p>
             )}
-            {/* Action Buttons */}
-            <div className="flex space-x-3 mt-2">
-              <button
-                onClick={() => onComplete(activity.id)}
-                className="flex items-center bg-green-500 text-white px-4 py-2 rounded-full font-semibold hover:bg-green-600 focus:outline-none shadow"
-              >
-                <CheckCircle className="mr-1" size={18} /> Done
-              </button>
-              <button
-                onClick={() => onNote(activity.id)}
-                className="flex items-center bg-yellow-400 text-white px-4 py-2 rounded-full font-semibold hover:bg-yellow-500 focus:outline-none shadow"
-              >
-                <StickyNote className="mr-1" size={18} /> Note
-              </button>
-              <button
-                onClick={() => onMap(activity.id)}
-                className="flex items-center bg-blue-500 text-white px-4 py-2 rounded-full font-semibold hover:bg-blue-600 focus:outline-none shadow"
-              >
-                <MapPin className="mr-1" size={18} /> Map
-              </button>
-            </div>
+            {activity.is_completed ? (
+              <div className="flex flex-col items-center mb-2">
+                <div className="flex items-center text-green-700 font-bold">
+                  <CheckCircle className="mr-1" size={20} /> Done
+                </div>
+                <button
+                  onClick={() => onComplete(activity.id)}
+                  className="mt-1 text-xs text-blue-600 hover:underline flex items-center"
+                >
+                  <Undo2 className="mr-1" size={16} /> Undo
+                </button>
+              </div>
+            ) : (
+              <div className="flex space-x-3 mt-2">
+                <button
+                  onClick={() => onComplete(activity.id)}
+                  className="flex items-center bg-green-500 text-white px-4 py-2 rounded-full font-semibold hover:bg-green-600 focus:outline-none shadow"
+                >
+                  <CheckCircle className="mr-1" size={18} /> Done
+                </button>
+                <button
+                  onClick={() => onNote(activity.id)}
+                  className="flex items-center bg-yellow-400 text-white px-4 py-2 rounded-full font-semibold hover:bg-yellow-500 focus:outline-none shadow"
+                >
+                  <StickyNote className="mr-1" size={18} /> Note
+                </button>
+                <button
+                  onClick={() => onMap(activity.id)}
+                  className="flex items-center bg-blue-500 text-white px-4 py-2 rounded-full font-semibold hover:bg-blue-600 focus:outline-none shadow"
+                >
+                  <MapPin className="mr-1" size={18} /> Map
+                </button>
+              </div>
+            )}
             {/* Swipe hint for mobile */}
             <div className="mt-6 flex flex-col items-center md:hidden select-none">
               <motion.div

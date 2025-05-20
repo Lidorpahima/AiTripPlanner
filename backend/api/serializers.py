@@ -151,5 +151,5 @@ class SavedTripSerializer(serializers.ModelSerializer):
 class ActivityNoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = ActivityNote
-        fields = ['id', 'user', 'trip', 'day_index', 'activity_index', 'note', 'created_at', 'updated_at']
+        fields = ['id', 'user', 'trip', 'day_index', 'activity_index', 'note', 'is_done', 'created_at', 'updated_at']
         read_only_fields = ['id', 'user', 'created_at', 'updated_at']

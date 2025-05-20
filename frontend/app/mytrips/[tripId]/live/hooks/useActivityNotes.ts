@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
 
+export interface ActivityNoteStatus {
+  note: string;
+  is_done: boolean;
+}
+
 export interface ActivityNotesMap {
-  [key: string]: string; // key = `${dayIndex}-${activityIndex}`
+  [key: string]: ActivityNoteStatus;
 }
 
 export function useActivityNotes(tripId: number | string | undefined, token: string | undefined) {
@@ -20,7 +25,10 @@ export function useActivityNotes(tripId: number | string | undefined, token: str
       .then(data => {
         const notesObj: ActivityNotesMap = {};
         data.forEach((note: any) => {
-          notesObj[`${note.day_index}-${note.activity_index}`] = note.note;
+          notesObj[`${note.day_index}-${note.activity_index}`] = {
+            note: note.note,
+            is_done: note.is_done ?? false,
+          };
         });
         setNotes(notesObj);
         setLoading(false);

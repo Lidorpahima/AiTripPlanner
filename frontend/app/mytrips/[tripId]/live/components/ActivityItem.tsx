@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import { MapPin, CheckCircle, Navigation, Plus, StickyNote } from 'lucide-react';
 import { LiveActivity } from '../liveTypes'; 
 import NoteModal from './NoteModal';
-import { saveNote } from '../hooks/saveNote';
+import { saveNoteOrStatus } from '../hooks/saveNote';
 
 interface ActivityNotesMap {
-  [key: string]: string;
+  [key: string]: {
+    is_done: boolean;
+    note: string;
+  };
 }
 
 interface ActivityItemProps {
@@ -44,11 +47,30 @@ const ActivityItem: React.FC<ActivityItemProps> = ({
     const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
 
     const noteKey = `${dayIndex}-${activityIndex}`;
-    const note = notes[noteKey] || '';
+    const note = notes[noteKey]?.note || '';
+    const isDone = notes[noteKey]?.is_done || false;
 
     const handleSaveNote = async (newNote: string) => {
-        await saveNote({ tripId, dayIndex, activityIndex, note: newNote, token });
-        setNotes(prev => ({ ...prev, [noteKey]: newNote }));
+        await saveNoteOrStatus({ tripId, dayIndex, activityIndex, note: newNote, token });
+        setNotes(prev => ({
+            ...prev,
+            [noteKey]: {
+                ...(prev[noteKey] || { is_done: false }),
+                note: newNote,
+            },
+        }));
+    };
+
+    const handleToggleComplete = async () => {
+        await saveNoteOrStatus({ tripId, dayIndex, activityIndex, is_done: !isDone, token });
+        setNotes(prev => ({
+            ...prev,
+            [noteKey]: {
+                ...(prev[noteKey] || { note: '' }),
+                is_done: !isDone,
+            },
+        }));
+        onToggleComplete(activity.id);
     };
 
     return (
@@ -72,31 +94,31 @@ const ActivityItem: React.FC<ActivityItemProps> = ({
             {/* Activity Card */}
             <div
                 className={`flex-1 rounded-lg shadow-md border transition-all duration-300 ease-in-out transform hover:shadow-lg 
-                            ${activity.is_completed ? 'bg-green-50 border-green-200 opacity-70' : 'bg-white border-gray-200'}
-                            ${isHighlighted && !activity.is_completed ? 'ring-2 ring-indigo-500 scale-102 shadow-xl' : ''}
+                            ${isDone ? 'bg-green-50 border-green-200 opacity-70' : 'bg-white border-gray-200'}
+                            ${isHighlighted && !isDone ? 'ring-2 ring-indigo-500 scale-102 shadow-xl' : ''}
                 `}
             >
                 <div className="p-4 flex items-start">
                     <button
-                        onClick={() => onToggleComplete(activity.id)}
+                        onClick={handleToggleComplete}
                         className={`mr-4 mt-1 p-1 rounded-full focus:outline-none focus:ring-2 
-                                    ${activity.is_completed ? 'bg-green-500 text-white focus:ring-green-400' : 'border border-gray-400 text-gray-400 hover:border-blue-500 hover:text-blue-500 focus:ring-blue-300'}
+                                    ${isDone ? 'bg-green-500 text-white focus:ring-green-400' : 'border border-gray-400 text-gray-400 hover:border-blue-500 hover:text-blue-500 focus:ring-blue-300'}
                         `}
-                        aria-label={activity.is_completed ? "Mark as not done" : "Mark as done"}
+                        aria-label={isDone ? "Mark as not done" : "Mark as done"}
                     >
                         <CheckCircle size={22} />
                     </button>
 
                     <div className="flex-grow">
                         <div className="flex justify-between items-start">
-                            <h3 className={`text-lg font-semibold ${activity.is_completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                            <h3 className={`text-lg font-semibold ${isDone ? 'line-through text-gray-500' : 'text-gray-800'}`}>
                                 {activity.description || "Unnamed Activity"}
                             </h3>
                             <div className="flex items-center space-x-2">
                                 {activity.time && (
                                     <span className={`text-sm font-medium px-2 py-0.5 rounded-full 
-                                                    ${activity.is_completed ? 'text-gray-400 bg-gray-100' : 'text-blue-700 bg-blue-100'}
-                                                    ${isHighlighted && !activity.is_completed ? 'ring-1 ring-indigo-500' : ''}
+                                                    ${isDone ? 'text-gray-400 bg-gray-100' : 'text-blue-700 bg-blue-100'}
+                                                    ${isHighlighted && !isDone ? 'ring-1 ring-indigo-500' : ''}
                                     `}>
                                         {activity.time}
                                     </span>
@@ -112,12 +134,12 @@ const ActivityItem: React.FC<ActivityItemProps> = ({
                             </div>
                         </div>
                         {activity.place_name_for_lookup && (
-                            <p className={`text-xs mt-0.5 ${activity.is_completed ? 'text-gray-400' : 'text-gray-500'} flex items-center`}>
+                            <p className={`text-xs mt-0.5 ${isDone ? 'text-gray-400' : 'text-gray-500'} flex items-center`}>
                                 <MapPin size={12} className="mr-1 shrink-0" /> {activity.place_name_for_lookup}
                             </p>
                         )}
                         {(activity.cost_estimate && (activity.cost_estimate.min > 0 || activity.cost_estimate.max > 0)) && (
-                            <p className={`text-xs mt-0.5 ${activity.is_completed ? 'text-gray-400' : 'text-gray-500'}`}>
+                            <p className={`text-xs mt-0.5 ${isDone ? 'text-gray-400' : 'text-gray-500'}`}>
                                 Est. Cost: {activity.cost_estimate.min}${'-'}{activity.cost_estimate.max}$ (USD)
                             </p>
                         )}
@@ -130,7 +152,7 @@ const ActivityItem: React.FC<ActivityItemProps> = ({
                     </div>
                 </div>
 
-                {!activity.is_completed && (
+                {!isDone && (
                     <div className="border-t border-gray-200 px-4 py-2 flex justify-end space-x-2 bg-gray-50 rounded-b-lg">
                         <button
                             onClick={() => onNavigate(activity.place_name_for_lookup)}
