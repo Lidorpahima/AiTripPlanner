@@ -78,7 +78,7 @@ export default function TripLiveModePage() {
     const [noteActivityId, setNoteActivityId] = useState<string | null>(null);
     const [noteInitial, setNoteInitial] = useState('');
     const [swipeView, setSwipeView] = useState(false);
-    
+
     const router = useRouter();
     const params = useParams();
     const tripId = params.tripId as string;
@@ -235,35 +235,11 @@ export default function TripLiveModePage() {
     }, [tripId, router]);
 
     useEffect(() => {
-        if (livePlan && livePlan.days) {
-            const todayStr = getCurrentDateString();
-            let activeDay: LiveDay | undefined | null = null;
-            let activeDayIdx = 0;
-
-            if (trip?.start_date && livePlan.days) {
-                const tripStartDate = new Date(trip.start_date);
-                for (let i = 0; i < livePlan.days.length; i++) {
-                    const currentIterationDate = new Date(tripStartDate);
-                    currentIterationDate.setDate(tripStartDate.getDate() + i);
-                    const dayDateStr = currentIterationDate.toISOString().split('T')[0];
-                    const originalPlanDayTitle = (trip.plan_json as PlanJson)?.days?.[i]?.title;
-                    if (dayDateStr === todayStr && livePlan.days[i] && originalPlanDayTitle === livePlan.days[i].title) {
-                        activeDay = livePlan.days[i];
-                        activeDayIdx = i;
-                        break;
-                    }
-                }
-            }
-
-            if (!activeDay && livePlan.days.length > 0) {
-                 activeDay = livePlan.days[0]; 
-                 activeDayIdx = 0; // Default to first day
-            }
-            setCurrentDayPlan(activeDay || null);
-            setCurrentDayIndex(activeDayIdx);
+        if (livePlan && livePlan.days && livePlan.days.length > 0) {
+            setCurrentDayPlan(livePlan.days[currentDayIndex] || livePlan.days[0]);
         }
-    }, [livePlan, trip]);
-
+    }, [livePlan]);
+    
     const handleToggleComplete = (activityId: string) => {
         if (!currentDayPlan || !livePlan) return;
 
@@ -284,6 +260,7 @@ export default function TripLiveModePage() {
             })
         } as LiveTripPlan; 
         setLivePlan(updatedLivePlan);
+        
         setCurrentDayPlan(prevDayPlan => prevDayPlan ? updatedLivePlan.days.find(d => d.title === prevDayPlan.title) || null : null);
     };
 

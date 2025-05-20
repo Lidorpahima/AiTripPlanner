@@ -17,7 +17,7 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, initialNote, onSave, onCl
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-200/80 bg-opacity-40">
       <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md animate-fade-in">
         <h2 className="text-lg font-bold mb-2">Personal Note</h2>
         <textarea

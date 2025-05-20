@@ -513,9 +513,13 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
 
     // --- Chat Submit Handler ---
     const handleChatSubmit = async (message: string) => {
-        if (chatDayIdx === null || chatActIdx === null) return;
+        if (chatDayIdx === null || chatActIdx === null) {
+            console.log("Chat day or activity index is null, chatDayIdx:", chatDayIdx, "chatActIdx:", chatActIdx);
+            return;
+        }
         setChatLoading(true);
         try {
+            console.log("im in")
             const response = await fetch(`${API_BASE}/api/chat-replace-activity/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -526,8 +530,10 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
                     plan: localPlan
                 })
             });
+            console.log("response:", response);
             if (!response.ok) throw new Error('Server error');
             const data = await response.json();
+            console.log("data:", data);
             if (!data || !data.activity) throw new Error('No new activity received');
             setLocalPlan(prevPlan => {
                 const updatedPlan = { ...prevPlan };
@@ -535,6 +541,8 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
                 updatedPlan.days[chatDayIdx] = { ...prevPlan.days[chatDayIdx] };
                 updatedPlan.days[chatDayIdx].activities = [...prevPlan.days[chatDayIdx].activities];
                 updatedPlan.days[chatDayIdx].activities[chatActIdx] = data.activity;
+                console.log("Updated plan:", updatedPlan);
+                sessionStorage.setItem("fastplan_result", JSON.stringify(updatedPlan));
                 return updatedPlan;
             });
             const key = `${chatDayIdx}-${chatActIdx}`;
@@ -545,18 +553,16 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
             });
             toast.success('Activity replaced successfully!');
         } catch (e: any) {
+            console.log("error:", e);
             toast.error(e.message || 'An error occurred');
         } finally {
+            console.log("finally"); 
             setChatLoading(false);
             setChatOpen(false);
         }
     };
 
     const handleSaveTrip = async () => {
-        // const token = Cookies.get('access'); // Token will be fetched by attemptSave
-        // const csrfToken = Cookies.get('csrftoken'); // CSRF token also fetched by attemptSave
-        
-        // Initial checks moved inside attemptSave or handled before calling it
         if (isSaved) {
             toast.info("Trip already saved!");
             return;
@@ -587,12 +593,25 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
                     return dateObj.toISOString().split('T')[0];
                 } catch (e) { return null; }
             };
+
+            let planToSave: TripPlan | null = null;
+            try {
+                const planStr = sessionStorage.getItem("fastplan_result");
+                if (planStr) {
+                    planToSave = JSON.parse(planStr);
+                }
+            } catch (e) {
+                planToSave = localPlan;
+            }
+            if (!planToSave) {
+                planToSave = localPlan;
+            }
     
             const payload = {
                 destination: originalRequestData.destination,
                 start_date: formatDate(originalRequestData.startDate),
                 end_date: formatDate(originalRequestData.endDate),
-                plan_json: localPlan 
+                plan_json: planToSave 
             };
             // console.log("Saving trip with payload:", payload);
             // console.log("CSRF Token:", csrfToken);

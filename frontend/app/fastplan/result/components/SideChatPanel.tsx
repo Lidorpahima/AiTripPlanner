@@ -40,8 +40,8 @@ const SideChatPanel = React.forwardRef<HTMLDivElement, SideChatPanelProps>(
       onRejectIndividualActivity,
       onRejectSuggestion,
       destinationInfo,
-      panelMode = 'replace', // Default to 'replace'
-      addModeTitle = 'Suggest New Activity' // Default title for add mode
+      panelMode = 'replace',
+      addModeTitle = 'Suggest New Activity' 
     } = props;
 
     const [newMessage, setNewMessage] = useState('');

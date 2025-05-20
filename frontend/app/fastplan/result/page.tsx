@@ -138,7 +138,6 @@ export default function TripResultPage() {
     }
   }, [isSideChatOpen]);
 
-  // Load trip data from session storage
   useEffect(() => {
     const storedPlan = sessionStorage.getItem("fastplan_result");
     const storedRequest = sessionStorage.getItem("fastplan_request");
@@ -173,14 +172,12 @@ export default function TripResultPage() {
 
     if (errorOccurred) {
         toast.error(loadingError || "Could not load trip data. Redirecting...");
-        // Allow a brief delay to see the error before redirecting
         setTimeout(() => {
           sessionStorage.removeItem("fastplan_result");
           sessionStorage.removeItem("fastplan_request");
           router.push("/fastplan"); 
         }, 2000);
     } else if (parsedPlan && parsedRequest) {
-        // Enhance the plan data if needed
         enhancePlanWithEstimates(parsedPlan);
         setPlan(parsedPlan);
         setOriginalRequest(parsedRequest); 
@@ -188,7 +185,6 @@ export default function TripResultPage() {
     } else {
         setLoadingError("Unexpected issue loading trip data.");
         toast.error("Unexpected issue loading trip data. Redirecting...");
-        // Allow a brief delay to see the error before redirecting
         setTimeout(() => {
           sessionStorage.removeItem("fastplan_result");
           sessionStorage.removeItem("fastplan_request");
@@ -197,7 +193,13 @@ export default function TripResultPage() {
     }
   }, [router]); 
 
-  // Function to enhance plan data with cost estimates if not already present
+  // useEffect לסנכרון sessionStorage עם plan
+  useEffect(() => {
+    if (plan) {
+      sessionStorage.setItem("fastplan_result", JSON.stringify(plan));
+    }
+  }, [plan]);
+
   const enhancePlanWithEstimates = (planData: TripPlan) => {
     // Don't modify if already has cost data
     if (planData.total_cost_estimate) return;
@@ -575,7 +577,6 @@ export default function TripResultPage() {
     }
   };
 
-  // Modified handler for accepting a single suggestion
   const handleAcceptSuggestion = (activityToAccept: Activity) => { 
     if (currentChatDayIndex === null || currentChatActivityIndex === null || !plan) {
       toast.error("Cannot accept suggestion: missing context.");
@@ -585,7 +586,6 @@ export default function TripResultPage() {
     setPlan(prevPlan => {
       if (!prevPlan) return prevPlan;
       
-      // Calculate cost differences first, so they are in scope for both day and total updates
       let minDiff = 0;
       let maxDiff = 0;
 
@@ -628,7 +628,6 @@ export default function TripResultPage() {
           max: (updatedPlan.total_cost_estimate.max || 0) + maxDiff, 
         };
       }
-      
       return updatedPlan;
     });
     
@@ -639,7 +638,7 @@ export default function TripResultPage() {
       return newDetails;
     });
     
-    const confirmationText = `✅ Activity '${activityToAccept.description.substring(0, 30)}...' updated successfully!`;
+    const confirmationText = ` Activity '${activityToAccept.description.substring(0, 30)}...' updated successfully!`;
 
     const confirmationMessage: ChatMessage = {
       id: `system-${Date.now()}`,
