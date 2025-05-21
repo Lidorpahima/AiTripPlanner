@@ -68,7 +68,8 @@ function PhoneWithScrollingScreens() {
   const [isActive, setIsActive] = useState(false); 
   const [bgPosition, setBgPosition] = useState('center top'); 
   const [isMobile, setIsMobile] = useState(false); 
-
+  const [macbookZoom, setMacbookZoom] = useState(0.41);
+  const [mobileZoom, setMobileZoom] = useState(0.5);
   const scrollTriggerRef = useRef<HTMLDivElement>(null); 
   const screens = [
     {
@@ -199,6 +200,21 @@ function PhoneWithScrollingScreens() {
     };
   }, [screens.length]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setMacbookZoom(0.7);
+        setMobileZoom(0.7);
+      } else {
+        setMacbookZoom(0.41);
+        setMobileZoom(0.5);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const bgImage = isMobile
     ? '/images/long-bg-mobile.png'
     : '/images/long-bg-desktop.png';
@@ -235,7 +251,7 @@ function PhoneWithScrollingScreens() {
             }
           >
             {activeScreen < 3 ? (
-              <DeviceFrameset device="iPhone X" color="black" zoom={0.50}>
+              <DeviceFrameset device="iPhone X" color="black" zoom={0.7}>
                 <div className="w-full h-full bg-white overflow-hidden relative">
                   {screens.map((screen, index) => (
                     <div
@@ -262,7 +278,7 @@ function PhoneWithScrollingScreens() {
                 </div>
               </DeviceFrameset>
             ) : (
-              <DeviceFrameset device="MacBook Pro" color="black" zoom={0.50}>
+              <DeviceFrameset device="MacBook Pro" color="black" zoom={macbookZoom}>
                 <div className="w-full h-full bg-white overflow-hidden relative">
                   {screens.map((screen, index) => (
                     <div
