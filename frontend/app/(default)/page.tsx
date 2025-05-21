@@ -27,7 +27,7 @@ export default function Home() {
       </section>
 
       {/* CompactDeviceShowcase */}
-      <section className="relative py-8 md:py-12 lg:py-20 bg-transparent overflow-hidden px-4 sm:px-6 md:px-8">
+      <section className="relative py-8 md:py-12 bg-transparent overflow-hidden px-4 sm:px-6 md:px-8">
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
       <div className="absolute w-full h-full bg-[url('/mobile/w.png')] md:bg-[url('/desktop/w.png')] bg-cover bg-center opacity-80">
 
@@ -38,13 +38,8 @@ export default function Home() {
             data-aos="fade-up"
             data-aos-duration="800"
             data-aos-once="true"
-            className="text-center mb-8 md:mb-12">
-            <h2 className="text-3xl font-bold mb-4 text-gray-800 md:text-4xl">
-              Interactive AI Planning
-            </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Get real-time activity suggestions from our AI assistant. Chat directly with our AI to refine your itinerary, discover alternatives, or get personalized recommendations instantly.
-            </p>
+            className="text-center">
+
           </div>
           <CompactDeviceShowcase />
         </div>
@@ -52,7 +47,7 @@ export default function Home() {
 
       
       {/* How It Works Section */}
-      <section className="relative py-8 md:py-12 lg:py-20 bg-transparent overflow-hidden px-4 sm:px-6 md:px-8">
+      <section className="relative py-8 md:py-12 lg:py-20 bg-transparent overflow-hidden px-4 sm:px-6 md:px-8" id="how-it-works">
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="absolute inset-0 -top-10 bg-[url('/mobile/61.png')] md:bg-[url('/desktop/61.png')] bg-cover bg-center opacity-100">
 
