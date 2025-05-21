@@ -280,7 +280,7 @@ function PhoneWithScrollingScreens() {
                         src={screen.image}
                         alt={screen.title}
                         layout="fill"
-                        objectFit="cover"
+                        objectFit="contain"
                         priority={index === 0}
                         className="select-none"
                       />
