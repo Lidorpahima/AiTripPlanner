@@ -63,7 +63,7 @@ export default function HeroHome() {
                   >
                     <Link
                       href="/fastplan"
-                      className="btn group mb-4 w-full text-white bg-indigo-600 hover:bg-indigo-700 hover:scale-105 hover:shadow-lg transition-all duration-300 ease-in-out sm:mb-0 sm:w-auto"
+                      className="btn  group mb-4 w-full text-white bg-indigo-600 hover:bg-indigo-700 hover:scale-105 hover:shadow-lg transition-all duration-300 ease-in-out sm:mb-0 sm:w-auto"
                       onClick={handlePlanJourneyClick}
                     >
                       <span className="relative inline-flex items-center">

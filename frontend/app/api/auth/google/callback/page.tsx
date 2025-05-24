@@ -3,6 +3,7 @@
 import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Cookies from 'js-cookie';
+import { toast } from 'react-toastify';
 const NEXT_PUBLIC_API_URL=process.env.NEXT_PUBLIC_API_URL;
 
 function GoogleCallbackInner() {
@@ -20,14 +21,14 @@ function GoogleCallbackInner() {
             Cookies.set('refresh', data.refresh);
             window.location.href = '/';
           } else {
-            router.replace('/login?error=google');
+            toast.error('Failed to sign in with Google');
           }
         })
         .catch(() => {
-          router.replace('/login?error=google');
+          toast.error('Failed to sign in with Google');
         });
     } else {
-      router.replace('/login?error=google');
+      toast.error('Failed to sign in with Google');
     }
   }, [router, searchParams]);
 

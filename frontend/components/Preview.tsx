@@ -73,32 +73,32 @@ function PhoneWithScrollingScreens() {
   const scrollTriggerRef = useRef<HTMLDivElement>(null); 
   const screens = [
     {
-      title: "תכנן את הטיול שלך",
-      description: "בחר תאריכים ויעדים, ואנחנו נתכנן את השאר",
+      title: "Live Trip Tracking",
+      description: "See and update your trip status in real time.",
       image: "/images/ShowcaseMobile1.png", 
       bgColorForButton: "bg-purple-600", 
     },
     {
-      title: "תקציב חכם",
-      description: "קבל הערכת תקציב מפורטת לטיול שלך",
+      title: "Attraction Details & Reviews",
+      description: "Browse info, reviews, photos, and book tickets easily.",
       image: "/images/ShowcaseMobile2.png", 
       bgColorForButton: "bg-blue-500",
     },
     {
-      title: "מסלול יומי",
-      description: "תכנון יומי מפורט עם אטרקציות ופעילויות",
+      title: "Smart Budget Estimator",
+      description: "Get price estimates for all your planned activities.",
       image: "/images/ShowcaseMobile3.png",
       bgColorForButton: "bg-green-500",
     },
     {
-      title: "מלונות מומלצים",
-      description: "מצא את המלונות הטובים ביותר ביעד שלך",
+      title: "Smart Trip Dashboard",
+      description: "View and manage your full trip schedule at a glance.",
       image: "/images/ShowcaseMobile4.png",
       bgColorForButton: "bg-amber-500",
     },
     {
-      title: "פעילויות מקומיות",
-      description: "גלה פעילויות ואטרקציות מקומיות",
+      title: "Personalized AI Trip Planning",
+      description: "Choose Quick, Normal, or Expert AI for your trip plan.",
       image: "/images/ShowcaseMobile5.png",
       bgColorForButton: "bg-rose-500",
     },
@@ -202,7 +202,7 @@ function PhoneWithScrollingScreens() {
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 768) {
+      if (window.innerWidth >= 850) {
         setMacbookZoom(0.7);
         setMobileZoom(0.7);
       } else {
@@ -251,7 +251,7 @@ function PhoneWithScrollingScreens() {
             }
           >
             {activeScreen < 3 ? (
-              <DeviceFrameset device="iPhone X" color="black" zoom={0.7}>
+              <DeviceFrameset device="iPhone X" color="black" zoom={mobileZoom}>
                 <div className="w-full h-full bg-white overflow-hidden relative">
                   {screens.map((screen, index) => (
                     <div
@@ -296,7 +296,7 @@ function PhoneWithScrollingScreens() {
                         src={screen.image}
                         alt={screen.title}
                         layout="fill"
-                        objectFit="contain"
+                        objectFit="cover"
                         priority={index === 0}
                         className="select-none"
                       />
@@ -308,7 +308,7 @@ function PhoneWithScrollingScreens() {
           </div>
 
           {/* Feature Description */}
-          <div className="max-w-md text-center md:text-right  md:mt-0 md:mr-8">
+          <div className="max-w-md text-center md:text-right md:mt-0  inline-block bg-white/80 rounded-xl shadow-lg px-6 py-4 backdrop-blur-md">
             <div className="flex gap-2 justify-center md:justify-start mb-4">
               {screens.map((_, index) => (
                 <div
@@ -369,7 +369,7 @@ export function CompactDeviceShowcaseV2() {
 
       <div className="text-center max-w-4xl mx-auto mb-1">
         <h1 className={`${lobster.className} text-3xl sm:text-4xl md:text-5xl font-bold text-slate-800`}>
-          Interactive AI Planning
+          Plan your next adventure
         </h1>
         <p className="text-base sm:text-lg md:text-xl text-slate-600">
           Get real-time activity suggestions from our AI assistant. Chat directly with our AI to refine your itinerary, discover alternatives, or get personalized recommendations instantly.
@@ -386,6 +386,7 @@ export function CompactDeviceShowcaseV2() {
         .styled-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         .styled-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .styled-scrollbar { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+        
       `}</style>
     </div>
   );

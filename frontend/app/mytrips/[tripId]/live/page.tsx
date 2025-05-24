@@ -4,26 +4,24 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { ArrowLeft, CalendarDays, MapPin, Plus, CheckCircle, Edit3, Trash2, Navigation, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MessageSquarePlus } from 'lucide-react';
-import { SavedTripData } from '../../page'; // Assuming SavedTripData is exported from mytrips/page.tsx
-import Cookies from 'js-cookie'; // Added for accessing cookies
+import { SavedTripData } from '../../page'; 
+import Cookies from 'js-cookie'; 
 import { useActivityNotes } from './hooks/useActivityNotes';
 
-// Import SideChatPanel and related types
 import SideChatPanel, { ChatMessage } from '@/app/fastplan/result/components/SideChatPanel';
 import { Activity as FastPlanActivity, TripPlan as FastPlanTripPlan } from '@/constants/planTypes'; // Use Activity type from planTypes for consistency
-import LiveTripHeader from './components/LiveTripHeader'; // Import the new header component
-import LiveDayDetails from './components/LiveDayDetails'; // Import the new day details component
-import ActivitiesList from './components/ActivitiesList'; // Import the new activities list component
+import LiveTripHeader from './components/LiveTripHeader';
+import LiveDayDetails from './components/LiveDayDetails'; 
+import ActivitiesList from './components/ActivitiesList'; 
 import { PlanJson, LiveTripPlan, LiveDay, DayBase, ActivityBase, LiveActivity, DestinationInfo, TotalCostEstimate } from './liveTypes'; // Import types
-import LoadingStateDisplay from './components/LoadingStateDisplay'; // Import Loading component
-import ErrorStateDisplay from './components/ErrorStateDisplay'; // Import Error component
-import { useSideChat, SideChatContext } from './hooks/useSideChat'; // Import the new hook
+import LoadingStateDisplay from './components/LoadingStateDisplay'; 
+import ErrorStateDisplay from './components/ErrorStateDisplay'; 
+import { useSideChat, SideChatContext } from './hooks/useSideChat'; 
 import DailyProgressBar from './components/DailyProgressBar';
 import SwipeableActivities from './components/SwipeableActivities';
 import NoteModal from './components/NoteModal';
 import { saveNote } from './components/saveNote';
 
-// Helper function to get current date in YYYY-MM-DD format
 const getCurrentDateString = () => {
     const today = new Date();
     const year = today.getFullYear();
