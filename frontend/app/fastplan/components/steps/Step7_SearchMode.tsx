@@ -85,7 +85,7 @@ const Step7_SearchMode: React.FC<Step7SearchModeProps> = ({
           </p>
         </button>
       </div>
-      <div className="mt-8 flex justify-between">
+      <div className="mt-8 flex justify-between gap-8">
         <button
           type="button"
           onClick={prevStep}

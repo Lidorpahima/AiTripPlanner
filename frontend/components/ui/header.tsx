@@ -5,12 +5,15 @@ import Logo from "./logo";
 import { useAuth } from "@/app/(auth)/context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, LogOut, LogIn, UserPlus, Plane, LayoutList, Menu, X } from "lucide-react";
-
+import Headroom from "react-headroom";
 export default function Header() {
   const { isAuthenticated, logout, isLoading } = useAuth();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [shake, setShake] = useState(false);
-
+  useEffect(() => {
+    console.log('Header mounted');
+    return () => console.log('Header unmounted');
+}, []);
   useEffect(() => {
     const interval = setInterval(() => {
       setShake(true);
@@ -66,13 +69,27 @@ export default function Header() {
   };
 
   return (
+<Headroom
+    style={{
+        transition: 'transform .5s ease-in-out',
+        background: 'transparent',
+        position: 'fixed',  
+        width: '100%',      
+        zIndex: 9999
+    }}
+    pinStart={0}
+    upTolerance={1}
+    downTolerance={1}
+    disableInlineStyles={false}
+    className="transition-all duration-300 ease-in-out"
+
+>
     <motion.header 
-      className="fixed top-3 z-50 w-full sm:top-4 md:top-5"
-      {...headerMotionProps}
+        className="top-3 w-full sm:top-4 md:top-5"  // הסרנו את ה-z-50 מכאן
+        {...headerMotionProps}
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="relative flex h-14 items-center justify-between gap-4 rounded-full bg-white/90 px-4 shadow-lg shadow-black/[0.07] backdrop-blur-xl border border-white/50">
-          
           <div className="flex-shrink-0">
             <Link href="/" aria-label="Home">
               <Logo skipLink={true} />
@@ -198,5 +215,6 @@ export default function Header() {
         )}
       </AnimatePresence>
     </motion.header>
+    </Headroom>
   );
 }
