@@ -9,9 +9,9 @@ export default function FastPlanLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative min-h-screen bg-gray-100">
+    <div className="relative z-10">
       <Header />
-      <main className="relative z-10">
+      <main className="relative">
         {children}
       </main>
       <Footer/>

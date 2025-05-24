@@ -5,10 +5,10 @@ import Image from "next/image";
 import { Lobster } from "next/font/google";
 import { motion } from 'framer-motion';
 
-import ImgTokyo from "@/public/images/destinations/rhome.jpg";
-import ImgRome from "@/public/images/destinations/lhero.jpg";
-import ImgParis from "@/public/images/destinations/parisHero.jpg";
-import ImgBali from "@/public/images/destinations/mHero.png";
+import ImgTokyo from "@/public/images/destinations/rhome.webp";
+import ImgRome from "@/public/images/destinations/lhero.webp";
+import ImgParis from "@/public/images/destinations/parisHero.webp";
+import ImgBali from "@/public/images/destinations/mHero.webp";
 
 const lobster = Lobster({
   weight: "400",
@@ -21,8 +21,7 @@ export default function HeroHome() {
 
   const handlePlanJourneyClick = () => {
     setIsRocketLaunching(true);
-    // Optional: Reset after a delay if not navigating immediately
-    // setTimeout(() => setIsRocketLaunching(false), 2000); // Example reset
+
   };
 
   return (

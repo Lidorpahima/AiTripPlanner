@@ -308,7 +308,7 @@ function PhoneWithScrollingScreens() {
           </div>
 
           {/* Feature Description */}
-          <div className="max-w-md text-center md:text-right md:mt-0  inline-block bg-white/80 rounded-xl shadow-lg px-6 py-4 backdrop-blur-md">
+          <div className="max-w-md text-center sm:text-center md:text-left md:mt-0 inline-block bg-white/80 rounded-xl shadow-lg px-6 py-4 backdrop-blur-md">
             <div className="flex gap-2 justify-center md:justify-start mb-4">
               {screens.map((_, index) => (
                 <div
