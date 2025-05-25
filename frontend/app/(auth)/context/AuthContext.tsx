@@ -10,6 +10,7 @@ interface AuthContextType {
   isLoading: boolean;    
   login: (access: string, refresh: string) => void;
   logout: () => void;     
+  refreshAuthState: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,33 +24,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true); 
   const router = useRouter(); 
 
+  const refreshAuthState = () => {
+    const accessToken = Cookies.get('access');
+    setIsAuthenticated(!!accessToken);
+    setIsLoading(false);
+  };
 
   useEffect(() => {
-    // Only check cookies for tokens
-    const accessToken = Cookies.get('access');
-    
-    if (accessToken) {
-      setIsAuthenticated(true);
-    } else {
-      setIsAuthenticated(false);
-    }
-    setIsLoading(false); 
+    refreshAuthState();
   }, []);
 
   const login = (access: string, refresh: string) => {
-    // Store in cookies with proper settings
     Cookies.set('access', access, { 
       path: '/', 
       expires: 7,
-      sameSite: 'lax'
+      secure: window.location.protocol === "https:",
+      sameSite: 'strict'
     });
     Cookies.set('refresh', refresh, { 
       path: '/', 
       expires: 30,
-      sameSite: 'lax'
+      secure: window.location.protocol === "https:",
+      sameSite: 'strict'
     });
     
     setIsAuthenticated(true); 
+    setIsLoading(false);
   };
 
 
@@ -59,11 +59,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     Cookies.remove('refresh');
     
     setIsAuthenticated(false); 
+    setIsLoading(false);
     router.push('/');
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, login, logout, refreshAuthState }}>
        {children}
     </AuthContext.Provider>
   );

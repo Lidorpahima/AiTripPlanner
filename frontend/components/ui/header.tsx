@@ -11,7 +11,6 @@ export default function Header() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [shake, setShake] = useState(false);
   useEffect(() => {
-    console.log('Header mounted');
     return () => console.log('Header unmounted');
 }, []);
   useEffect(() => {
@@ -85,7 +84,7 @@ export default function Header() {
 
 >
     <motion.header 
-        className="top-3 w-full sm:top-4 md:top-5"  // הסרנו את ה-z-50 מכאן
+        className="top-3 w-full sm:top-4 md:top-5"  
         {...headerMotionProps}
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -101,6 +100,12 @@ export default function Header() {
               <motion.li {...itemMotionProps}>
                 <Link href="/" className={navLinkClasses}>
                   Home
+                  <span className="absolute bottom-0.5 left-0 h-0.5 w-full bg-blue-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out origin-left"></span>
+                </Link>
+              </motion.li>
+              <motion.li {...itemMotionProps}>
+                <Link href="/destinations" className={navLinkClasses}>
+                  Destinations
                   <span className="absolute bottom-0.5 left-0 h-0.5 w-full bg-blue-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out origin-left"></span>
                 </Link>
               </motion.li>
@@ -188,6 +193,7 @@ export default function Header() {
           >
             <nav className="flex flex-col space-y-4">
               <Link href="/" className={mobileNavLinkClasses} onClick={() => setMobileNavOpen(false)}>Home</Link>
+              <Link href="/destinations" className={mobileNavLinkClasses} onClick={() => setMobileNavOpen(false)}>Explore Destinations</Link>
               <Link href="/about" className={mobileNavLinkClasses} onClick={() => setMobileNavOpen(false)}>About</Link>
               <Link href="/blog" className={mobileNavLinkClasses} onClick={() => setMobileNavOpen(false)}>Blog</Link>
               

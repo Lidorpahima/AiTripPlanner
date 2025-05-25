@@ -10,7 +10,7 @@ export default function Home() {
     <>
       {/* Hero Section with Rotating Globe */}
       <section className="relative px-4 sm:px-6 md:px-8 py-4 sm:py-10 md:py-12 bg-transparent">
-        <div className="absolute inset-0 -top-10 bg-[url('/mobile/60.png')] md:bg-[url('/desktop/60.png')] bg-fill bg-center bg-no-repeat opacity-100">
+        <div className="absolute inset-0 -top-10 bg-[url('/mobile/60.webp')] md:bg-[url('/desktop/60.webp')] bg-fill bg-center bg-no-repeat opacity-100">
         </div>
       {/* Add the Globe animation component */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -29,7 +29,7 @@ export default function Home() {
       {/* CompactDeviceShowcase */}
       <section className="relative py-8 md:py-12 bg-transparent overflow-hidden px-4 sm:px-6 md:px-8">
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-      <div className="absolute w-full h-full bg-[url('/mobile/w.png')] md:bg-[url('/desktop/w.png')] bg-cover bg-center opacity-80">
+      <div className="absolute w-full h-full bg-[url('/mobile/w.webp')] md:bg-[url('/desktop/w.webp')] bg-cover bg-center opacity-80">
 
       </div>
         </div>
@@ -49,7 +49,7 @@ export default function Home() {
       {/* How It Works Section */}
       <section className="relative py-8 md:py-12 lg:py-20 bg-transparent overflow-hidden px-4 sm:px-6 md:px-8" id="how-it-works">
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="absolute inset-0 -top-10 bg-[url('/mobile/61.png')] md:bg-[url('/desktop/61.png')] bg-cover bg-center opacity-100">
+          <div className="absolute inset-0 -top-10 bg-[url('/mobile/61.webp')] md:bg-[url('/desktop/61.webp')] bg-cover bg-center opacity-100">
 
           </div>
         </div>
@@ -66,7 +66,7 @@ export default function Home() {
       {/* Popular Destinations Section */}
       <section className="relative py-8 md:py-12 lg:py-20 bg-transparent overflow-hidden px-4 sm:px-6 md:px-8">
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="absolute inset-0 -top-10 bg-[url('/mobile/62.png')] md:bg-[url('/desktop/62.png')] bg-cover bg-center opacity-100">
+        <div className="absolute inset-0 -top-10 bg-[url('/mobile/62.webp')] md:bg-[url('/desktop/62.webp')] bg-cover bg-center opacity-100">
           <div className="absolute inset-x-0 top-0 h-96 bg-gradient-to-b from-white to-transparent"></div>
           <div className="absolute inset-x-0 bottom-0 h-96 bg-gradient-to-t from-white to-transparent"></div>
         </div>

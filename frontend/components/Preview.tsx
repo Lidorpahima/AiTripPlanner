@@ -75,31 +75,31 @@ function PhoneWithScrollingScreens() {
     {
       title: "Live Trip Tracking",
       description: "See and update your trip status in real time.",
-      image: "/images/ShowcaseMobile1.png", 
+      image: "/images/ShowcaseMobile1.webp", 
       bgColorForButton: "bg-purple-600", 
     },
     {
       title: "Attraction Details & Reviews",
       description: "Browse info, reviews, photos, and book tickets easily.",
-      image: "/images/ShowcaseMobile2.png", 
+      image: "/images/ShowcaseMobile2.webp", 
       bgColorForButton: "bg-blue-500",
     },
     {
       title: "Smart Budget Estimator",
       description: "Get price estimates for all your planned activities.",
-      image: "/images/ShowcaseMobile3.png",
+      image: "/images/ShowcaseMobile3.webp",
       bgColorForButton: "bg-green-500",
     },
     {
       title: "Smart Trip Dashboard",
       description: "View and manage your full trip schedule at a glance.",
-      image: "/images/ShowcaseMobile4.png",
+      image: "/images/ShowcaseMobile4.webp",
       bgColorForButton: "bg-amber-500",
     },
     {
       title: "Personalized AI Trip Planning",
       description: "Choose Quick, Normal, or Expert AI for your trip plan.",
-      image: "/images/ShowcaseMobile5.png",
+      image: "/images/ShowcaseMobile5.webp",
       bgColorForButton: "bg-rose-500",
     },
   ];
@@ -216,8 +216,8 @@ function PhoneWithScrollingScreens() {
   }, []);
 
   const bgImage = isMobile
-    ? '/images/long-bg-mobile.png'
-    : '/images/long-bg-desktop.png';
+    ? '/images/long-bg-mobile.webp'
+    : '/images/long-bg-desktop.webp';
 
   return (
     <section
@@ -268,9 +268,10 @@ function PhoneWithScrollingScreens() {
                       <Image
                         src={screen.image}
                         alt={screen.title}
-                        layout="fill"
-                        objectFit="cover"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 500px"
                         priority={index === 0}
+                        style={{ objectFit: 'cover' }}
                         className="select-none"
                       />
                     </div>
@@ -295,9 +296,10 @@ function PhoneWithScrollingScreens() {
                       <Image
                         src={screen.image}
                         alt={screen.title}
-                        layout="fill"
-                        objectFit="cover"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 500px"
                         priority={index === 0}
+                        style={{ objectFit: 'cover' }}
                         className="select-none"
                       />
                     </div>
@@ -308,8 +310,7 @@ function PhoneWithScrollingScreens() {
           </div>
 
           {/* Feature Description */}
-          <div className="max-w-md text-center sm:text-center md:text-left md:mt-0 inline-block bg-white/80 rounded-xl shadow-lg px-6 py-4 backdrop-blur-md">
-            <div className="flex gap-2 justify-center md:justify-start mb-4">
+          <div className="max-w-md text-center sm:text-center md:text-left md:mt-0 inline-block bg-white/80 rounded-xl shadow-lg px-6 py-4 pb-[50px] backdrop-blur-md">            <div className="flex gap-2 justify-center md:justify-start mb-4">
               {screens.map((_, index) => (
                 <div
                   key={index}
@@ -335,14 +336,14 @@ function PhoneWithScrollingScreens() {
                   )}
                 >
                   <h3 className="text-2xl lg:text-3xl font-bold mb-2 sm:mb-3 text-blue-500 ">{screen.title}</h3>
-                  <p className="text-gray-600 text-sm sm:text-base">{screen.description}</p>
+                  <p className="text-gray-600 text-sm pb-2 sm:text-base">{screen.description}</p>
                 </div>
               ))}
             </div>
             
             <div className="">
               <Button className={cn("text-white", screens[activeScreen]?.bgColorForButton || 'bg-primary')}>
-                גלה עוד <ChevronRight className="ml-2 h-4 w-4" />
+                Start Planning!<ChevronRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
           </div>

@@ -1025,7 +1025,7 @@ class GoogleOAuthCallbackView(APIView):
             'code': code,
             'client_id': settings.GOOGLE_CLIENT_ID,
             'client_secret': settings.GOOGLE_CLIENT_SECRET,
-            'redirect_uri': 'http://localhost:3000/api/auth/google/callback',  
+            'redirect_uri': f"{settings.FRONTEND_BASE_URL}/api/auth/google/callback",  
             'grant_type': 'authorization_code',
         }
         r = requests.post(token_url, data=data)
@@ -1038,10 +1038,12 @@ class GoogleOAuthCallbackView(APIView):
             return Response({'error': 'Failed to get id_token from Google', 'details': token_data}, status=400)
 
         try:
+            # Add a small time buffer to handle slight clock differences
             idinfo = google_id_token.verify_oauth2_token(
                 id_token,
                 google_requests.Request(),
-                settings.GOOGLE_CLIENT_ID
+                settings.GOOGLE_CLIENT_ID,
+                clock_skew_in_seconds=10  # Allow 10 seconds of clock skew
             )
             email = idinfo['email']
             name = idinfo.get('name', '')
@@ -1062,6 +1064,12 @@ class GoogleOAuthCallbackView(APIView):
             })
         except Exception as e:
             print("Failed to verify id_token:", e)
-            return Response({'error': 'Failed to verify id_token', 'details': str(e)}, status=400)
+            error_message = str(e)
+            if "Token used too early" in error_message:
+                return Response({
+                    'error': 'Time synchronization issue detected. Please ensure your system clock is set correctly.',
+                    'details': error_message
+                }, status=400)
+            return Response({'error': 'Failed to verify id_token', 'details': error_message}, status=400)
 
 

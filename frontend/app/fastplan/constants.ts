@@ -46,12 +46,12 @@ export const TRAVEL_WITH = [
 ];
 
 export const POPULAR_DESTINATIONS = [
-  { name: "Paris, France", image: "/images/destinations/paris.jpg", emoji: "🗼" },
-  { name: "Tokyo, Japan", image: "/images/destinations/tokyo.jpg", emoji: "🏯" },
-  { name: "Rome, Italy", image: "/images/destinations/rome.jpg", emoji: "🏛️" },
-  { name: "Greece, Mykonos", image: "/images/destinations/mykonos.jpg", emoji: "⛱️" },
-  { name: "New York, USA", image: "/images/destinations/new-york.jpg", emoji: "🗽" },
-  { name: "Bangkok, Thailand", image: "/images/destinations/bangkok.jpg", emoji: "🛕" },
+  { name: "Paris, France", image: "/images/destinations/paris.webp", emoji: "🗼" },
+  { name: "Tokyo, Japan", image: "/images/destinations/tokyo.webp", emoji: "🏯" },
+  { name: "Rome, Italy", image: "/images/destinations/rome.webp", emoji: "🏛️" },
+  { name: "Greece, Mykonos", image: "/images/destinations/mykonos.webp", emoji: "⛱️" },
+  { name: "New York, USA", image: "/images/destinations/new-york.webp", emoji: "🗽" },
+  { name: "Bangkok, Thailand", image: "/images/destinations/bangkok.webp", emoji: "🛕" },
 ]; 
 
 export interface FormData {
