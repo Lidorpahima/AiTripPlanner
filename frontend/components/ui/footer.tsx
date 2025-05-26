@@ -1,28 +1,51 @@
+/**
+ * Footer Component
+ * 
+ * A responsive footer component that includes:
+ * - Copyright information
+ * - Legal links (Terms of Service, Privacy Policy)
+ * - About section links
+ * - Social media connections
+ * - Optional border and text size customization
+ * - Responsive grid layout
+ */
+
 import Link from "next/link";
 import Logo from "./logo";
 
+/**
+ * Props interface for the Footer component
+ * @property border - Optional boolean to control the top border visibility
+ * @property showBigText - Optional boolean to control text size
+ */
 interface FooterProps {
   border?: boolean;
   showBigText?: boolean;
 }
 
+/**
+ * Footer Component
+ * 
+ * Renders a responsive footer with multiple sections including
+ * copyright information, legal links, about section, and social media links.
+ * The layout adapts to different screen sizes using a grid system.
+ */
 export default function Footer({ border = true, showBigText = true }: FooterProps) {
   return (
     <footer className="bg-gray-900 text-white">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        {/* Top area: Blocks */}
+        {/* Main footer content grid */}
         <div
           className={`grid gap-8 py-8 sm:grid-cols-12 md:py-12 ${border ? "border-t [border-image:linear-gradient(to_right,transparent,var(--color-slate-600),transparent)1]" : ""}`}
         >
-          {/* 1st block */}
+          {/* Copyright section */}
           <div className="space-y-2 sm:col-span-12 lg:col-span-4">
-
             <div className="text-sm text-gray-300">
               &copy; AiTripPlanner.com - All rights reserved.
             </div>
           </div>
 
-          {/* 2nd block (Legal) */}
+          {/* Legal links section */}
           <div className="space-y-2 sm:col-span-6 md:col-span-3 lg:col-span-2">
             <h3 className="text-sm font-medium">Legal</h3>
             <ul className="space-y-2 text-sm">
@@ -45,7 +68,7 @@ export default function Footer({ border = true, showBigText = true }: FooterProp
             </ul>
           </div>
 
-          {/* 3rd block (About) */}
+          {/* About section links */}
           <div className="space-y-2 sm:col-span-6 md:col-span-3 lg:col-span-2">
             <h3 className="text-sm font-medium">About</h3>
             <ul className="space-y-2 text-sm">
@@ -68,10 +91,11 @@ export default function Footer({ border = true, showBigText = true }: FooterProp
             </ul>
           </div>
 
-          {/* 4th block (Connect) */}
+          {/* Social media connections */}
           <div className="space-y-2 sm:col-span-12 md:col-span-3 lg:col-span-4 lg:justify-self-start">
             <h3 className="text-sm font-medium">Connect</h3>
             <ul className="flex gap-3">
+              {/* GitHub link */}
               <li>
                 <Link
                   className="flex items-center justify-center text-gray-300 transition hover:text-white"
@@ -85,6 +109,7 @@ export default function Footer({ border = true, showBigText = true }: FooterProp
                   </svg>
                 </Link>
               </li>
+              {/* LinkedIn link */}
               <li>
                 <Link
                   className="flex items-center justify-center text-gray-300 transition hover:text-white"
@@ -102,7 +127,6 @@ export default function Footer({ border = true, showBigText = true }: FooterProp
           </div>
         </div>
       </div>
-
     </footer>
   );
 }

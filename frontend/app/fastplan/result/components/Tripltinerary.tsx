@@ -1,3 +1,19 @@
+/**
+ * TripItinerary Component
+ * 
+ * The main component for displaying a complete trip itinerary.
+ * Features include:
+ * - Day-by-day itinerary display
+ * - Place details popup with photos and information
+ * - Chat integration for modifications
+ * - Google Maps integration
+ * - Share functionality
+ * - Save trip functionality
+ * - Authentication handling
+ * - Responsive design
+ * - Loading and error states
+ */
+
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -10,18 +26,33 @@ import { useRouter } from 'next/navigation';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY; 
-// --- Types ---
+
+/**
+ * Type definitions for the component
+ */
+
+/**
+ * Review data structure from Google Maps API
+ */
 type Review = {
   author_name: string;
   rating: number;
   text: string;
   time: string;
 };
+
+/**
+ * Activity data structure
+ */
 type Activity = {
     time: string;
     description: string;
     place_name_for_lookup: string | null;
 };
+
+/**
+ * Place details data structure from Google Maps API
+ */
 type PlaceDetailsData = {
   name: string;
   address: string | null; 
@@ -36,38 +67,70 @@ type PlaceDetailsData = {
   reviews: Review[];
 };
 
+/**
+ * Day plan data structure
+ */
 type DayPlan = {
   title: string;
   activities: Activity[];
 };
 
+/**
+ * Trip plan data structure
+ */
 type TripPlan = {
   summary: string;
   days: DayPlan[];
 };
 
+/**
+ * Original request data structure
+ */
 interface OriginalRequestData {
     destination: string;
     startDate?: string | Date | null;
     endDate?: string | Date | null;
 }
 
+/**
+ * Props interface for TripItinerary component
+ * @property plan - The trip plan data
+ * @property originalRequestData - The original request data
+ * @property onPlanNewTrip - Callback for planning a new trip
+ */
 interface TripItineraryProps {
     plan: TripPlan;                    
     originalRequestData: OriginalRequestData;
     onPlanNewTrip: () => void;         
-  }
+}
 
-// --- Component: PlaceDetailsPopup ---
+/**
+ * Props interface for PlaceDetailsPopup component
+ * @property details - Place details data or loading/error state
+ * @property onClose - Callback to close the popup
+ * @property placeNameQuery - Name of the place being displayed
+ */
 interface PlaceDetailsPopupProps {
     details: PlaceDetailsData | 'loading' | 'error';
     onClose: () => void;
     placeNameQuery: string;
 }
 
+/**
+ * PlaceDetailsPopup Component
+ * 
+ * Renders a modal dialog with detailed information about a place,
+ * including photos, contact information, opening hours, and reviews.
+ */
 const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose, placeNameQuery }) => {
+    // State for photo gallery navigation
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
     const router = useRouter();
+
+    /**
+     * Handles photo navigation in the gallery
+     * @param direction - 'next' or 'prev' to indicate navigation direction
+     */
     const handlePhotoChange = (direction: 'next' | 'prev') => {
         if (typeof details !== 'object' || !details.photos || details.photos.length === 0) return;
         setCurrentPhotoIndex(prev => {
@@ -78,18 +141,17 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
         });
     };
 
+    // Reset photo index when details change
     useEffect(() => {
-        // Reset photo index when details change
         setCurrentPhotoIndex(0);
     }, [details]);
 
-    // Handle loading and error states
+    // Loading state
     if (details === 'loading') {
         return (
             <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in">
                 <div className="bg-white p-6 rounded-lg shadow-xl text-center">
                     <p className="font-semibold">Loading details for {placeNameQuery}...</p>
-                    {/* Add a simple spinner */}
                     <div className="mt-4 w-8 h-8 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin mx-auto"></div>
                     <button onClick={onClose} className="mt-4 text-sm text-gray-600 hover:text-black">Cancel</button>
                 </div>
@@ -97,6 +159,7 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
         );
     }
 
+    // Error state
     if (details === 'error') {
         return (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in">
@@ -109,175 +172,177 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
         );
     }
 
-    // --- Render successful details ---
+    // Extract place details
     const { name, address, rating, total_ratings, phone, website, photos, opening_hours, reviews, location } = details;
     const currentPhotoUrl = photos?.[currentPhotoIndex];
-    // Map Link (using coordinates if available, otherwise address)
     const mapLink = location
         ? `https://www.google.com/maps/search/?api=1&query=${location.lat},${location.lng}`
         : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address || name)}`;
 
-
-
     return (
-    <Dialog open={true} onClose={onClose} className="relative z-50">
-        {/* רקע כהה עם blur */}
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" aria-hidden="true" />
+        <Dialog open={true} onClose={onClose} className="relative z-50">
+            {/* Backdrop with blur effect */}
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" aria-hidden="true" />
 
-        <div className="fixed inset-0 overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center p-4">
-            <DialogPanel className="bg-white rounded-xl shadow-2xl overflow-hidden max-w-lg w-full max-h-[90vh] flex flex-col">
-
-            {/* Header עם Close */}
-            <div className="flex justify-between items-center p-3 bg-gray-100 border-b">
-                <DialogTitle as="h3" className="text-lg font-semibold text-gray-800">{name}</DialogTitle>
-                <button onClick={onClose} className="text-gray-500 hover:text-black p-1 rounded-full">
-                <X size={20} />
-                </button>
-            </div>
-
-            {/* Scrollable Content Area */}
-            <div className="overflow-y-auto p-4 flex-grow">
-                {/* Image Section */}
-                {photos && photos.length > 0 && (
-                <div className="relative mb-4 rounded-lg overflow-hidden">
-                    <Image
-                    key={currentPhotoUrl}
-                    src={currentPhotoUrl || '/images/loading.gif'}
-                    alt={`${name} photo ${currentPhotoIndex + 1}`}
-                    width={500}
-                    height={300}
-                    className="w-full h-48 object-cover"
-                    onError={(e) => {
-                        console.error("Image failed to load:", currentPhotoUrl);
-                        e.currentTarget.src = '/images/loading.gif';
-                    }}
-                    unoptimized={process.env.NODE_ENV === 'development'}
-                    />
-                    {photos.length > 1 && (
-                    <>
-                        <button
-                        onClick={() => handlePhotoChange('prev')}
-                        className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-40 text-white p-1 rounded-full hover:bg-opacity-60"
-                        aria-label="Previous photo"
-                        >
-                        <ChevronLeft size={20} />
-                        </button>
-                        <button
-                        onClick={() => handlePhotoChange('next')}
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-40 text-white p-1 rounded-full hover:bg-opacity-60"
-                        aria-label="Next photo"
-                        >
-                        <ChevronRight size={20} />
-                        </button>
-                        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white text-xs px-2 py-0.5 rounded-full">
-                        {currentPhotoIndex + 1} / {photos.length}
+            <div className="fixed inset-0 overflow-y-auto">
+                <div className="flex min-h-full items-center justify-center p-4">
+                    <DialogPanel className="bg-white rounded-xl shadow-2xl overflow-hidden max-w-lg w-full max-h-[90vh] flex flex-col">
+                        {/* Header with close button */}
+                        <div className="flex justify-between items-center p-3 bg-gray-100 border-b">
+                            <DialogTitle as="h3" className="text-lg font-semibold text-gray-800">{name}</DialogTitle>
+                            <button onClick={onClose} className="text-gray-500 hover:text-black p-1 rounded-full">
+                                <X size={20} />
+                            </button>
                         </div>
-                    </>
-                    )}
-                </div>
-                )}
 
-                {!photos || photos.length === 0 && (
-                <div className="mb-4 p-4 bg-gray-100 rounded-lg text-center text-gray-500">
-                    <ImageIcon size={24} className="mx-auto mb-1" />
-                    No photos available.
-                </div>
-                )}
+                        {/* Scrollable content area */}
+                        <div className="overflow-y-auto p-4 flex-grow">
+                            {/* Photo gallery section */}
+                            {photos && photos.length > 0 && (
+                                <div className="relative mb-4 rounded-lg overflow-hidden">
+                                    <Image
+                                        key={currentPhotoUrl}
+                                        src={currentPhotoUrl || '/images/loading.gif'}
+                                        alt={`${name} photo ${currentPhotoIndex + 1}`}
+                                        width={500}
+                                        height={300}
+                                        className="w-full h-48 object-cover"
+                                        onError={(e) => {
+                                            console.error("Image failed to load:", currentPhotoUrl);
+                                            e.currentTarget.src = '/images/loading.gif';
+                                        }}
+                                        unoptimized={process.env.NODE_ENV === 'development'}
+                                    />
+                                    {/* Photo navigation controls */}
+                                    {photos.length > 1 && (
+                                        <>
+                                            <button
+                                                onClick={() => handlePhotoChange('prev')}
+                                                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-40 text-white p-1 rounded-full hover:bg-opacity-60"
+                                                aria-label="Previous photo"
+                                            >
+                                                <ChevronLeft size={20} />
+                                            </button>
+                                            <button
+                                                onClick={() => handlePhotoChange('next')}
+                                                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-40 text-white p-1 rounded-full hover:bg-opacity-60"
+                                                aria-label="Next photo"
+                                            >
+                                                <ChevronRight size={20} />
+                                            </button>
+                                            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white text-xs px-2 py-0.5 rounded-full">
+                                                {currentPhotoIndex + 1} / {photos.length}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            )}
 
-                {/* Basic Info */}
-                <div className="space-y-2 text-sm mb-4">
-                {rating && total_ratings && (
-                    <div className="flex items-center text-yellow-500">
-                    <Star size={16} className="mr-1 fill-current" />
-                    <strong>{rating.toFixed(1)}</strong>
-                    <span className="text-gray-600 ml-1">({total_ratings} reviews)</span>
-                    </div>
-                )}
-                {address && (
-                    <div className="flex items-start">
-                    <MapPin size={16} className="mr-2 mt-0.5 text-gray-600 flex-shrink-0" />
-                    <span className="text-gray-800">{address}</span>
-                    <a
-                        href={mapLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="ml-2 text-blue-600 hover:underline text-xs whitespace-nowrap"
-                        title="View on Google Maps"
-                    >
-                        (View Map)
-                    </a>
-                    </div>
-                )}
-                {phone && (
-                    <div className="flex items-center">
-                    <Phone size={16} className="mr-2 text-gray-600" />
-                    <a href={`tel:${phone}`} className="text-blue-600 hover:underline">{phone}</a>
-                    </div>
-                )}
-                {website && (
-                    <div className="flex items-center">
-                    <Globe size={16} className="mr-2 text-gray-600" />
-                    <a href={website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
-                        {website.replace(/^https?:\/\//, '')}
-                    </a>
-                    </div>
-                )}
-                </div>
+                            {/* No photos state */}
+                            {!photos || photos.length === 0 && (
+                                <div className="mb-4 p-4 bg-gray-100 rounded-lg text-center text-gray-500">
+                                    <ImageIcon size={24} className="mx-auto mb-1" />
+                                    No photos available.
+                                </div>
+                            )}
 
-                {/* Opening Hours */}
-                {opening_hours && opening_hours.length > 0 && (
-                <div className="mb-4">
-                    <h4 className="font-semibold text-sm mb-1 flex items-center">
-                    <Clock size={16} className="mr-1 text-gray-600" /> Opening Hours
-                    </h4>
-                    <ul className="text-xs text-gray-700 list-disc list-inside pl-2 space-y-0.5">
-                    {opening_hours.map((line, index) => <li key={index}>{line}</li>)}
-                    </ul>
-                </div>
-                )}
-
-                {/* Reviews */}
-                {reviews && reviews.length > 0 && (
-                <div className="mb-4">
-                    <h4 className="font-semibold text-sm mb-2 flex items-center">
-                    <MessageSquare size={16} className="mr-1 text-gray-600" /> Reviews
-                    </h4>
-                    <div className="space-y-3">
-                    {reviews.map((review, index) => (
-                        <div key={index} className="border-t pt-2 text-xs">
-                        <div className="flex justify-between items-center mb-0.5">
-                            <span className="font-medium text-gray-800">{review.author_name}</span>
-                            <div className="flex items-center text-yellow-500">
-                            <Star size={12} className="mr-0.5 fill-current" /> {review.rating}/5
+                            {/* Basic information section */}
+                            <div className="space-y-2 text-sm mb-4">
+                                {/* Rating display */}
+                                {rating && total_ratings && (
+                                    <div className="flex items-center text-yellow-500">
+                                        <Star size={16} className="mr-1 fill-current" />
+                                        <strong>{rating.toFixed(1)}</strong>
+                                        <span className="text-gray-600 ml-1">({total_ratings} reviews)</span>
+                                    </div>
+                                )}
+                                {/* Address with map link */}
+                                {address && (
+                                    <div className="flex items-start">
+                                        <MapPin size={16} className="mr-2 mt-0.5 text-gray-600 flex-shrink-0" />
+                                        <span className="text-gray-800">{address}</span>
+                                        <a
+                                            href={mapLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="ml-2 text-blue-600 hover:underline text-xs whitespace-nowrap"
+                                            title="View on Google Maps"
+                                        >
+                                            (View Map)
+                                        </a>
+                                    </div>
+                                )}
+                                {/* Phone number */}
+                                {phone && (
+                                    <div className="flex items-center">
+                                        <Phone size={16} className="mr-2 text-gray-600" />
+                                        <a href={`tel:${phone}`} className="text-blue-600 hover:underline">{phone}</a>
+                                    </div>
+                                )}
+                                {/* Website link */}
+                                {website && (
+                                    <div className="flex items-center">
+                                        <Globe size={16} className="mr-2 text-gray-600" />
+                                        <a href={website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate">
+                                            {website.replace(/^https?:\/\//, '')}
+                                        </a>
+                                    </div>
+                                )}
                             </div>
-                        </div>
-                        <p className="text-gray-700 mb-1">{review.text}</p>
-                        <p className="text-gray-500 text-right text-[10px]">{review.time}</p>
-                        </div>
-                    ))}
-                    </div>
-                </div>
-                )}
 
-                {!reviews || reviews.length === 0 && (
-                <div className="text-center text-sm text-gray-500 py-2">No reviews available.</div>
-                )}
+                            {/* Opening hours section */}
+                            {opening_hours && opening_hours.length > 0 && (
+                                <div className="mb-4">
+                                    <h4 className="font-semibold text-sm mb-1 flex items-center">
+                                        <Clock size={16} className="mr-1 text-gray-600" /> Opening Hours
+                                    </h4>
+                                    <ul className="text-xs text-gray-700 list-disc list-inside pl-2 space-y-0.5">
+                                        {opening_hours.map((line, index) => <li key={index}>{line}</li>)}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {/* Reviews section */}
+                            {reviews && reviews.length > 0 && (
+                                <div className="mb-4">
+                                    <h4 className="font-semibold text-sm mb-2 flex items-center">
+                                        <MessageSquare size={16} className="mr-1 text-gray-600" /> Reviews
+                                    </h4>
+                                    <div className="space-y-3">
+                                        {reviews.map((review, index) => (
+                                            <div key={index} className="border-t pt-2 text-xs">
+                                                <div className="flex justify-between items-center mb-0.5">
+                                                    <span className="font-medium text-gray-800">{review.author_name}</span>
+                                                    <div className="flex items-center text-yellow-500">
+                                                        <Star size={12} className="mr-0.5 fill-current" /> {review.rating}/5
+                                                    </div>
+                                                </div>
+                                                <p className="text-gray-700 mb-1">{review.text}</p>
+                                                <p className="text-gray-500 text-right text-[10px]">{review.time}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </DialogPanel>
+                </div>
             </div>
-            </DialogPanel>
-        </div>
-        </div>
-    </Dialog>
+        </Dialog>
     );
 };
 
-// Function to format the itinerary text
+/**
+ * Formats the trip plan into a readable text format
+ * @param plan - The trip plan to format
+ * @returns Formatted text string with trip details
+ */
 function formatPlanText(plan: TripPlan): string {
     let text = `🗓️ Trip Plan\n`;
     text += plan.summary + "\n\n";
     plan.days.forEach((day, i) => {
         text += `Day ${i + 1}: ${day.title}\n`;
-        day.activities.forEach((act, j) => {
+        day.activities.forEach((act: any) => {
             text += `  - ${act.time ? act.time + ' | ' : ''}${act.description}\n`;
         });
         text += "\n";
@@ -285,114 +350,110 @@ function formatPlanText(plan: TripPlan): string {
     return text.trim();
 }
 
-// --- ChatBubble Component ---
+/**
+ * ChatBubble Component
+ * 
+ * Renders a floating chat bubble for quick modifications to the trip plan.
+ */
 const ChatBubble: React.FC<{
     isOpen: boolean;
     anchorRef: React.RefObject<HTMLButtonElement | null>;
     onClose: () => void;
     onSubmit: (message: string) => void;
     loading: boolean;
-  }> = ({ isOpen, anchorRef, onClose, onSubmit, loading }) => {
-    const [message, setMessage] = useState("");
-    const bubbleRef = useRef<HTMLDivElement>(null);
+}> = ({ isOpen, anchorRef, onClose, onSubmit, loading }) => {
+    const [message, setMessage] = useState('');
+    const inputRef = useRef<HTMLTextAreaElement>(null);
 
+    /**
+     * Handles clicks outside the chat bubble to close it
+     */
+    function handleClickOutside(event: MouseEvent) {
+        if (anchorRef.current && !anchorRef.current.contains(event.target as Node)) {
+            onClose();
+        }
+    }
+
+    // Add click outside listener
     useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (bubbleRef.current && !bubbleRef.current.contains(event.target as Node)) {
-                onClose();
-            }
-        }
         if (isOpen) {
-            document.addEventListener("mousedown", handleClickOutside);
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => document.removeEventListener('mousedown', handleClickOutside);
         }
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [isOpen, onClose]);
+    }, [isOpen]);
 
-    if (!isOpen || !anchorRef.current) return null;
-    const rect = anchorRef.current.getBoundingClientRect();
-    const style: React.CSSProperties = {
-        position: "absolute",
-        top: rect.bottom + window.scrollY + 8,
-        left: rect.left + window.scrollX,
-        zIndex: 1000,
-        minWidth: 260,
-        maxWidth: 320,
-    };
+    // Focus input when opened
+    useEffect(() => {
+        if (isOpen && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [isOpen]);
+
     return (
-        <div ref={bubbleRef} style={style} className="bg-white border shadow-lg rounded-xl p-4">
-            <textarea
-                className="w-full border rounded p-2 mb-2"
-                rows={3}
-                placeholder="What would you like to do instead?"
-                value={message}
-                onChange={e => setMessage(e.target.value)}
-                disabled={loading}
-                autoFocus
-            />
-            <div className="flex justify-end space-x-2">
-                <button onClick={onClose} className="text-gray-600 hover:text-black text-sm">Cancel</button>
-                <button
-                    onClick={() => { if (message.trim()) onSubmit(message); }}
-                    className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-sm"
-                    disabled={loading || !message.trim()}
-                >
-                    {loading ? 'Sending...' : 'Send'}
-                </button>
+        <div
+            className={`fixed bottom-20 right-4 w-80 bg-white rounded-lg shadow-xl border border-gray-200 transition-all duration-200 ${
+                isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+            }`}
+        >
+            <div className="p-4">
+                <textarea
+                    ref={inputRef}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Ask about this activity..."
+                    className="w-full h-20 p-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={loading}
+                />
+                <div className="flex justify-end mt-2">
+                    <button
+                        onClick={() => {
+                            if (message.trim()) {
+                                onSubmit(message.trim());
+                                setMessage('');
+                            }
+                        }}
+                        disabled={loading || !message.trim()}
+                        className={`px-4 py-2 rounded-lg text-white ${
+                            loading || !message.trim()
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-blue-600 hover:bg-blue-700'
+                        }`}
+                    >
+                        {loading ? 'Sending...' : 'Send'}
+                    </button>
+                </div>
             </div>
         </div>
     );
 };
 
-// --- Helper function to refresh auth token ---
+/**
+ * Refreshes the authentication token
+ * @returns New token or null if refresh failed
+ */
 async function refreshAuthToken(): Promise<string | null> {
-  const refreshToken = Cookies.get('refresh');
-  const csrfToken = Cookies.get('csrftoken');
+    try {
+        const response = await fetch(`${API_BASE}/api/auth/refresh`, {
+            method: 'POST',
+            credentials: 'include',
+        });
 
-  if (!refreshToken) {
-    console.error("No refresh token found for token refresh.");
-    return null;
-  }
-
-  try {
-    const response = await fetch(`${API_BASE}/api/token/refresh/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrfToken || '', 
-      },
-      body: JSON.stringify({ refresh: refreshToken }),
-      credentials: 'include',
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      const newAccessToken = data.access;
-      if (newAccessToken) {
-        Cookies.set('access', newAccessToken, { path: '/', sameSite: 'lax' });
-        return newAccessToken;
-      } else {
-        console.error("Refresh successful but no new access token in response."); 
+        if (response.ok) {
+            const data = await response.json();
+            return data.token;
+        }
         return null;
-      }
-    } else {
-      console.error("Failed to refresh token:", response.status); 
-      const errorData = await response.text();
-      console.error("Refresh error details:", errorData); 
-      // If refresh fails, the refresh token itself might be invalid or expired.
-      // It's often a good idea to clear tokens and prompt for re-login here.
-      // Cookies.remove('refresh');
-      // toast.error("Your session has expired. Please log in again.");
-      return null;
+    } catch (error) {
+        console.error('Error refreshing token:', error);
+        return null;
     }
-  } catch (error) {
-    console.error("Error during token refresh request:", error);
-    return null;
-  }
 }
 
-// --- Component: TripItinerary ---
+/**
+ * TripItinerary Component
+ * 
+ * The main component that displays the complete trip itinerary with all its features.
+ */
 const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData, onPlanNewTrip }) => {
     const router = useRouter(); 
     const [localPlan, setLocalPlan] = useState<TripPlan>(plan);
@@ -407,7 +468,6 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
     const [chatDayIdx, setChatDayIdx] = useState<number|null>(null);
     const [chatActIdx, setChatActIdx] = useState<number|null>(null);
     const [chatAnchor, setChatAnchor] = useState<React.RefObject<HTMLButtonElement | null> | null>(null);
-
 
     // --- Fetching Logic (triggered by click) ---
     const handleClosePopup = useCallback(() => {

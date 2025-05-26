@@ -1,27 +1,64 @@
+/**
+ * Step4_Interests Component
+ * 
+ * The fourth step in the trip planning process where users select their interests
+ * for activities and attractions during their trip.
+ * Features include:
+ * - Multi-select interest options with icons
+ * - Animated transitions
+ * - Responsive grid layout
+ * - Interactive selection cards
+ * - Form validation
+ * - Navigation controls
+ */
+
 import React from 'react';
 import { motion } from 'framer-motion';
 
-// Define a more specific FormData part for this component
+/**
+ * Form data structure specific to the interests step
+ * @property interests - Array of selected interests
+ */
 interface Step4FormData {
   interests: string[];
 }
 
-// Define types for options arrays (can be shared if moved to a common file later)
+/**
+ * Option structure for interest selection items
+ * @property value - The interest's value
+ * @property icon - Emoji or icon representing the interest
+ * @property description - Optional description for the interest
+ */
 interface Option {
   value: string;
   icon: string;
   description?: string;
 }
 
+/**
+ * Props interface for Step4_Interests component
+ * @property formData - Current form data containing selected interests
+ * @property INTEREST_OPTIONS - Array of available interest options
+ * @property handleCheckboxChange - Callback for interest multi-select changes
+ * @property nextStep - Callback to proceed to next step
+ * @property prevStep - Callback to return to previous step
+ * @property fadeIn - Animation variants for fade-in effect
+ */
 interface Step4InterestsProps {
   formData: Step4FormData;
   INTEREST_OPTIONS: Option[];
-  handleCheckboxChange: (value: string, field: 'interests') => void; // field type narrowed
+  handleCheckboxChange: (value: string, field: 'interests') => void;
   nextStep: () => void;
   prevStep: () => void;
-  fadeIn: any; // Animation variant
+  fadeIn: any;
 }
 
+/**
+ * Step4_Interests Component
+ * 
+ * Renders the interests selection step with interactive selection cards
+ * and navigation controls.
+ */
 const Step4_Interests: React.FC<Step4InterestsProps> = ({
   formData,
   INTEREST_OPTIONS,
@@ -32,12 +69,15 @@ const Step4_Interests: React.FC<Step4InterestsProps> = ({
 }) => {
   return (
     <motion.div variants={fadeIn} className="space-y-6">
+      {/* Step title */}
       <h2 className="text-center text-2xl font-bold text-gray-800 sm:text-3xl">
         What are you interested in exploring?
       </h2>
       
+      {/* Selection instructions */}
       <p className="text-center text-gray-500">Select all that interest you</p>
       
+      {/* Interest selection grid */}
       <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
         {INTEREST_OPTIONS.map((interest) => (
           <button
@@ -56,6 +96,7 @@ const Step4_Interests: React.FC<Step4InterestsProps> = ({
         ))}
       </div>
             
+      {/* Navigation buttons */}
       <div className="mt-8 flex justify-between">
         <button
           type="button"

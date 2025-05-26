@@ -1,3 +1,16 @@
+/**
+ * LoginForm Component
+ * 
+ * A form component for user authentication that includes:
+ * - Email and password input fields
+ * - Form validation
+ * - Loading state handling
+ * - Google authentication option
+ * - Password reset link
+ * - Registration link
+ * - Error handling
+ */
+
 import React from 'react';
 import Link from 'next/link';
 import AuthInput from './AuthInput';
@@ -7,7 +20,16 @@ import GoogleAuthButton from './GoogleAuthButton';
 import AuthFooter from './AuthFooter';
 import useAuthForm from '../hooks/useAuthForm';
 
+/**
+ * LoginForm Component
+ * 
+ * Renders a login form with email and password fields,
+ * Google authentication option, and links for password reset
+ * and registration. Uses the useAuthForm hook for form state
+ * management and submission handling.
+ */
 const LoginForm: React.FC = () => {
+  // Form state and handlers from custom hook
   const { formData, isLoading, handleChange, handleSubmit } = useAuthForm({
     endpoint: 'login',
     successMessage: 'Login successful! Redirecting...',
@@ -15,6 +37,7 @@ const LoginForm: React.FC = () => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Email input field */}
       <AuthInput
         id="email"
         name="email"
@@ -27,6 +50,7 @@ const LoginForm: React.FC = () => {
         required
       />
       
+      {/* Password input field */}
       <AuthInput
         id="password"
         name="password"
@@ -39,6 +63,7 @@ const LoginForm: React.FC = () => {
         required
       />
 
+      {/* Password reset link */}
       <div className="flex justify-end">
         <Link 
           href="/reset-password" 
@@ -48,7 +73,9 @@ const LoginForm: React.FC = () => {
         </Link>
       </div>
       
+      {/* Form actions section */}
       <div className="pt-2">
+        {/* Submit button */}
         <AuthButton 
           type="submit" 
           isLoading={isLoading}
@@ -56,12 +83,14 @@ const LoginForm: React.FC = () => {
           Sign In
         </AuthButton>
         
+        {/* Divider between regular and social login */}
         <AuthFormDivider />
         
-        {/* Google Sign-In Button */}
+        {/* Google authentication button */}
         <GoogleAuthButton context="signin" />
       </div>
 
+      {/* Registration link footer */}
       <AuthFooter 
         questionText="Don't have an account?"
         linkText="Register here"

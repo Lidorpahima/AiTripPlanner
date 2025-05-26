@@ -1,3 +1,17 @@
+/**
+ * Trip Result Page Component
+ * 
+ * A comprehensive page that displays the generated trip plan and provides:
+ * - Interactive itinerary display
+ * - Place details and information
+ * - Cost estimates and breakdown
+ * - Travel tips and recommendations
+ * - Navigation between different views
+ * - Chat functionality for plan modifications
+ * - Loading and error states
+ * - Responsive design
+ */
+
 'use client';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -23,7 +37,12 @@ import SideChatPanel, { ChatMessage } from "./components/SideChatPanel";
 // Types import
 import { Activity, PlaceDetailsData, TripPlan, OriginalRequestData } from "@/constants/planTypes";
 
-// Helper function to format currency
+/**
+ * Formats a number as currency in USD
+ * @param amount - The amount to format
+ * @param currency - The currency code (defaults to USD)
+ * @returns Formatted currency string
+ */
 const formatCurrency = (amount: number, currency: string = 'USD') => {
   // Always use USD for consistency regardless of the passed currency parameter
   return new Intl.NumberFormat('en-US', {
@@ -33,7 +52,11 @@ const formatCurrency = (amount: number, currency: string = 'USD') => {
   }).format(amount);
 };
 
-// Get icon for activity category
+/**
+ * Returns the appropriate icon component for an activity category
+ * @param category - The activity category
+ * @returns Lucide icon component
+ */
 const getCategoryIcon = (category?: string) => {
   switch (category?.toLowerCase()) {
     case 'restaurant': 
@@ -49,6 +72,17 @@ const getCategoryIcon = (category?: string) => {
   }
 };
 
+/**
+ * TripResultPage Component
+ * 
+ * Main component that displays the generated trip plan and provides:
+ * - Plan data management
+ * - Interactive UI elements
+ * - Place details handling
+ * - Chat functionality
+ * - Navigation between views
+ * - Error handling
+ */
 export default function TripResultPage() {
   const [plan, setPlan] = useState<TripPlan | null>(null);
   const [originalRequest, setOriginalRequest] = useState<OriginalRequestData | null>(null); 
@@ -200,6 +234,10 @@ export default function TripResultPage() {
     }
   }, [plan]);
 
+  /**
+   * Enhances the trip plan with additional estimates and information
+   * @param planData - The trip plan data to enhance
+   */
   const enhancePlanWithEstimates = (planData: TripPlan) => {
     // Don't modify if already has cost data
     if (planData.total_cost_estimate) return;
@@ -333,7 +371,11 @@ export default function TripResultPage() {
     });
   };
 
-  // Function to create full search query for a place
+  /**
+   * Generates a full place query string for API requests
+   * @param placeName - The name of the place
+   * @returns Formatted query string
+   */
   function getFullPlaceQuery(placeName: string | null | undefined) {
     if (!placeName) return '';
     const city = plan?.destination_info?.city || '';
@@ -455,6 +497,10 @@ export default function TripResultPage() {
     
   }, []);
 
+  /**
+   * Handles chat message submission and AI interaction
+   * @param message - The user's message
+   */
   const handleSideChatSubmit = async (message: string /*, activityContext: Activity | null */) => {
 
     if (currentChatDayIndex === null || currentChatActivityIndex === null || !plan || !currentChatActivity) {
@@ -577,6 +623,10 @@ export default function TripResultPage() {
     }
   };
 
+  /**
+   * Handles accepting a suggested activity
+   * @param activityToAccept - The activity to accept
+   */
   const handleAcceptSuggestion = (activityToAccept: Activity) => { 
     if (currentChatDayIndex === null || currentChatActivityIndex === null || !plan) {
       toast.error("Cannot accept suggestion: missing context.");
@@ -652,7 +702,11 @@ export default function TripResultPage() {
     handleSideChatClose(); // Close chat after accepting
   };
 
-  // New handler for rejecting an individual activity from a list of suggestions
+  /**
+   * Handles rejecting an individual activity
+   * @param activityToReject - The activity to reject
+   * @param messageId - The ID of the chat message
+   */
   const handleRejectIndividualActivity = (activityToReject: Activity, messageId: string) => {
     setConversationHistory(prevHistory => {
       const historyCopy = [...prevHistory];
@@ -684,7 +738,10 @@ export default function TripResultPage() {
     });
   };
 
-  // Existing handler for rejecting a whole suggestion message (can be kept for single suggestions or future use)
+  /**
+   * Handles rejecting a suggestion
+   * @param messageId - The ID of the chat message containing the suggestion
+   */
   const handleRejectSuggestion = (messageId: string) => {
     // Find the rejected message in the conversation
     const rejectedMessageIndex = conversationHistory.findIndex(msg => msg.id === messageId);

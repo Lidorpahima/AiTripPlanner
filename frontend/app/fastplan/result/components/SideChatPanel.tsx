@@ -1,9 +1,31 @@
+/**
+ * SideChatPanel Component
+ * 
+ * A side panel component that provides an interactive chat interface for trip planning.
+ * Features include:
+ * - Real-time chat with AI assistant
+ * - Activity suggestions and modifications
+ * - Message history display
+ * - Responsive design (mobile and desktop)
+ * - Keyboard shortcuts (Escape to close)
+ * - Loading states and animations
+ * - Auto-scrolling to latest messages
+ * - Support for both activity replacement and addition modes
+ */
+
 import React, { useState, useEffect, useRef, MouseEvent } from 'react';
 import { X, Send, Check, AlertTriangle, Star, MapPin, Globe } from 'lucide-react'; // Removed unused icons after ChatMessageItem extraction
 import { Activity, TripPlan } from "@/constants/planTypes";
 import ChatMessageItem from './ChatMessageItem'; // Import the new component
 
-// Define the structure for a chat message
+/**
+ * Chat message data structure
+ * @property id - Unique identifier for the message
+ * @property text - The message content
+ * @property sender - Who sent the message ('user', 'ai', or 'system')
+ * @property timestamp - When the message was sent
+ * @property suggestedActivities - Optional array of activities suggested by the AI
+ */
 export interface ChatMessage { // Still exported as ChatMessageItem.tsx imports it
   id: string;
   text: string;
@@ -12,6 +34,21 @@ export interface ChatMessage { // Still exported as ChatMessageItem.tsx imports 
   suggestedActivities?: Activity[];
 }
 
+/**
+ * Props interface for SideChatPanel component
+ * @property isOpen - Whether the panel is currently visible
+ * @property onClose - Callback function to close the panel
+ * @property onSubmit - Callback function when a new message is sent
+ * @property activityContext - The current activity being discussed (if any)
+ * @property isLoading - Whether a message is currently being processed
+ * @property conversation - Array of chat messages to display
+ * @property onAcceptSuggestion - Callback when a suggested activity is accepted
+ * @property onRejectIndividualActivity - Callback when a specific activity is rejected
+ * @property onRejectSuggestion - Callback when all suggestions in a message are rejected
+ * @property destinationInfo - Information about the trip destination
+ * @property panelMode - Whether the panel is in 'replace' or 'add' mode
+ * @property addModeTitle - Custom title for 'add' mode
+ */
 interface SideChatPanelProps {
   isOpen: boolean;
   onClose: () => void;
@@ -27,8 +64,15 @@ interface SideChatPanelProps {
   addModeTitle?: string; // Optional title for 'add' mode
 }
 
+/**
+ * SideChatPanel Component
+ * 
+ * Renders a side panel with chat functionality for trip planning assistance.
+ * Supports both activity replacement and addition modes.
+ */
 const SideChatPanel = React.forwardRef<HTMLDivElement, SideChatPanelProps>(
   (props: SideChatPanelProps, ref: React.ForwardedRef<HTMLDivElement>) => {
+    // Destructure props with default values
     const {
       isOpen,
       onClose,
@@ -44,9 +88,15 @@ const SideChatPanel = React.forwardRef<HTMLDivElement, SideChatPanelProps>(
       addModeTitle = 'Suggest New Activity' 
     } = props;
 
+    // State for new message input
     const [newMessage, setNewMessage] = useState('');
+    // Ref for auto-scrolling to latest message
     const messagesEndRef = useRef<null | HTMLDivElement>(null);
 
+    /**
+     * Handles sending a new message
+     * Clears the input after sending
+     */
     const handleSendMessage = () => {
       if (newMessage.trim()) {
         onSubmit(newMessage, activityContext);
@@ -54,18 +104,24 @@ const SideChatPanel = React.forwardRef<HTMLDivElement, SideChatPanelProps>(
       }
     };
 
+    /**
+     * Handles closing the panel
+     * Prevents event propagation to avoid unwanted side effects
+     */
     const handleClosePanel = (e: MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
       e.stopPropagation();
       onClose();
     };
 
+    // Auto-scroll to latest message when conversation updates
     useEffect(() => {
       if (isOpen) {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }
     }, [conversation, isOpen]);
 
+    // Reset message input and focus textarea when panel opens
     useEffect(() => {
         setNewMessage('');
         if (isOpen) {
@@ -74,6 +130,7 @@ const SideChatPanel = React.forwardRef<HTMLDivElement, SideChatPanelProps>(
         }
     }, [isOpen]);
 
+    // Handle Escape key to close panel
     useEffect(() => {
       const handleEscapeKey = (e: KeyboardEvent) => {
         if (e.key === 'Escape' && isOpen) {
@@ -84,6 +141,7 @@ const SideChatPanel = React.forwardRef<HTMLDivElement, SideChatPanelProps>(
       return () => window.removeEventListener('keydown', handleEscapeKey);
     }, [isOpen, onClose]);
 
+    // Hide site header when panel is open (mobile optimization)
     useEffect(() => {
       const siteHeader = document.querySelector('header.fixed.top-3.z-50.w-full, header.fixed.top-4.z-50.w-full, header.fixed.top-5.z-50.w-full') as HTMLElement;
       if (siteHeader && isOpen) {
@@ -97,10 +155,12 @@ const SideChatPanel = React.forwardRef<HTMLDivElement, SideChatPanelProps>(
       }
     }, [isOpen]);
 
+    // Don't render anything if panel is closed
     if (!isOpen) {
       return null;
     }
 
+    // Determine panel title based on mode and context
     const effectivePanelTitle = panelMode === 'add' 
       ? addModeTitle 
       : activityContext?.description
@@ -141,6 +201,7 @@ const SideChatPanel = React.forwardRef<HTMLDivElement, SideChatPanelProps>(
 
             {/* Message Display Area */}
             <div className="flex-grow p-4 overflow-y-auto space-y-4 bg-slate-50">
+              {/* Empty state message for replace mode */}
               {panelMode === 'replace' && conversation.length === 0 && activityContext && (
                 <div className="text-center text-sm text-gray-500 p-4 bg-gray-100 rounded-lg">
                   <p>What would you like to do instead of "{activityContext.description.substring(0, 40)}
@@ -148,6 +209,7 @@ const SideChatPanel = React.forwardRef<HTMLDivElement, SideChatPanelProps>(
                   <p className="mt-1">e.g., "Find a similar activity but cheaper" or "Suggest a good restaurant nearby"</p>
                 </div>
               )}
+              {/* Render chat messages */}
               {conversation.map((msg) => (
                 <ChatMessageItem
                   key={msg.id}

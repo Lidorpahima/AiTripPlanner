@@ -1,3 +1,14 @@
+/**
+ * Preview Component Module
+ * 
+ * This module provides interactive device previews showcasing the application's features.
+ * It includes:
+ * - Device frame components for mobile and desktop previews
+ * - Scroll-based screen transitions
+ * - Responsive design adaptations
+ * - Animation and interaction handlers
+ */
+
 "use client"
 import React, { useEffect, useRef, useState, PropsWithChildren, CSSProperties, ButtonHTMLAttributes, ForwardedRef } from "react";
 import Image from "next/image";
@@ -11,12 +22,21 @@ import { DeviceFrameset } from 'react-device-frameset';
 
 import 'react-device-frameset/styles/marvel-devices.min.css'; 
 
+/**
+ * Utility function to merge Tailwind CSS classes
+ * @param inputs - Class values to be merged
+ * @returns Merged class string
+ */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Button variant configuration using class-variance-authority
+ * Defines different button styles and sizes
+ */
 const buttonVariants = cva(
-  "inline-flex items-center  justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
@@ -41,12 +61,19 @@ const buttonVariants = cva(
   }
 );
 
+/**
+ * Button component props interface
+ * Extends HTML button attributes and adds variant props
+ */
 export interface ButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
 
+/**
+ * Reusable Button component with variant support
+ */
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }: ButtonProps, ref: ForwardedRef<HTMLButtonElement>) => {
     const Comp = asChild ? Slot : "button";
@@ -55,13 +82,35 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = "Button";
 
-// 4. Lobster font instance
+/**
+ * Lobster font configuration for decorative text
+ */
 const lobster = Lobster({
   weight: "400",
   subsets: ["latin"],
   display: "swap",
 });
 
+/**
+ * Screen configuration interface for device preview
+ */
+interface ScreenConfig {
+  title: string;
+  description: string;
+  image: string;
+  bgColorForButton: string;
+}
+
+/**
+ * PhoneWithScrollingScreens Component
+ * 
+ * Interactive device preview component that showcases app features through
+ * scroll-based screen transitions. Features include:
+ * - Scroll-triggered screen changes
+ * - Responsive device frames
+ * - Smooth animations
+ * - Background position adjustments
+ */
 function PhoneWithScrollingScreens() {
   const [activeScreen, setActiveScreen] = useState(0);
   const [isAtLastScreen, setIsAtLastScreen] = useState(false);
@@ -71,7 +120,11 @@ function PhoneWithScrollingScreens() {
   const [macbookZoom, setMacbookZoom] = useState(0.41);
   const [mobileZoom, setMobileZoom] = useState(0.5);
   const scrollTriggerRef = useRef<HTMLDivElement>(null); 
-  const screens = [
+
+  /**
+   * Screen configurations for the preview
+   */
+  const screens: ScreenConfig[] = [
     {
       title: "Live Trip Tracking",
       description: "See and update your trip status in real time.",
@@ -106,6 +159,7 @@ function PhoneWithScrollingScreens() {
 
   const minSectionHeight = `${screens.length * 100}vh`;
 
+  // Handle mobile detection
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
@@ -113,6 +167,7 @@ function PhoneWithScrollingScreens() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Handle background position based on scroll
   useEffect(() => {
     if (!scrollTriggerRef.current) return;
     const container = scrollTriggerRef.current;
@@ -125,8 +180,8 @@ function PhoneWithScrollingScreens() {
     setBgPosition(`center ${scrollPercentage * 100}%`);
   }, [activeScreen, isActive]);
 
+  // Handle last screen detection
   useEffect(() => {
-    // נחשב אם המשתמש באמת בסוף הגלילה
     if (!scrollTriggerRef.current) {
       setIsAtLastScreen(false);
       return;
@@ -141,6 +196,7 @@ function PhoneWithScrollingScreens() {
     setIsAtLastScreen(scrollPercentage === 1);
   }, [activeScreen, screens.length]);
 
+  // Handle scroll-based screen activation
   useEffect(() => {
     const HEADER_OFFSET = 100; 
     const handleScroll = () => {
@@ -159,6 +215,7 @@ function PhoneWithScrollingScreens() {
     };
   }, []);
 
+  // Handle navigation to next section when reaching last screen
   useEffect(() => {
     if (isAtLastScreen) {
       const nextSection = document.getElementById('how-it-works');
@@ -169,6 +226,7 @@ function PhoneWithScrollingScreens() {
     }
   }, [isAtLastScreen]);
 
+  // Handle active screen updates based on scroll position
   useEffect(() => {
     const handleScroll = () => {
       if (!scrollTriggerRef.current) return;
@@ -200,6 +258,7 @@ function PhoneWithScrollingScreens() {
     };
   }, [screens.length]);
 
+  // Handle responsive zoom levels
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 850) {
@@ -241,7 +300,7 @@ function PhoneWithScrollingScreens() {
         style={isAtLastScreen || !isActive ? { position: 'relative' } : { position: 'fixed' }}
       >
         <div className="flex flex-col md:flex-row items-center justify-center w-full max-w-5xl mx-auto ">
-          {/* Phone Frame using react-device-frameset */}
+          {/* Device Frame */}
           <div
             className={
               (activeScreen < 3
@@ -354,7 +413,10 @@ function PhoneWithScrollingScreens() {
 }
 
 
-// 6. Main Component to use the PhoneWithScrollingScreens
+/**
+ * Main Component to use the PhoneWithScrollingScreens
+ * Provides a complete showcase of the application's features
+ */
 export function CompactDeviceShowcaseV2() {
   return (
     <div className="relative w-full mx-auto flex flex-col"> 

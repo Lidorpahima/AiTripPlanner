@@ -1,3 +1,16 @@
+/**
+ * Root Layout Component
+ * 
+ * This is the main layout component that wraps the entire application.
+ * It includes:
+ * - Global styles and fonts
+ * - Authentication context
+ * - CSRF token initialization
+ * - Toast notifications
+ * - Brevo chat widget
+ * - AOS animations
+ */
+
 'use client'; 
 
 import { useEffect } from 'react'; 
@@ -10,13 +23,15 @@ import 'react-toastify/dist/ReactToastify.css';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
+// Initialize Inter font
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
 });
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ;
+// API configuration
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export default function RootLayout({
   children,
@@ -25,6 +40,7 @@ export default function RootLayout({
 }) {
 
   useEffect(() => {
+    // Initialize AOS animations
     AOS.init({
       duration: 800,
       once: false,
@@ -33,17 +49,13 @@ export default function RootLayout({
       anchorPlacement: 'top-bottom',
     });
 
+    // Ensure CSRF token is available
     const ensureCsrfCookie = async () => {
       try {
         await fetch(`${API_BASE}/api/csrf/`, {
-            method: 'GET',
-            credentials: 'include'
+          method: 'GET',
+          credentials: 'include'
         });
-
-        const csrfCookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
-        if (csrfCookie) {
-        } else {
-        }
       } catch (err) {
         console.error("Failed to fetch CSRF token endpoint:", err);
       }

@@ -1,3 +1,17 @@
+/**
+ * useAuthForm Custom Hook
+ * 
+ * A custom hook for handling authentication form logic, including:
+ * - Form state management
+ * - Form submission handling
+ * - API integration
+ * - Error handling
+ * - Loading state management
+ * - Success/error notifications
+ * - Automatic redirection
+ * - Token management
+ */
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
@@ -7,12 +21,25 @@ import { extractErrorMessages } from '../utils/authUtils';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+/**
+ * Props interface for useAuthForm hook
+ * @property endpoint - API endpoint for authentication
+ * @property redirectPath - Path to redirect after successful authentication
+ * @property successMessage - Message to display on successful authentication
+ */
 interface UseAuthFormProps {
   endpoint: string;
   redirectPath?: string;
   successMessage?: string;
 }
 
+/**
+ * Interface for authentication form data
+ * @property full_name - User's full name (optional for signup)
+ * @property email - User's email address
+ * @property password - User's password
+ * @property password2 - Password confirmation (optional for signup)
+ */
 interface SignupFormData {
   full_name?: string;
   email: string;
@@ -20,11 +47,23 @@ interface SignupFormData {
   password2?: string;
 }
 
+/**
+ * useAuthForm Hook
+ * 
+ * Manages authentication form state and submission logic.
+ * Handles API calls, error handling, and success flows.
+ * 
+ * @param endpoint - API endpoint for authentication
+ * @param redirectPath - Path to redirect after successful authentication
+ * @param successMessage - Message to display on successful authentication
+ * @returns Object containing form state and handlers
+ */
 const useAuthForm = ({ 
   endpoint, 
   redirectPath = '/', 
   successMessage = 'Authentication successful! Redirecting...' 
 }: UseAuthFormProps) => {
+  // Form state management
   const [formData, setFormData] = useState<SignupFormData>({
     full_name: '',
     email: '',
@@ -36,6 +75,10 @@ const useAuthForm = ({
   const router = useRouter();
   const { login } = useAuth();
 
+  /**
+   * Handles form input changes
+   * Updates form state and clears any existing errors
+   */
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -46,12 +89,17 @@ const useAuthForm = ({
     if (authError) setAuthError(null);
   };
 
+  /**
+   * Handles form submission
+   * Makes API call, handles response, and manages authentication flow
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setAuthError(null);
 
     try {
+      // Make API request
       const res = await fetch(`${API_BASE}/api/${endpoint}/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -60,6 +108,7 @@ const useAuthForm = ({
 
       let data: any = {};
 
+      // Handle response parsing
       try {
         data = await res.json();
       } catch (jsonError) {
@@ -75,8 +124,10 @@ const useAuthForm = ({
         return;
       }
 
+      // Handle successful response
       if (res.ok) {
         if (data && data.access && data.refresh) {
+          // Store tokens in secure cookies
           Cookies.set('access', data.access, { 
             path: '/', 
             expires: 7,
@@ -90,6 +141,7 @@ const useAuthForm = ({
             sameSite: 'strict'
           });
           
+          // Update auth context and handle success
           login(data.access, data.refresh);
           toast.success(successMessage);
           setTimeout(() => {
@@ -100,11 +152,13 @@ const useAuthForm = ({
           toast.error('Authentication seemed successful, but failed to get authentication tokens.');
         }
       } else {
+        // Handle error response
         const errorMessage = extractErrorMessages(data);
         setAuthError(errorMessage);
         toast.error(errorMessage);
       }
     } catch (error) {
+      // Handle network errors
       console.error("Network/Fetch Error:", error);
       toast.error('Network error. Please check your connection or try again later.');
     } finally {

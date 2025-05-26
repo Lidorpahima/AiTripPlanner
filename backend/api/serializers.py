@@ -1,6 +1,23 @@
+"""
+Django REST Framework Serializers for Trip Planner Application
+
+This module contains all the serializers used in the Trip Planner application.
+It includes serializers for:
+- User registration and authentication
+- User profile management
+- Trip planning and saving
+- Activity notes
+
+Key Features:
+- User registration with email and password validation
+- Profile management with visited countries tracking
+- Trip planning data validation
+- Activity note management
+"""
+
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import UserProfile, VisitedCountry ,SavedTrip 
+from .models import UserProfile, VisitedCountry, SavedTrip 
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db import transaction
@@ -9,7 +26,17 @@ from django.db import transaction
 from .models import ActivityNote
 
 class RegisterSerializer(serializers.ModelSerializer):
-    full_name = serializers.CharField(required=True,write_only=True)
+    """
+    Serializer for user registration.
+    
+    Features:
+    - Email-based registration
+    - Password validation
+    - Full name collection
+    - Automatic username generation from email
+    - User profile creation
+    """
+    full_name = serializers.CharField(required=True, write_only=True)
     email = serializers.EmailField(required=True)
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
@@ -18,9 +45,22 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'email', 'password', 'password2', 'full_name')
         extra_kwargs = {
-            'username':{'read_only': True},
+            'username': {'read_only': True},
         }
+
     def validate(self, attrs):
+        """
+        Validate registration data.
+        
+        Args:
+            attrs: Dictionary of registration attributes
+            
+        Returns:
+            dict: Validated attributes
+            
+        Raises:
+            ValidationError: If email is already registered or passwords don't match
+        """
         if User.objects.filter(username=attrs['email']).exists():
             raise serializers.ValidationError({"email": "This email address is already registered."})
         
@@ -31,6 +71,15 @@ class RegisterSerializer(serializers.ModelSerializer):
     
     @transaction.atomic
     def create(self, validated_data):
+        """
+        Create a new user and associated profile.
+        
+        Args:
+            validated_data: Dictionary of validated registration data
+            
+        Returns:
+            User: Newly created user instance
+        """
         full_name = validated_data.pop('full_name')
         password = validated_data.pop('password')
         validated_data.pop('password2')
@@ -49,6 +98,14 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 class LoginSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user login.
+    
+    Features:
+    - Email-based login
+    - Password validation
+    - User existence verification
+    """
     email = serializers.EmailField(required=True)
     password = serializers.CharField(write_only=True, required=True)
 
@@ -58,6 +115,18 @@ class LoginSerializer(serializers.ModelSerializer):
         
     @transaction.atomic
     def validate(self, attrs):
+        """
+        Validate login credentials.
+        
+        Args:
+            attrs: Dictionary of login attributes
+            
+        Returns:
+            dict: Validated attributes
+            
+        Raises:
+            ValidationError: If email is not registered or password is incorrect
+        """
         email = attrs.get('email')
         password = attrs.get('password')
 
@@ -72,14 +141,32 @@ class LoginSerializer(serializers.ModelSerializer):
         return attrs
     
 class UserProfileSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user profile management.
+    
+    Features:
+    - Profile information retrieval
+    - Visited countries management
+    - Full name updates
+    """
     username_email = serializers.EmailField(source='user.username', read_only=True) 
-    visited_countries = serializers.ListField(child=serializers.CharField(max_length=100),required=False,write_only=False)
+    visited_countries = serializers.ListField(child=serializers.CharField(max_length=100), required=False, write_only=False)
     
     class Meta:
         model = UserProfile
-        fields = ['id', 'username_email', 'full_name','visited_countries']
+        fields = ['id', 'username_email', 'full_name', 'visited_countries']
         read_only_fields = ['id', 'username_email']
+
     def to_representation(self, instance):
+        """
+        Convert profile instance to dictionary representation.
+        
+        Args:
+            instance: UserProfile instance
+            
+        Returns:
+            dict: Profile data with visited countries
+        """
         representation = super().to_representation(instance)
         countries_queryset = VisitedCountry.objects.filter(user=instance.user).values_list('country_name', flat=True) 
         representation['visited_countries'] = list(countries_queryset)
@@ -87,7 +174,16 @@ class UserProfileSerializer(serializers.ModelSerializer):
     
     @transaction.atomic 
     def update(self, instance, validated_data):
-
+        """
+        Update profile information and visited countries.
+        
+        Args:
+            instance: UserProfile instance to update
+            validated_data: Dictionary of validated update data
+            
+        Returns:
+            UserProfile: Updated profile instance
+        """
         instance.full_name = validated_data.get('full_name', instance.full_name) 
         instance.save() 
 
@@ -102,7 +198,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
             countries_to_delete = current_countries - new_countries
             if countries_to_delete:
                 VisitedCountry.objects.filter(user=user, country_name__in=countries_to_delete).delete()
-                print(f"[DEBUG] Deleted countries for user {user.id}: {countries_to_delete}") 
 
             countries_to_add = new_countries - current_countries
             if countries_to_add:
@@ -110,14 +205,19 @@ class UserProfileSerializer(serializers.ModelSerializer):
                     VisitedCountry(user=user, country_name=country) for country in countries_to_add
                 ]
                 VisitedCountry.objects.bulk_create(visited_country_objects)
-                print(f"[DEBUG] Added countries for user {user.id}: {countries_to_add}") 
-
-            final_countries = set(VisitedCountry.objects.filter(user=user).values_list('country_name', flat=True))
-            print(f"[DEBUG] Final countries for user {user.id}: {final_countries}") 
 
         return instance 
     
 class PlanTripSerializer(serializers.Serializer):
+    """
+    Serializer for trip planning data.
+    
+    Features:
+    - Destination validation
+    - Date range handling
+    - Trip preferences collection
+    - Search mode specification
+    """
     destination = serializers.CharField()
     startDate = serializers.DateField(required=False, allow_null=True)
     endDate = serializers.DateField(required=False, allow_null=True)
@@ -131,7 +231,17 @@ class PlanTripSerializer(serializers.Serializer):
     searchMode = serializers.CharField(required=True)
 
 class SavedTripSerializer(serializers.ModelSerializer):
+    """
+    Serializer for saved trips.
+    
+    Features:
+    - Trip data storage
+    - User association
+    - Destination images
+    - Plan JSON storage
+    """
     user_email = serializers.EmailField(source='user.username', read_only=True)
+    
     class Meta:
         model = SavedTrip
         fields = [
@@ -149,6 +259,14 @@ class SavedTripSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'user', 'saved_at', 'user_email']
 
 class ActivityNoteSerializer(serializers.ModelSerializer):
+    """
+    Serializer for activity notes.
+    
+    Features:
+    - Note content management
+    - Activity completion tracking
+    - Timestamp tracking
+    """
     class Meta:
         model = ActivityNote
         fields = ['id', 'user', 'trip', 'day_index', 'activity_index', 'note', 'is_done', 'created_at', 'updated_at']

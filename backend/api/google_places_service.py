@@ -1,14 +1,53 @@
+"""
+Google Places API Service for Trip Planner Application
+
+This module provides a service for interacting with the Google Places API.
+It handles place searches, details retrieval, and photo management.
+
+Key Features:
+- Place search and details retrieval
+- Photo URL generation
+- Response caching
+- Error handling
+- Data processing and formatting
+"""
 
 from googlemaps import Client
 from django.conf import settings
 from django.core.cache import cache
 
 class GooglePlacesService:
+    """
+    Service class for interacting with Google Places API.
+    
+    Features:
+    - Place search and details retrieval
+    - Photo URL generation
+    - Response caching (72 hours)
+    - Error handling
+    - Data processing
+    """
+    
     def __init__(self):
+        """
+        Initialize the Google Places service.
+        
+        Sets up the Google Maps client and cache duration.
+        """
         self.client = Client(key=settings.GOOGLE_API_KEY)
-        self.cache_duration = 60 * 60 * 72  
+        self.cache_duration = 60 * 60 * 72  # 72 hours in seconds
 
     def search_place(self, query, location=None):
+        """
+        Search for a place and retrieve its details.
+        
+        Args:
+            query (str): The search query for the place
+            location (tuple, optional): (latitude, longitude) for location-based search
+            
+        Returns:
+            dict: Processed place details or None if not found/error
+        """
         cache_key = f"place_details_{query}"
         cached_result = cache.get(cache_key)
         
@@ -28,7 +67,7 @@ class GooglePlacesService:
                 print("❌ No results found")
                 return None
 
-            # קבלת פרטים מלאים
+            # Get full details
             place_id = places_result['results'][0]['place_id']
             place_details = self.client.place(
                 place_id,
@@ -46,7 +85,6 @@ class GooglePlacesService:
                     'geometry'
                 ],
             )
-            print("--- Google Response START --- \n", place_details, "\n--- Google Response END ---")
 
             result = self._process_place_details(place_details['result'])
             cache.set(cache_key, result, self.cache_duration)
@@ -59,13 +97,22 @@ class GooglePlacesService:
             return None
 
     def _process_place_details(self, place):
+        """
+        Process raw place details into a standardized format.
+        
+        Args:
+            place (dict): Raw place details from Google Places API
+            
+        Returns:
+            dict: Processed place details or None if invalid
+        """
         if not place:
             return None
 
         location = place.get('geometry', {}).get('location') 
-
         opening_hours_list = place.get('opening_hours', {}).get('weekday_text', []) 
 
+        # Process photos
         photo_urls = []
         photos_references = place.get('photos', [])
         if isinstance(photos_references, list):
@@ -74,6 +121,7 @@ class GooglePlacesService:
                     photo_ref_string = photo_ref_obj['photo_reference']
                     photo_urls.append(self._get_photo_url(photo_ref_string))
 
+        # Process reviews
         reviews_list = []
         reviews_data = place.get('reviews', [])
         if isinstance(reviews_data, list):
@@ -87,8 +135,6 @@ class GooglePlacesService:
                 for review in reviews_data
                 if isinstance(review, dict)
             ]
-
-        print("--- Processed Photo URLs --- \n", photo_urls, "\n--- End Processed Photos ---")
 
         return {
             'name': place.get('name'),
@@ -105,4 +151,13 @@ class GooglePlacesService:
         }
 
     def _get_photo_url(self, photo_reference):
+        """
+        Generate a photo URL from a photo reference.
+        
+        Args:
+            photo_reference (str): Google Places photo reference
+            
+        Returns:
+            str: Complete photo URL with API key
+        """
         return f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference={photo_reference}&key={settings.GOOGLE_API_KEY}"

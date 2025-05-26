@@ -1,3 +1,17 @@
+/**
+ * GoogleAuthButton Component
+ * 
+ * A component that handles Google authentication integration, including:
+ * - Google Sign-In button rendering
+ * - Google API initialization
+ * - Token handling
+ * - Error management
+ * - Loading states
+ * - Success notifications
+ * - Automatic redirection
+ * - Secure cookie management
+ */
+
 import React, { useEffect, useState, useCallback } from 'react';
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
@@ -7,18 +21,34 @@ import { useAuth } from '../context/AuthContext';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
+/**
+ * Props interface for GoogleAuthButton component
+ * @property context - The context in which the button is used ('signin' or 'signup')
+ */
 interface GoogleAuthButtonProps {
   context: 'signin' | 'signup';
 }
 
+/**
+ * GoogleAuthButton Component
+ * 
+ * Renders a Google Sign-In button and handles the authentication flow.
+ * Integrates with Google's Identity Services API and manages the authentication state.
+ */
 const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
+  // State management
   const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isGoogleApiReady, setIsGoogleApiReady] = useState(false); 
   const router = useRouter();
   const { login } = useAuth();
 
-
+  /**
+   * Extracts error messages from API response data
+   * @param data - The response data from the API
+   * @returns Formatted error message string
+   */
   const extractErrorMessages = (data: any): string => {
     if (!data) return 'An unexpected error occurred. Please try again.';
     if (typeof data === 'string') return data; 
@@ -42,7 +72,10 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
     return messages.join('\n');
   };
 
-  // Memoize handleGoogleAuth
+  /**
+   * Handles Google authentication response
+   * Processes the credential token and manages the authentication flow
+   */
   const handleGoogleAuth = useCallback(async (credentialResponse: any) => {
     try {
       setIsLoading(true);
@@ -52,10 +85,11 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
       if (!token) {
         setAuthError('Failed to receive authentication token from Google');
         toast.error('Failed to get authentication token from Google');
-        setIsLoading(false); // Reset loading state
+        setIsLoading(false);
         return;
       }
 
+      // Make API request to backend
       const res = await fetch(`${API_BASE}/api/auth/google/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -65,8 +99,10 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
 
       const data = await res.json();
 
+      // Handle successful response
       if (res.ok) {
         if (data && data.access && data.refresh) {
+          // Store tokens in secure cookies
           Cookies.set('access', data.access, { 
             path: '/', 
             expires: 7,
@@ -90,6 +126,7 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
           toast.error('Authentication succeeded but failed to get tokens');
         }
       } else {
+        // Handle error response
         const errorMessage = data.error || extractErrorMessages(data);
         setAuthError(errorMessage);
         toast.error(errorMessage || 'Google authentication failed');
@@ -101,13 +138,16 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [login, router, API_BASE]); // Dependencies for useCallback
+  }, [login, router, API_BASE]);
 
-  // Initialize Google Sign-In
+  /**
+   * Initializes Google Sign-In functionality
+   * Sets up the Google Identity Services API
+   */
   useEffect(() => {
     if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.trim() === "") {
       toast.error("Google Sign-In is not configured correctly.");
-      setIsGoogleApiReady(false); // Ensure button remains disabled
+      setIsGoogleApiReady(false);
       return;
     }
 
@@ -123,7 +163,7 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
             ux_mode: 'popup',
             locale: 'en',
           });
-          setIsGoogleApiReady(true); // Set API ready state
+          setIsGoogleApiReady(true);
           console.log("Google Sign-In initialized successfully.");
         } catch (error) {
           console.error("Error initializing Google Sign-In:", error);
@@ -132,11 +172,10 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
         }
       } else {
         console.warn("Google GSI library not fully loaded when trying to initialize.");
-        // Optionally, retry or indicate to user
       }
     };
 
-    // Handler for when the Google script loads
+    // Handle Google script load event
     const handleGoogleScriptLoad = () => {
       console.log("Google script loaded event fired.");
       initializeGoogleSignIn();
@@ -153,9 +192,12 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
     };
   }, [context, handleGoogleAuth]);
 
+  /**
+   * Handles custom Google button click
+   * Initiates OAuth flow with Google
+   */
   const handleCustomGoogleButtonClick = () => {
     const clientId = GOOGLE_CLIENT_ID;
-
     const redirectUri = encodeURIComponent(`http://localhost:3000/api/auth/google/callback`);
     const scope = encodeURIComponent('openid email profile');
     const oauthUrl =
@@ -172,9 +214,10 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
 
   return (
     <>
+      {/* Load Google Sign-In script */}
       <Script
         src="https://accounts.google.com/gsi/client"
-        strategy="lazyOnload" // Consider 'beforeInteractive' if issues persist with timing
+        strategy="lazyOnload"
         onLoad={() => {
           window.dispatchEvent(new Event('google-loaded'));
         }}
@@ -184,6 +227,7 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
         }}
       />
       <div className="flex flex-col items-center w-full mt-3 bg-white rounded-md border border-gray-300 shadow-sm">
+        {/* Loading indicator */}
         {isLoading && ( 
           <div className="flex items-center justify-center mb-2">
             <div className="w-5 h-5 border-2 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
@@ -191,7 +235,7 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
           </div>
         )}
 
-        {/* Your Custom Google Button */}
+        {/* Google Sign-In button */}
         <button
           type="button"
           disabled={isLoading || !isGoogleApiReady} 
@@ -208,6 +252,7 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
           {context === 'signin' ? 'Sign in with Google' : 'Sign up with Google'}
         </button>
         
+        {/* Error message display */}
         {authError && (
           <p className="mt-2 text-xs text-red-600">{authError}</p>
         )}
@@ -218,6 +263,9 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
 
 export default GoogleAuthButton;
 
+/**
+ * Global type declarations for Google Sign-In API
+ */
 declare global {
   interface Window {
     google?: {

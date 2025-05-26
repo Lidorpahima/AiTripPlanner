@@ -1,3 +1,17 @@
+/**
+ * Live Mode Page Component
+ * 
+ * A dynamic page component that enables users to interact with their trip plan in real-time.
+ * Features include:
+ * - Real-time activity tracking and completion
+ * - Day-by-day navigation
+ * - Activity notes and modifications
+ * - Side chat for trip modifications
+ * - Progress tracking
+ * - Authentication and token management
+ * - Responsive design with swipeable activities
+ */
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -22,14 +36,23 @@ import SwipeableActivities from './components/SwipeableActivities';
 import NoteModal from './components/NoteModal';
 import { saveNote } from './components/saveNote';
 
+/**
+ * Utility function to get current date in YYYY-MM-DD format
+ * @returns {string} Current date string
+ */
 const getCurrentDateString = () => {
     const today = new Date();
     const year = today.getFullYear();
     const month = (today.getMonth() + 1).toString().padStart(2, '0');
-    const dayNum = today.getDate().toString().padStart(2, '0'); // Renamed to avoid conflict
+    const dayNum = today.getDate().toString().padStart(2, '0');
     return `${year}-${month}-${dayNum}`;
 };
 
+/**
+ * Checks if a JWT token is expired
+ * @param {string | undefined} token - JWT token to check
+ * @returns {boolean} True if token is expired or invalid
+ */
 function isTokenExpired(token: string | undefined): boolean {
     if (!token) return true;
     try {
@@ -40,6 +63,11 @@ function isTokenExpired(token: string | undefined): boolean {
     }
 }
 
+/**
+ * Attempts to refresh the access token using a refresh token
+ * @param {string | undefined} refreshToken - Refresh token to use
+ * @returns {Promise<string | null>} New access token or null if refresh failed
+ */
 async function refreshAccessToken(refreshToken: string | undefined): Promise<string | null> {
     if (!refreshToken) return null;
     try {
@@ -60,10 +88,21 @@ async function refreshAccessToken(refreshToken: string | undefined): Promise<str
     }
 }
 
-// --- Constants ---
+// API configuration
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+/**
+ * TripLiveModePage Component
+ * 
+ * Main component for the live trip mode interface. Manages:
+ * - Trip data and state
+ * - Authentication
+ * - Activity tracking
+ * - Navigation
+ * - Notes and modifications
+ */
 export default function TripLiveModePage() {
+    // State management
     const [trip, setTrip] = useState<SavedTripData | null>(null);
     const [livePlan, setLivePlan] = useState<LiveTripPlan | null>(null);
     const [currentDayPlan, setCurrentDayPlan] = useState<LiveDay | null>(null);
@@ -77,13 +116,17 @@ export default function TripLiveModePage() {
     const [noteInitial, setNoteInitial] = useState('');
     const [swipeView, setSwipeView] = useState(false);
 
+    // Router and params setup
     const router = useRouter();
     const params = useParams();
     const tripId = params.tripId as string;
     const token = Cookies.get('access');
     const refreshToken = Cookies.get('refresh');
 
-    // Token check and refresh logic
+    /**
+     * Effect hook for token management
+     * Handles token validation and refresh
+     */
     useEffect(() => {
         async function checkAndRefreshToken() {
             let currentToken = Cookies.get('token');
@@ -102,15 +145,15 @@ export default function TripLiveModePage() {
             }
         }
         checkAndRefreshToken();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [refreshToken, router]);
 
+    // Activity notes hook
     const { notes, setNotes, loading: notesLoading } = useActivityNotes(tripId, tokenState);
 
-    // Use the side chat hook
+    // Side chat functionality
     const {
         isSideChatOpen,
-        sideChatContext, // This context is managed by the hook but needed for SideChatPanel props
+        sideChatContext,
         conversationHistory,
         sideChatLoading,
         handleOpenAddActivityChat,
@@ -119,10 +162,12 @@ export default function TripLiveModePage() {
         handleAcceptNewActivitySuggestion,
         handleRejectSuggestionForAdd,
         handleRejectIndividualActivity,
-        // setConversationHistory // Not typically used directly from parent
     } = useSideChat({ livePlan, trip, setLivePlan, setCurrentDayPlan });
 
-    // Effect to hide/show third-party chat widget (e.g., Brevo)
+    /**
+     * Effect hook to manage third-party chat widget visibility
+     * Hides external chat widgets when live mode is active
+     */
     useEffect(() => {
         const selectors = [
             'div.brevo-conversations__iframe-wrapper',
@@ -183,8 +228,12 @@ export default function TripLiveModePage() {
         } else {
             console.log("Live Mode: Brevo chat widget not found or already hidden.");
         }
-    }, []); // Empty dependency array: runs once on mount, cleans up on unmount
+    }, []);
 
+    /**
+     * Effect hook to initialize trip data
+     * Loads and validates trip data from session storage
+     */
     useEffect(() => {
         const storedTripData = sessionStorage.getItem('liveTripData');
         if (storedTripData) {
@@ -232,6 +281,10 @@ export default function TripLiveModePage() {
         setIsLoading(false);
     }, [tripId, router]);
 
+    /**
+     * Effect hook to update current day plan
+     * Updates the current day when live plan changes
+     */
     useEffect(() => {
         if (livePlan && livePlan.days && livePlan.days.length > 0) {
             setCurrentDayPlan(livePlan.days[currentDayIndex] || livePlan.days[0]);

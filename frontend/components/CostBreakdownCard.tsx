@@ -1,5 +1,27 @@
+/**
+ * Cost Breakdown Card Component
+ * 
+ * A reusable component that displays a cost breakdown item with a visual bar representation.
+ * Features:
+ * - Icon and label display
+ * - Min-max cost range
+ * - Visual progress bar
+ * - Customizable colors
+ * - Accessible progress bar with ARIA attributes
+ * - Responsive design
+ */
+
 import React from "react";
 
+/**
+ * Props interface for the CostBreakdownCard component
+ * @property icon - React node for the category icon
+ * @property label - Text label for the cost category
+ * @property min - Minimum cost value
+ * @property max - Maximum cost value
+ * @property formatCurrency - Function to format currency values
+ * @property colorClass - Tailwind CSS class for the progress bar color
+ */
 interface CostBreakdownCardProps {
   icon: React.ReactNode;
   label: string;
@@ -9,6 +31,12 @@ interface CostBreakdownCardProps {
   colorClass: string; // Tailwind background color class, e.g., 'bg-blue-600'
 }
 
+/**
+ * CostBreakdownCard Component
+ * 
+ * Renders a card showing a cost category with its range and a visual representation.
+ * The progress bar width is calculated based on the average of min and max values.
+ */
 const CostBreakdownCard: React.FC<CostBreakdownCardProps> = ({ 
   icon, 
   label, 
@@ -25,6 +53,7 @@ const CostBreakdownCard: React.FC<CostBreakdownCardProps> = ({
 
   return (
     <div className="mb-4 last:mb-0"> {/* Remove bottom margin from the last card */}
+      {/* Header with Icon, Label, and Cost Range */}
       <div className="flex justify-between items-center mb-1 text-sm">
         <span className="text-gray-700 flex items-center">
           {/* Ensure icon has consistent size */}
@@ -36,9 +65,9 @@ const CostBreakdownCard: React.FC<CostBreakdownCardProps> = ({
           {formatCurrency(min)} - {formatCurrency(max)}
         </span>
       </div>
-      {/* Visual bar container */}
+      {/* Progress Bar Container */}
       <div className="h-2 bg-gray-200 rounded-full overflow-hidden w-full">
-        {/* Colored bar representing the average cost relative to max */}
+        {/* Colored Progress Bar */}
         <div
           className={`h-full ${colorClass} rounded-full transition-width duration-500 ease-in-out`}
           style={{ width: `${barWidthPercentage}%` }} 

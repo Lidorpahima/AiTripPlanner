@@ -1,3 +1,19 @@
+/**
+ * About Page Component
+ * 
+ * Displays information about the application and its creator, including:
+ * - Application overview and features
+ * - Technology stack details
+ * - Creator information
+ * - Social media links
+ * 
+ * Features:
+ * - Clean and organized layout
+ * - Responsive design
+ * - Interactive social links
+ * - Clear section separation
+ */
+
 import Link from 'next/link';
 
 export const metadata = {
@@ -5,6 +21,23 @@ export const metadata = {
   description: "Learn more about AiTripPlanner and its creator.",
 };
 
+/**
+ * AboutPage Component
+ * 
+ * Renders the about page with sections covering:
+ * 1. Application Overview
+ *    - Description of AiTripPlanner
+ *    - Key features and capabilities
+ *    - Technology integration (Gemini AI, Google Places)
+ * 
+ * 2. Creator Information
+ *    - Developer background
+ *    - Technical expertise
+ *    - Social media links (LinkedIn, GitHub)
+ * 
+ * The page provides users with insights into the application's
+ * development and the technology behind it.
+ */
 export default function AboutPage() {
   return (
     <section className="relative bg-white py-8">

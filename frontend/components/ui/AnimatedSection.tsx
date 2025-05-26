@@ -1,9 +1,31 @@
+/**
+ * AnimatedSection Component
+ * 
+ * A reusable animation wrapper component that provides various animation effects
+ * for content sections. Features include:
+ * - Multiple animation types (fade, slide, scale)
+ * - Directional animations (up, down, left, right)
+ * - Intersection Observer based trigger
+ * - Customizable timing and distance
+ * - Smooth transitions with easing
+ */
+
 "use client";
 
 import React, { ReactNode, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import clsx from "clsx";
 
+/**
+ * Props interface for the AnimatedSection component
+ * @property children - React nodes to be animated
+ * @property className - Optional CSS classes to apply to the wrapper
+ * @property delay - Animation delay in seconds
+ * @property direction - Direction of the animation (up, down, left, right)
+ * @property type - Type of animation (fade, slide, scale)
+ * @property distance - Distance to animate in pixels
+ * @property duration - Duration of the animation in seconds
+ */
 interface AnimatedSectionProps {
   children: ReactNode;
   className?: string;
@@ -14,6 +36,13 @@ interface AnimatedSectionProps {
   duration?: number;
 }
 
+/**
+ * AnimatedSection Component
+ * 
+ * Wraps content in an animated container that triggers animations
+ * when the content comes into view. Uses Framer Motion for smooth
+ * animations and Intersection Observer for viewport detection.
+ */
 const AnimatedSection: React.FC<AnimatedSectionProps> = ({
   children,
   className = "",
@@ -23,10 +52,11 @@ const AnimatedSection: React.FC<AnimatedSectionProps> = ({
   distance = 50,
   duration = 0.6,
 }) => {
+  // Reference for the animated element and viewport detection
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
 
-  // הגדרת האנימציות השונות
+  // Animation variants configuration
   const animations = {
     hidden: {
       opacity: type === "fade" || type === "slide" ? 0 : 1,

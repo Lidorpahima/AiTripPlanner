@@ -1,3 +1,21 @@
+/**
+ * FastPlan Page Component
+ * 
+ * A multi-step form component for creating personalized travel plans that provides:
+ * - Step-by-step travel planning process
+ * - Destination search with autocomplete
+ * - Date selection with validation
+ * - Trip style and interests selection
+ * - Pace and budget preferences
+ * - Transportation mode selection
+ * - Travel companion selection
+ * - Must-see attractions input
+ * - Search mode selection
+ * - Form validation at each step
+ * - Loading states and error handling
+ * - Responsive design with animations
+ */
+
 'use client';
 
 import { useState, ChangeEvent, useEffect, useRef } from 'react';
@@ -43,6 +61,12 @@ const fadeIn = {
   }
 };
 
+/**
+ * FastPlanPage Component
+ * 
+ * Main component that handles the multi-step travel planning process.
+ * Manages form state, step navigation, and API interactions.
+ */
 export default function FastPlanPage() {
   // --- State ---
   const [currentStep, setCurrentStep] = useState(1);
@@ -148,16 +172,28 @@ export default function FastPlanPage() {
     fetchSuggestions();
   }, [debouncedSearchTerm]); 
 
+  /**
+   * Handles destination input changes and updates form state
+   * @param value - The selected destination value
+   */
   const handleDestinationChange = (value: string) => {
     setFormData(prev => ({ ...prev, destination: value }));
     setSearchInput(value);
     setDestinationSuggestions([]);
   };
 
+  /**
+   * Handles destination search input and triggers suggestions
+   * @param value - The search input value
+   */
   const handleDestinationSearch = (value: string) => {
     setSearchInput(value);
   };
 
+  /**
+   * Validates and advances to the next step in the form
+   * Performs validation checks based on current step
+   */
   const nextStep = () => {
     if (currentStep === 1 && !formData.destination) {
       toast.warn("Please select or enter a destination.");
@@ -204,19 +240,36 @@ export default function FastPlanPage() {
     setCurrentStep(prev => prev + 1);
   };
 
+  /**
+   * Returns to the previous step in the form
+   */
   const prevStep = () => {
     setCurrentStep(prev => prev - 1);
   };
 
+  /**
+   * Handles changes to form input fields
+   * @param e - Change event from input elements
+   */
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  /**
+   * Handles single-select field changes
+   * @param field - The form field to update
+   * @param value - The new value to set
+   */
   const handleSingleSelectChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  /**
+   * Handles checkbox field changes for trip style and interests
+   * @param value - The value to toggle
+   * @param field - The field to update ('tripStyle' or 'interests')
+   */
   const handleCheckboxChange = (value: string, field: 'tripStyle' | 'interests') => {
     setFormData(prev => {
       const currentValues = prev[field] as string[];
@@ -228,7 +281,10 @@ export default function FastPlanPage() {
     });
   };
 
-  // Calculate trip duration
+  /**
+   * Calculates the duration of the trip in days
+   * @returns The number of days between start and end dates, or null if dates are not set
+   */
   const getTripDuration = () => {
     if (!formData.startDate || !formData.endDate) return null;
     
@@ -240,7 +296,10 @@ export default function FastPlanPage() {
     return diffDays;
   };
 
-  // --- Submit Handler ---
+  /**
+   * Handles form submission and initiates travel plan generation
+   * Validates search mode selection before proceeding
+   */
   const handleSubmit = async () => {
     if (!searchMode) {
       toast.warn("Please select a search mode.");

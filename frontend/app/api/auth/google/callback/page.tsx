@@ -1,3 +1,15 @@
+/**
+ * Google Authentication Callback Page
+ * 
+ * Handles the OAuth callback from Google authentication that provides:
+ * - Processing of Google authentication code
+ * - Token management
+ * - Authentication state updates
+ * - Error handling
+ * - User redirection
+ * - Loading states
+ */
+
 "use client";
 
 import { useEffect, Suspense, useRef } from 'react';
@@ -8,6 +20,17 @@ import { useAuth } from '@/app/(auth)/context/AuthContext';
 
 const NEXT_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+/**
+ * GoogleCallbackInner Component
+ * 
+ * Inner component that handles the Google authentication callback process:
+ * - Extracts authentication code from URL
+ * - Makes API request to exchange code for tokens
+ * - Manages authentication state
+ * - Handles success/error cases
+ * - Provides user feedback
+ * - Manages redirection
+ */
 function GoogleCallbackInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -69,6 +92,14 @@ function GoogleCallbackInner() {
   );
 }
 
+/**
+ * GoogleCallbackRedirect Component
+ * 
+ * Wrapper component that provides:
+ * - Suspense boundary for loading state
+ * - Error boundary for error handling
+ * - Renders the inner callback component
+ */
 export default function GoogleCallbackRedirect() {
   return (
     <Suspense fallback={<div>Loading...</div>}>

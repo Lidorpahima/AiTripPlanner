@@ -1,9 +1,33 @@
+/**
+ * SwipeableActivities Component
+ * 
+ * A mobile-friendly component that displays activities in a swipeable card interface.
+ * Features include:
+ * - Swipe navigation between activities
+ * - Progress tracking
+ * - Activity completion toggle
+ * - Note and map actions
+ * - Add activity functionality
+ * - Animated transitions
+ * - Responsive design
+ */
+
 import React, { useState } from 'react';
 import { Plus, ChevronLeft, ChevronRight, CheckCircle, StickyNote, MapPin, ArrowLeftRight, Undo2 } from 'lucide-react';
 import { LiveActivity } from '../liveTypes';
 import { useSwipeable } from 'react-swipeable';
 import { motion, AnimatePresence } from 'framer-motion';
 
+/**
+ * Props interface for SwipeableActivities component
+ * @property activities - Array of activities to display
+ * @property currentDayIndex - Index of the current day
+ * @property highlightedActivityId - ID of the activity to highlight initially
+ * @property onAdd - Callback for adding a new activity
+ * @property onComplete - Callback for completing an activity
+ * @property onMap - Callback for viewing activity on map
+ * @property onNote - Callback for adding/editing activity note
+ */
 interface SwipeableActivitiesProps {
   activities: LiveActivity[];
   currentDayIndex: number;
@@ -14,6 +38,12 @@ interface SwipeableActivitiesProps {
   onNote: (activityId: string) => void;
 }
 
+/**
+ * SwipeableActivities Component
+ * 
+ * Renders a swipeable interface for viewing and interacting with activities.
+ * Uses Framer Motion for smooth animations and react-swipeable for touch interactions.
+ */
 const SwipeableActivities: React.FC<SwipeableActivitiesProps> = ({
   activities,
   currentDayIndex,
@@ -23,6 +53,7 @@ const SwipeableActivities: React.FC<SwipeableActivitiesProps> = ({
   onMap,
   onNote,
 }) => {
+  // Initialize index based on highlighted activity
   const initialIndex = highlightedActivityId
     ? Math.max(0, activities.findIndex(a => a.id === highlightedActivityId))
     : 0;
@@ -31,12 +62,19 @@ const SwipeableActivities: React.FC<SwipeableActivitiesProps> = ({
 
   const activity = activities[index];
 
+  /**
+   * Navigate to next activity
+   */
   const next = () => {
     if (index < activities.length - 1) {
       setDirection(1);
       setIndex(i => i + 1);
     }
   };
+
+  /**
+   * Navigate to previous activity
+   */
   const prev = () => {
     if (index > 0) {
       setDirection(-1);
@@ -44,7 +82,7 @@ const SwipeableActivities: React.FC<SwipeableActivitiesProps> = ({
     }
   };
 
-  // Swipe handlers
+  // Configure swipe handlers
   const swipeHandlers = useSwipeable({
     onSwipedLeft: () => next(),
     onSwipedRight: () => prev(),
@@ -52,6 +90,7 @@ const SwipeableActivities: React.FC<SwipeableActivitiesProps> = ({
     preventScrollOnSwipe: true,
   });
 
+  // Empty state handling
   if (!activity) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[200px]">
@@ -66,19 +105,20 @@ const SwipeableActivities: React.FC<SwipeableActivitiesProps> = ({
     );
   }
 
-  // Progress bar
+  // Calculate progress percentage
   const progress = ((index + 1) / activities.length) * 100;
 
   return (
     <div className="relative max-w-md mx-auto w-full flex flex-col items-center">
-      {/* Progress Bar */}
+      {/* Progress bar */}
       <div className="w-full h-1 bg-gray-200 rounded-full mb-2 overflow-hidden">
         <div
           className="h-full bg-blue-500 transition-all"
           style={{ width: `${progress}%` }}
         />
       </div>
-      {/* Activity Card with animation */}
+
+      {/* Activity card container */}
       <div className="relative w-full" style={{ minHeight: 260 }}>
         <AnimatePresence initial={false} custom={direction}>
           <motion.div
@@ -121,6 +161,7 @@ const SwipeableActivities: React.FC<SwipeableActivitiesProps> = ({
             `}
             style={{ touchAction: 'pan-y', minHeight: 260 }}
           >
+            {/* Activity details */}
             <h2 className="text-xl font-bold mb-2 text-center text-gray-900">{activity.description}</h2>
             {activity.time && (
               <p className="text-blue-700 font-semibold mb-1 text-lg">{activity.time}</p>
@@ -128,6 +169,8 @@ const SwipeableActivities: React.FC<SwipeableActivitiesProps> = ({
             {activity.place_name_for_lookup && (
               <p className="text-gray-500 mb-3 text-sm">{activity.place_name_for_lookup}</p>
             )}
+
+            {/* Activity actions */}
             {activity.is_completed ? (
               <div className="flex flex-col items-center mb-2">
                 <div className="flex items-center text-green-700 font-bold">
@@ -162,11 +205,12 @@ const SwipeableActivities: React.FC<SwipeableActivitiesProps> = ({
                 </button>
               </div>
             )}
-            {/* Swipe hint for mobile */}
+
+            {/* Mobile swipe hint */}
             <div className="mt-6 flex flex-col items-center md:hidden select-none">
               <motion.div
                 animate={{ x: [0, 30,-20,10,-5, 0] }}
-                transition={{  duration: 1 }}
+                transition={{ duration: 1 }}
                 className="flex items-center text-blue-400"
               >
                 <ArrowLeftRight size={22} className="mx-1" />
@@ -176,13 +220,15 @@ const SwipeableActivities: React.FC<SwipeableActivitiesProps> = ({
           </motion.div>
         </AnimatePresence>
       </div>
-      {/* Add Activity FAB */}
+
+      {/* Add activity button */}
       <button
         onClick={() => onAdd(activity.id)}
         className="fixed bottom-8 right-8 bg-blue-600 text-white rounded-full shadow-lg flex items-center px-6 py-3 text-lg font-bold hover:bg-blue-700 z-50"
       >
         <Plus className="mr-2" size={28} /> Add Activity
       </button>
+
       {/* Progress indicator */}
       <div className="mt-4 text-sm text-gray-500">{index + 1} / {activities.length}</div>
     </div>

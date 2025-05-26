@@ -1,3 +1,15 @@
+/**
+ * All Destinations Component
+ * 
+ * A comprehensive view of all available travel destinations with search, filtering,
+ * and random selection capabilities. Features include:
+ * - Grid display of destination cards with images and details
+ * - Search functionality with real-time filtering
+ * - Random destination selection (dice roll)
+ * - Animated transitions and hover effects
+ * - Responsive layout
+ */
+
 'use client';
 
 import React, { useState } from 'react';
@@ -6,7 +18,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Info, Search, Dice6 } from 'lucide-react';
 
-// Animation variants
+// Animation configuration for fade-in effect
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
   visible: {
@@ -18,6 +30,7 @@ const fadeIn = {
   }
 };
 
+// Animation configuration for staggered container effect
 const staggerContainer = {
   hidden: { opacity: 0 },
   visible: {
@@ -27,6 +40,18 @@ const staggerContainer = {
     }
   }
 };
+
+/**
+ * Destination interface defining the structure of destination data
+ */
+interface Destination {
+  name: string;
+  image: string;
+  description: string;
+  query: string;
+  rating: number;
+  reviews: number;
+}
 
 // Define all destinations with external image URLs
 const allDestinations = [
@@ -584,6 +609,12 @@ const allDestinations = [
   }
 ];
 
+/**
+ * AllDestinations Component
+ * 
+ * Main component that renders the destinations grid with search and filtering capabilities.
+ * Handles user interactions including search, destination selection, and random roll.
+ */
 const AllDestinations: React.FC = () => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
@@ -592,8 +623,12 @@ const AllDestinations: React.FC = () => {
   const [selectedDestination, setSelectedDestination] = useState<typeof allDestinations[0] | null>(null);
   const [showSelected, setShowSelected] = useState(false);
 
+  /**
+   * Handles search input changes and filters destinations
+   * @param query - The search query string
+   */
   const handleSearch = (query: string) => {
-    setSearchQuery(query);
+    setSearchQuery(query.toLowerCase());
     
     if (!query.trim()) {
       setFilteredDestinations(allDestinations);
@@ -609,10 +644,17 @@ const AllDestinations: React.FC = () => {
     setFilteredDestinations(filtered);
   };
 
+  /**
+   * Handles destination card click and navigates to trip planning
+   * @param query - The destination query string
+   */
   const handleDestinationClick = (query: string) => {
     router.push(`/fastplan?destination=${encodeURIComponent(query)}`);
   };
 
+  /**
+   * Randomly selects a destination and navigates to it
+   */
   const rollDice = () => {
     setIsRolling(true);
     setShowSelected(false);
@@ -729,6 +771,7 @@ const AllDestinations: React.FC = () => {
             )}
           </AnimatePresence>
 
+          {/* Search Input */}
           <motion.div 
             variants={fadeIn}
             className="max-w-md mx-auto relative"
@@ -748,6 +791,7 @@ const AllDestinations: React.FC = () => {
           </motion.div>
         </motion.div>
 
+        {/* Destinations Grid */}
         <motion.div 
           variants={staggerContainer}
           initial="hidden"

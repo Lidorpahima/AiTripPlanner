@@ -1,3 +1,22 @@
+/**
+ * Home Page Component
+ * 
+ * The main landing page of the application that showcases:
+ * - Hero section with rotating globe animation
+ * - Device showcase section
+ * - How it works section
+ * - Popular destinations section
+ * - Call to action section
+ * 
+ * Features:
+ * - Responsive design with mobile and desktop layouts
+ * - Animated sections using AOS (Animate On Scroll)
+ * - Background images and gradients
+ * - Blur effects and modern UI elements
+ */
+
+'use client';
+
 import Hero from "@/components/hero-home";
 import SectionBlob from "@/components/ui/SectionBlob";
 import HowItWorksSection from "@/components/how-it-works";
@@ -5,6 +24,22 @@ import PopularDestinations from "@/components/popular-destinations";
 import CallToAction from "@/components/call-to-action";
 import { CompactDeviceShowcase } from "@/components/Preview";
 
+/**
+ * Home Component
+ * 
+ * Renders the main landing page with multiple sections:
+ * 1. Hero section with globe animation
+ * 2. Device showcase section
+ * 3. How it works section
+ * 4. Popular destinations section
+ * 5. Call to action section
+ * 
+ * Each section includes:
+ * - Responsive background images
+ * - AOS animations
+ * - Blur effects
+ * - Gradient overlays
+ */
 export default function Home() {
   return (
     <>

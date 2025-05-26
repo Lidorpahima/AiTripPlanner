@@ -1,3 +1,15 @@
+/**
+ * Popular Destinations Component
+ * 
+ * Displays a grid of popular travel destinations with images, descriptions, and ratings.
+ * Features:
+ * - Animated entrance effects using Framer Motion
+ * - Interactive hover effects
+ * - Responsive grid layout
+ * - Star ratings and review counts
+ * - Click navigation to trip planning
+ */
+
 'use client';
 
 import React from 'react';
@@ -6,15 +18,13 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Star, Info } from 'lucide-react';
 
-// Animation variants
+// Animation configuration
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: {
-      duration: 0.6
-    }
+    transition: { duration: 0.6 }
   }
 };
 
@@ -22,14 +32,22 @@ const staggerContainer = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.15
-    }
+    transition: { staggerChildren: 0.15 }
   }
 };
 
-// Define destinations with external image URLs
-const destinations = [
+// Destination data structure
+interface Destination {
+  name: string;
+  image: string;
+  description: string;
+  query: string;
+  rating: number;
+  reviews: number;
+}
+
+// Popular destinations data
+const destinations: Destination[] = [
   {
     name: "Paris, France",
     image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=500&h=300&auto=format",
@@ -80,17 +98,25 @@ const destinations = [
   }
 ];
 
+/**
+ * PopularDestinations Component
+ * Renders a grid of popular travel destinations with animations and interactive features
+ */
 const PopularDestinations: React.FC = () => {
   const router = useRouter();
 
+  /**
+   * Handles destination card click
+   * Navigates to the trip planning page with the selected destination
+   */
   const handleDestinationClick = (query: string) => {
     router.push(`/fastplan?destination=${encodeURIComponent(query)}`);
   };
 
   return (
-    <section className=" py-16 md:py-24 overflow-hidden">
-      
+    <section className="py-16 md:py-24 overflow-hidden">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        {/* Section Header */}
         <motion.div 
           initial="hidden"
           whileInView="visible"
@@ -111,6 +137,7 @@ const PopularDestinations: React.FC = () => {
           </motion.p>
         </motion.div>
 
+        {/* Destinations Grid */}
         <motion.div 
           variants={staggerContainer}
           initial="hidden"
@@ -139,16 +166,19 @@ const PopularDestinations: React.FC = () => {
                   <h3 className="text-xl font-bold mb-1">{destination.name}</h3>
                   <p className="text-sm opacity-90 mb-2">{destination.description}</p>
                   <div className="flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 pt-2">
-                     <div className="flex items-center">
-                       {[...Array(5)].map((_, i) => (
-                         <Star key={i} className={`w-4 h-4 ${i < Math.floor(destination.rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-400'}`} />
-                       ))}
-                       <span className="ml-1.5 text-xs text-gray-200">({destination.reviews} trips)</span>
-                     </div>
-                     <div className="flex items-center text-xs text-blue-300 group-hover:text-blue-200">
-                       <Info size={14} className="mr-1" />
-                       <span>Details</span>
-                     </div>
+                    <div className="flex items-center">
+                      {[...Array(5)].map((_, i) => (
+                        <Star 
+                          key={i} 
+                          className={`w-4 h-4 ${i < Math.floor(destination.rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-400'}`} 
+                        />
+                      ))}
+                      <span className="ml-1.5 text-xs text-gray-200">({destination.reviews} trips)</span>
+                    </div>
+                    <div className="flex items-center text-xs text-blue-300 group-hover:text-blue-200">
+                      <Info size={14} className="mr-1" />
+                      <span>Details</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -156,6 +186,7 @@ const PopularDestinations: React.FC = () => {
           ))}
         </motion.div>
 
+        {/* View More Button */}
         <motion.div 
           variants={fadeIn}
           initial="hidden"

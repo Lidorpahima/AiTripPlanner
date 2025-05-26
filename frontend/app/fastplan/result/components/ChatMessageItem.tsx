@@ -1,8 +1,31 @@
+/**
+ * ChatMessageItem Component
+ * 
+ * A component that renders individual chat messages in the trip planning chat interface.
+ * Features include:
+ * - Different styling for user, AI, and system messages
+ * - Support for suggested activities with ratings and reviews
+ * - Google Maps integration for location viewing
+ * - Website links for activities
+ * - Accept/Reject functionality for suggestions
+ * - Timestamp display
+ * - Responsive design
+ * - Dark mode support
+ */
+
 import React from 'react';
 import { X, Check, Star, MapPin, Globe } from 'lucide-react';
 import { Activity, TripPlan } from "@/constants/planTypes";
 import { ChatMessage } from './SideChatPanel'; // Assuming ChatMessage is exported from SideChatPanel
 
+/**
+ * Props interface for ChatMessageItem component
+ * @property msg - The chat message to display
+ * @property destinationInfo - Optional destination information for map links
+ * @property onAcceptSuggestion - Callback when a suggested activity is accepted
+ * @property onRejectIndividualActivity - Callback when a specific activity is rejected
+ * @property onRejectSuggestion - Callback when all suggestions in a message are rejected
+ */
 interface ChatMessageItemProps {
   msg: ChatMessage;
   destinationInfo?: TripPlan['destination_info'];
@@ -11,6 +34,12 @@ interface ChatMessageItemProps {
   onRejectSuggestion?: (messageId: string) => void; // For fallback legacy single suggestion
 }
 
+/**
+ * ChatMessageItem Component
+ * 
+ * Renders a single chat message with support for suggested activities and actions.
+ * Messages are styled differently based on the sender (user, AI, or system).
+ */
 const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
   msg,
   destinationInfo,
@@ -24,6 +53,7 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
         msg.sender === 'user' ? 'items-end' : 'items-start'
       }`}
     >
+      {/* Message bubble with different styles based on sender */}
       <div
         className={`max-w-[85%] lg:max-w-[80%] px-3.5 py-2.5 rounded-xl shadow-sm ${
           msg.sender === 'user'
@@ -33,17 +63,22 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
             : 'bg-amber-100 text-amber-800 text-xs italic w-full text-center py-2'
         }`}
       >
+        {/* Message text content */}
         <p className="text-sm whitespace-pre-wrap break-words">{msg.text}</p>
 
+        {/* Suggested activities section */}
         {msg.sender === 'ai' && msg.suggestedActivities && Array.isArray(msg.suggestedActivities) && msg.suggestedActivities.length > 0 && (
           <div className="mt-3 pt-3 border-t border-gray-300 dark:border-gray-600 space-y-3">
+            {/* Map through suggested activities */}
             {msg.suggestedActivities.map((suggestedActivityItem, index) => (
               <div key={index} className="p-2.5 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm bg-white dark:bg-gray-750">
+                {/* Activity name/description */}
                 <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">
                   {msg.suggestedActivities && msg.suggestedActivities.length > 1 ? `Option ${index + 1}: ` : "Suggested: "}
                   { (suggestedActivityItem as any).name || suggestedActivityItem.description }
                 </p>
 
+                {/* Rating display with stars */}
                 {typeof (suggestedActivityItem as any).rating === 'number' && (suggestedActivityItem as any).rating > 0 && (
                   <div className="flex items-center text-xs text-gray-600 dark:text-gray-400 mb-1.5">
                     <span className="font-medium mr-1.5">Rating:</span>
@@ -56,6 +91,8 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
                     )}
                   </div>
                 )}
+
+                {/* Map link generation and display */}
                 {((suggestedActivityItem as any).google_maps_url || (suggestedActivityItem as any).location_query || (suggestedActivityItem as any).place_details?.name || suggestedActivityItem.description) && (() => {
                   const activity = suggestedActivityItem as any;
                   let mapUrl = activity.google_maps_url;
@@ -74,12 +111,15 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
                     </a>
                   );
                 })()}
+
+                {/* Website link if available */}
                 {(suggestedActivityItem as any).website && (
                     <a href={(suggestedActivityItem as any).website} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 hover:underline flex items-center">
                       <Globe size={13} className="mr-1.5 flex-shrink-0" /> Visit Website
                     </a>
                 )}
 
+                {/* Accept/Reject buttons for individual activities */}
                 {onAcceptSuggestion && onRejectIndividualActivity && (
                   <div className="flex justify-end mt-3 pt-2 border-t border-gray-200 dark:border-gray-600">
                     <button
@@ -103,6 +143,7 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
           </div>
         )}
 
+        {/* Legacy single suggestion reject button */}
         {msg.sender === 'ai' && !(msg.suggestedActivities && Array.isArray(msg.suggestedActivities)) && (msg.suggestedActivities as unknown as Activity) && onRejectSuggestion && (
            <div className="flex justify-end mt-3 pt-2 border-t border-gray-300 dark:border-gray-700">
              <button
@@ -115,6 +156,8 @@ const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
            </div>
         )}
       </div>
+
+      {/* Message timestamp */}
       <p className={`text-xs mt-1.5 ${msg.sender === 'user' ? 'text-gray-500 mr-1' : 'text-gray-500 ml-1'}`}>
         {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
       </p>

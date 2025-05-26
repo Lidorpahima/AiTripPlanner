@@ -1,7 +1,26 @@
+/**
+ * Accordion Component
+ * 
+ * A reusable accordion component for expandable/collapsible content sections.
+ * Features:
+ * - Smooth animation transitions
+ * - Accessible ARIA attributes
+ * - Custom styling with glassmorphism effect
+ * - Animated chevron indicator
+ * - Controlled state management
+ */
+
 "use client";
 
 import { useState } from "react";
 
+/**
+ * Props interface for the Accordion component
+ * @property children - The content to be displayed when expanded
+ * @property title - The header text for the accordion
+ * @property id - Unique identifier for the accordion
+ * @property active - Whether the accordion should be expanded by default
+ */
 type AccordionpProps = {
   children: React.ReactNode;
   title: string;
@@ -9,6 +28,12 @@ type AccordionpProps = {
   active?: boolean;
 };
 
+/**
+ * Accordion Component
+ * 
+ * Renders an expandable/collapsible section with a header and content area.
+ * Uses CSS Grid for smooth height transitions and includes accessibility features.
+ */
 export default function Accordion({
   children,
   title,
@@ -19,6 +44,7 @@ export default function Accordion({
 
   return (
     <div className="relative rounded-lg bg-white/70 shadow-sm shadow-black/[0.03] before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:border before:border-transparent before:[background:linear-gradient(var(--color-gray-100),var(--color-gray-200))_border-box] before:[mask-composite:exclude_!important] before:[mask:linear-gradient(white_0_0)_padding-box,_linear-gradient(white_0_0)]">
+      {/* Accordion Header */}
       <h2>
         <button
           className="flex w-full items-center justify-between px-4 py-3 text-left font-semibold"
@@ -30,6 +56,7 @@ export default function Accordion({
           aria-controls={`accordion-text-${id}`}
         >
           <span>{title}</span>
+          {/* Animated Chevron Icon */}
           <span className="ml-8 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white shadow-xs">
             <svg
               className={`origin-center transform fill-gray-400 transition duration-200 ease-out ${accordionOpen && "rotate-180!"}`}
@@ -46,6 +73,7 @@ export default function Accordion({
           </span>
         </button>
       </h2>
+      {/* Accordion Content */}
       <div
         id={`accordion-text-${id}`}
         role="region"
