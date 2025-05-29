@@ -141,6 +141,7 @@ export default function HeroHome() {
                     className="max-w-xs sm:flex sm:max-w-none sm:justify-start"
                     data-aos="zoom-y-out"
                     data-aos-delay={450}
+                    data-aos-once="true"
                   >
                     {/* Plan Journey Button with Rocket Animation */}
                     <Link
