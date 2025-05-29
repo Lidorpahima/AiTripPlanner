@@ -1,3 +1,4 @@
+# backend/Dockerfile.prod
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -21,8 +22,5 @@ COPY . .
 RUN chown -R appuser:appuser /app
 
 USER appuser
-
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-ENTRYPOINT ["/entrypoint.sh"]
+RUN python manage.py collectstatic --noinput --clear
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "backend.wsgi:application"]
