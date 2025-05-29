@@ -104,6 +104,7 @@ const SignInForm: React.FC = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
+        credentials: 'include',
       });
 
       let data: any = {}; 
