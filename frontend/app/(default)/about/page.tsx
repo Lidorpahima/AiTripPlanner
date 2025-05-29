@@ -42,7 +42,7 @@ export default function AboutPage() {
   return (
     <section className="relative bg-white py-8">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="pb-12 pt-32 md:pb-20 md:pt-40">
+        <div className="">
           {/* Page header */}
           <div className="mx-auto mb-8 max-w-3xl text-center">
             <h1 className="mb-4 text-4xl font-bold md:text-5xl">About AiTripPlanner</h1>

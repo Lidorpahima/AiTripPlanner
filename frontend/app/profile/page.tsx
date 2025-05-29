@@ -214,6 +214,7 @@ export default function ProfilePage() {
 
             if (response.status === 401) {
                 toast.error("Session expired during save. Please log in again.");
+                logout();
                 router.push('/signin');
                 throw new Error("Session expired during save.");
             }

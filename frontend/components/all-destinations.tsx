@@ -675,7 +675,7 @@ const AllDestinations: React.FC = () => {
   };
 
   return (
-    <section className="py-16 md:py-24 overflow-hidden">
+    <section className="py-10 overflow-hidden">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <motion.div 
           initial="hidden"
