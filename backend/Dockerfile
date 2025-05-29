@@ -22,5 +22,8 @@ COPY . .
 RUN chown -R appuser:appuser /app
 
 USER appuser
+
+ARG DJANGO_SECRET_KEY="dummy_secret_key_for_build"
+ENV DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
 RUN python manage.py collectstatic --noinput --clear
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "backend.wsgi:application"]
