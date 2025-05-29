@@ -15,8 +15,6 @@ export default function FastPlanLayout({
         {children}
       </main>
       <Footer/>
-      <div className="absolute bottom-0 left-0 right-0 w-full h-64 md:h-72 lg:h-100 z-0 overflow-hidden"> 
-      </div>
     </div>
   );
 }

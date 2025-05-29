@@ -12,6 +12,7 @@
 "use client"
 import React, { useEffect, useRef, useState, PropsWithChildren, CSSProperties, ButtonHTMLAttributes, ForwardedRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Lobster } from "next/font/google";
 import { ChevronRight } from "lucide-react";
 import { Slot } from "@radix-ui/react-slot";
@@ -401,9 +402,22 @@ function PhoneWithScrollingScreens() {
             </div>
             
             <div className="">
-              <Button className={cn("text-white", screens[activeScreen]?.bgColorForButton || 'bg-primary')}>
-                Start Planning!<ChevronRight className="ml-2 h-4 w-4" />
+            <Link href="/fastplan">
+              <Button
+                className={cn(
+                  "text-white",                            
+                  screens[activeScreen]?.bgColorForButton || 'bg-primary',  
+                  "hover:bg-primary/90",                        
+                  "cursor-pointer"                             
+                )}
+                onClick={() => {
+                  console.log('Start Planning button clicked');
+                }}
+              >
+                Start Planning!
+                <ChevronRight className="ml-2 h-4 w-4" />
               </Button>
+            </Link>
             </div>
           </div>
         </div>

@@ -90,7 +90,7 @@ const Step6_FinalTouches: React.FC<Step6FinalTouchesProps> = ({
           value={formData.mustSeeAttractions}
           onChange={handleInputChange}
           placeholder="E.g., I want to see the Eiffel Tower, experience a local cooking class, etc."
-          className="w-full rounded-lg border border-gray-300 p-4 text-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          className="w-full rounded-lg border border-gray-300 p-4 text-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 cursor-pointer"
           rows={4}
         />
       </div>
@@ -142,7 +142,7 @@ const Step6_FinalTouches: React.FC<Step6FinalTouchesProps> = ({
         <button
           type="button"
           onClick={prevStep}
-          className="rounded-full border border-gray-300 bg-white px-6 py-3 text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+          className="rounded-full border border-gray-300 bg-white px-6 py-3 text-gray-700 shadow-sm transition-colors hover:bg-gray-50 cursor-pointer"
         >
           ←   Back
         </button>
@@ -150,7 +150,7 @@ const Step6_FinalTouches: React.FC<Step6FinalTouchesProps> = ({
           type="button"
           onClick={goToStepSeven}
           disabled={isLoading}
-          className={`rounded-full px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300
+          className={`rounded-full px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300 cursor-pointer
             ${isLoading
               ? 'cursor-not-allowed bg-gray-400'
               : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'}

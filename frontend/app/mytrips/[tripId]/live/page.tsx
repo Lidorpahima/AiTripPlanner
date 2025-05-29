@@ -21,6 +21,7 @@ import { ArrowLeft, CalendarDays, MapPin, Plus, CheckCircle, Edit3, Trash2, Navi
 import { SavedTripData } from '../../page'; 
 import Cookies from 'js-cookie'; 
 import { useActivityNotes } from './hooks/useActivityNotes';
+import { useAuth } from '@/app/(auth)/context/AuthContext';
 
 import SideChatPanel, { ChatMessage } from '@/app/fastplan/result/components/SideChatPanel';
 import { Activity as FastPlanActivity, TripPlan as FastPlanTripPlan } from '@/constants/planTypes'; // Use Activity type from planTypes for consistency
@@ -79,7 +80,21 @@ async function refreshAccessToken(refreshToken: string | undefined): Promise<str
         if (!res.ok) return null;
         const data = await res.json();
         if (data.access) {
-            Cookies.set('token', data.access);
+            Cookies.remove('access');
+            Cookies.remove('refresh');
+            
+            Cookies.set('access', data.access, {
+                path: '/',
+                expires: 7,
+                sameSite: 'lax'
+            });
+            if (data.refresh) {
+                Cookies.set('refresh', data.refresh, {
+                    path: '/',
+                    expires: 30,
+                    sameSite: 'lax'
+                });
+            }
             return data.access;
         }
         return null;
@@ -122,6 +137,7 @@ export default function TripLiveModePage() {
     const tripId = params.tripId as string;
     const token = Cookies.get('access');
     const refreshToken = Cookies.get('refresh');
+    const { logout } = useAuth();
 
     /**
      * Effect hook for token management
@@ -129,7 +145,7 @@ export default function TripLiveModePage() {
      */
     useEffect(() => {
         async function checkAndRefreshToken() {
-            let currentToken = Cookies.get('token');
+            let currentToken = Cookies.get('access');
             if (!currentToken || isTokenExpired(currentToken)) {
                 const newToken = await refreshAccessToken(refreshToken);
                 if (newToken) {
@@ -137,6 +153,7 @@ export default function TripLiveModePage() {
                     setAuthLoading(false);
                 } else {
                     toast.error('Session expired. Please log in again.');
+                    logout?.();
                     router.push('/signin');
                 }
             } else {
@@ -145,7 +162,7 @@ export default function TripLiveModePage() {
             }
         }
         checkAndRefreshToken();
-    }, [refreshToken, router]);
+    }, [refreshToken, router, logout]);
 
     // Activity notes hook
     const { notes, setNotes, loading: notesLoading } = useActivityNotes(tripId, tokenState);
@@ -232,54 +249,97 @@ export default function TripLiveModePage() {
 
     /**
      * Effect hook to initialize trip data
-     * Loads and validates trip data from session storage
+     * Loads and validates trip data from session storage or fetches from API
      */
     useEffect(() => {
+        async function loadTripData() {
+            try {
+                // First try to get from session storage
         const storedTripData = sessionStorage.getItem('liveTripData');
+                let tripData: SavedTripData | null = null;
+
         if (storedTripData) {
             try {
                 const parsedTrip: SavedTripData = JSON.parse(storedTripData);
                 if (parsedTrip.id.toString() === tripId) {
-                    setTrip(parsedTrip);
+                            tripData = parsedTrip;
+                        }
+                    } catch (e) {
+                        console.error('Error parsing stored trip data:', e);
+                    }
+                }
 
-                    if (parsedTrip.plan_json && parsedTrip.plan_json.days) {
-                        const planJsonTyped = parsedTrip.plan_json as PlanJson; // Use the well-defined PlanJson
+                // If no valid data in session storage, fetch from API
+                if (!tripData) {
+                    if (!tokenState) {
+                        setError('Authentication required');
+                        return;
+                    }
+
+                    const response = await fetch(`${API_BASE_URL}/api/my-trips/${tripId}/`, {
+                        headers: {
+                            'Authorization': `Bearer ${tokenState}`,
+                            'Accept': 'application/json',
+                        },
+                        credentials: 'include'
+                    });
+
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            throw new Error('Trip not found. Please make sure you have saved this trip.');
+                        } else if (response.status === 401) {
+                            throw new Error('Authentication required. Please log in again.');
+                        } else {
+                            throw new Error(`Failed to fetch trip data: ${response.statusText}`);
+                        }
+                    }
+
+                    tripData = await response.json();
+                    // Store in session storage for future use
+                    sessionStorage.setItem('liveTripData', JSON.stringify(tripData));
+                }
+
+                if (tripData) {
+                    setTrip(tripData);
+
+                    if (tripData.plan_json && tripData.plan_json.days) {
+                        try {
+                            const planJsonTyped = tripData.plan_json as PlanJson;
                         const initializedPlan: LiveTripPlan = {
                             ...planJsonTyped,
                             days: planJsonTyped.days.map((day: DayBase, dayIndex: number) => ({
                                 ...day,
                                 activities: day.activities.map((activity: ActivityBase, activityIndex: number) => ({
                                     ...activity,
-                                    id: `day-${dayIndex}-activity-${activityIndex}-${Date.now()}`,
-                                    is_completed: false 
+                                        id: `${dayIndex}-${activityIndex}`,
+                                        is_completed: false,
+                                        notes: '',
+                                        cost_estimate: null
                                 }))
                             }))
                         };
                         setLivePlan(initializedPlan);
+                            setCurrentDayPlan(initializedPlan.days[0]);
+                        } catch (e) {
+                            console.error('Error initializing plan:', e);
+                            setError('Error initializing trip plan');
+                        }
                     } else {
-                        setError("Trip plan data is incomplete. Please try again.");
-                        toast.error("Trip plan data is incomplete.");
-                        router.push('/mytrips');
+                        setError('Invalid trip plan data');
                     }
-                    
-                } else {
-                    setError("Trip data mismatch. Please try starting Live Mode again.");
-                    toast.error("Trip data mismatch.");
-                    router.push('/mytrips');
                 }
             } catch (e) {
-                console.error("Error parsing trip data from sessionStorage:", e);
-                setError("Could not load trip data. Please try again.");
-                toast.error("Error loading trip data.");
-                router.push('/mytrips');
+                console.error('Error loading trip data:', e);
+                setError('Failed to load trip data');
+            } finally {
+                setIsLoading(false);
             }
-        } else {
-            setError("No trip data found for Live Mode. Please start from My Trips.");
-            toast.warn("No trip data found for Live Mode.");
-            router.push('/mytrips');
         }
-        setIsLoading(false);
-    }, [tripId, router]);
+
+        if (!authLoading) {
+            loadTripData();
+        }
+    }, [tripId, tokenState, authLoading]);
 
     /**
      * Effect hook to update current day plan

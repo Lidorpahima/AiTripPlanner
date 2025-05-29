@@ -14,6 +14,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { Lobster } from "next/font/google";
 import { motion } from 'framer-motion';
+import { Dialog, Transition } from '@headlessui/react';
+import { Fragment } from 'react';
+import { X } from 'lucide-react';
 
 // Import destination images
 import ImgTokyo from "@/public/images/destinations/rhome.webp";
@@ -30,6 +33,60 @@ const lobster = Lobster({
   display: "swap",
 });
 
+const YouTubeModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  return (
+    <Transition appear show={isOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-50" onClose={onClose}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black/75 backdrop-blur-sm" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-black p-2 shadow-xl transition-all">
+                <div className="relative">
+                  <button
+                    onClick={onClose}
+                    className="absolute -right-2 -top-2 z-10 rounded-full bg-white p-1 text-gray-800 hover:bg-gray-100"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                  <div className="aspect-video w-full">
+                    <iframe
+                      className="h-full w-full rounded-lg"
+                      src="https://www.youtube.com/embed/6uL0fIyznXc?autoplay=1&rel=0"
+                      title="YouTube video player"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition>
+  );
+};
+
 /**
  * HeroHome Component
  * 
@@ -41,6 +98,7 @@ export default function HeroHome() {
    * State for controlling the rocket animation
    */
   const [isRocketLaunching, setIsRocketLaunching] = useState(false);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
   /**
    * Handles the click event on the "Plan Your Journey" button
@@ -118,8 +176,8 @@ export default function HeroHome() {
                     </Link>
                     {/* Watch Demo Button */}
                     <a
-                      className="btn group w-full border border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white sm:ml-4 sm:w-auto flex items-center justify-center shadow-sm"
-                      href="#"
+                      className="btn group w-full border border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white sm:ml-4 sm:w-auto flex items-center justify-center shadow-sm cursor-pointer"
+                      onClick={() => setIsVideoModalOpen(true)}
                     >
                       <svg className="mr-2 h-4 w-4 shrink-0 fill-current text-indigo-600 group-hover:text-white" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
                         <path d="M15.679 7.126a.998.998 0 0 0-.023-.113l-.002-.005a1.005 1.005 0 0 0-.144-.27L1.593.324A.999.999 0 0 0 .141.996v14.008a.999.999 0 0 0 1.452.874l13.918-6.409a1 1 0 0 0 .168-.873Z"/>
@@ -153,6 +211,11 @@ export default function HeroHome() {
           </div>
         </div>
       </div>
+
+      <YouTubeModal 
+        isOpen={isVideoModalOpen} 
+        onClose={() => setIsVideoModalOpen(false)} 
+      />
     </section>
   );
 }

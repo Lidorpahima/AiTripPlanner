@@ -95,7 +95,7 @@ const Step5_PaceBudgetTransport: React.FC<Step5PaceBudgetTransportProps> = ({
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 text-gray-400 hover:text-blue-500 cursor-pointer">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
-            <span className="absolute left-1/2 -translate-x-1/2 -top-2 translate-y-full w-48 px-2 py-1 bg-gray-700 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+            <span className="absolute left-1/2 -translate-x-1/2 -top-2 translate-y-full w-48 px-2 py-1 bg-gray-700 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 cursor-pointer">
               Knowing your preferred pace helps us balance activities and free time, ensuring a comfortable trip.
             </span>
           </span>
@@ -196,14 +196,14 @@ const Step5_PaceBudgetTransport: React.FC<Step5PaceBudgetTransportProps> = ({
         <button
           type="button"
           onClick={prevStep}
-          className="rounded-full border border-gray-300 bg-white px-6 py-3 text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+          className="rounded-full cursor-pointer border border-gray-300 bg-white px-6 py-3 text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
         >
           ← Back
         </button>
         <button
           type="button"
           onClick={nextStep}
-          className="rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300 ease-in-out hover:from-blue-700 hover:to-indigo-700"
+          className="rounded-full cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300 ease-in-out hover:from-blue-700 hover:to-indigo-700"
         >
           Next →
         </button>

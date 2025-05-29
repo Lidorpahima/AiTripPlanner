@@ -84,7 +84,7 @@ const Step4_Interests: React.FC<Step4InterestsProps> = ({
             key={interest.value}
             type="button"
             onClick={() => handleCheckboxChange(interest.value, 'interests')}
-            className={`flex flex-col items-center rounded-xl border-2 p-4 text-center transition-all duration-200 hover:bg-blue-50 ${
+            className={`flex flex-col items-center rounded-xl border-2 p-4 text-center transition-all duration-200 hover:bg-blue-50 cursor-pointer ${
               formData.interests.includes(interest.value)
                 ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
                 : 'border-gray-200'
@@ -101,7 +101,7 @@ const Step4_Interests: React.FC<Step4InterestsProps> = ({
         <button
           type="button"
           onClick={prevStep}
-          className="rounded-full border border-gray-300 bg-white px-6 py-3 text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+          className="rounded-full border border-gray-300 bg-white px-6 py-3 text-gray-700 shadow-sm transition-colors hover:bg-gray-50 cursor-pointer"
         >
           ← Back
         </button>
@@ -109,7 +109,7 @@ const Step4_Interests: React.FC<Step4InterestsProps> = ({
           type="button"
           onClick={nextStep}
           disabled={formData.interests.length === 0}
-          className={`rounded-full px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300 ease-in-out ${
+          className={`rounded-full px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300 ease-in-out cursor-pointer ${
             formData.interests.length > 0
               ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
               : 'cursor-not-allowed bg-gray-400'

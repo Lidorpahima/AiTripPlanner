@@ -68,7 +68,7 @@ const Step7_SearchMode: React.FC<Step7SearchModeProps> = ({
         <button
           type="button"
           onClick={() => setSearchMode('quick')}
-          className={`flex-1 rounded-xl border-2 p-6 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+          className={`flex-1 rounded-xl border-2 p-6 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer ${
             searchMode === 'quick'
               ? 'border-blue-600 bg-blue-50 ring-2 ring-blue-200'
               : 'border-gray-200 bg-white'
@@ -88,7 +88,7 @@ const Step7_SearchMode: React.FC<Step7SearchModeProps> = ({
         <button
           type="button"
           onClick={() => setSearchMode('normal')}
-          className={`flex-1 rounded-xl border-2 p-6 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-400 ${
+          className={`flex-1 rounded-xl border-2 p-6 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-400 cursor-pointer ${
             searchMode === 'normal'
               ? 'border-purple-600 bg-purple-50 ring-2 ring-purple-200'
               : 'border-gray-200 bg-white'
@@ -108,7 +108,7 @@ const Step7_SearchMode: React.FC<Step7SearchModeProps> = ({
         <button
           type="button"
           onClick={() => setSearchMode('deep')}
-          className={`flex-1 rounded-xl border-2 p-6 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${
+          className={`flex-1 rounded-xl border-2 p-6 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 cursor-pointer ${
             searchMode === 'deep'
               ? 'border-emerald-600 bg-emerald-50 ring-2 ring-emerald-200'
               : 'border-gray-200 bg-white'
@@ -130,7 +130,7 @@ const Step7_SearchMode: React.FC<Step7SearchModeProps> = ({
         <button
           type="button"
           onClick={prevStep}
-          className="rounded-full border border-gray-300 bg-white px-6 py-3 text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+          className="rounded-full border border-gray-300 cursor-pointer bg-white px-6 py-3 text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
         >
           ← Back
         </button>
@@ -138,14 +138,14 @@ const Step7_SearchMode: React.FC<Step7SearchModeProps> = ({
           type="button"
           onClick={handleSubmit}
           disabled={!searchMode}
-          className={`group relative overflow-hidden rounded-full px-8 py-4 text-center text-lg font-bold text-white shadow-lg transition-all duration-300
+          className={`group relative overflow-hidden rounded-full px-8 py-4 text-center text-lg font-bold text-white shadow-lg transition-all duration-300 cursor-pointer
             ${searchMode
               ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:scale-105'
               : 'cursor-not-allowed bg-gray-400'}
           `}
           aria-label="Generate Trip"
         >
-          <div className="flex items-center justify-center">
+          <div className="flex items-center cursor-pointer justify-center">
             <span className="mr-2 text-yellow-300 animate-pulse">✨</span>
             <span className="relative">
               Generate Trip
@@ -153,7 +153,7 @@ const Step7_SearchMode: React.FC<Step7SearchModeProps> = ({
             </span>
             <span className="ml-2 text-yellow-300 animate-pulse">✨</span>
           </div>
-          <span className="absolute -inset-full top-0 block h-full w-1/2 -skew-x-12 transform bg-gradient-to-r from-transparent to-white opacity-30 group-hover:animate-shine"></span>
+          <span className="absolute  -inset-full top-0 block h-full w-1/2 -skew-x-12 transform bg-gradient-to-r from-transparent to-white opacity-30 group-hover:animate-shine"></span>
         </button>
       </div>
     </motion.div>

@@ -25,10 +25,7 @@ export default function Header() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [shake, setShake] = useState(false);
 
-  // Cleanup effect on component unmount
-  useEffect(() => {
-    return () => console.log('Header unmounted');
-  }, []);
+
 
   // Animation effect for the "Plan a Trip" button
   useEffect(() => {

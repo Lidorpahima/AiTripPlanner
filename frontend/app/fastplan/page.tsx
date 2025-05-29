@@ -395,6 +395,19 @@ export default function FastPlanPage() {
           </div>
           
           <div className="p-8">
+            {/* Add responsive styles for buttons */}
+            <style jsx global>{`
+              button {
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
+                min-height: 44px; /* Minimum touch target size */
+              }
+              @media (max-width: 640px) {
+                button {
+                  padding: 12px 24px; /* Larger touch target on mobile */
+                }
+              }
+            `}</style>
             {/* Step 1: Destination Selection */}
             {currentStep === 1 && (
               <Step1_Destination

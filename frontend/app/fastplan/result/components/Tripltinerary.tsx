@@ -23,6 +23,7 @@ import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { ChevronLeft, ChevronRight, MapPin, Star, Phone, Globe, Clock, MessageSquare, Image as ImageIcon, X, Info, Share2, Copy, Mail, MessageCircle } from "lucide-react";
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/app/(auth)/context/AuthContext';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY; 
@@ -433,14 +434,43 @@ const ChatBubble: React.FC<{
  */
 async function refreshAuthToken(): Promise<string | null> {
     try {
-        const response = await fetch(`${API_BASE}/api/auth/refresh`, {
+        const refresh = Cookies.get('refresh');
+        if (!refresh) {
+            console.error('No refresh token available');
+            return null;
+        }
+
+        const response = await fetch(`${API_BASE}/api/token/refresh/`, {
             method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Origin': window.location.origin
+            },
             credentials: 'include',
+            body: JSON.stringify({ refresh })
         });
 
         if (response.ok) {
             const data = await response.json();
-            return data.token;
+            if (data.access) {
+                Cookies.remove('access');
+                Cookies.remove('refresh');
+
+                Cookies.set('access', data.access, {
+                    path: '/',
+                    expires: 7,
+                    sameSite: 'lax'
+                });
+                if (data.refresh) {
+                    Cookies.set('refresh', data.refresh, {
+                        path: '/',
+                        expires: 30,
+                        sameSite: 'lax'
+                    });
+                }
+                return data.access;
+            }
         }
         return null;
     } catch (error) {
@@ -460,14 +490,15 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
     const [placeDetails, setPlaceDetails] = useState<Record<string, PlaceDetailsData | 'loading' | 'error'>>({});
     const [activePopupKey, setActivePopupKey] = useState<string | null>(null);
     const [activePopupQuery, setActivePopupQuery] = useState<string>("");
-    const [isSaving, setIsSaving] = useState<boolean>(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
-    const [isSaved, setIsSaved] = useState<boolean>(false);
+    const [isSaved, setIsSaved] = useState(false);
     const [chatOpen, setChatOpen] = useState(false);
     const [chatLoading, setChatLoading] = useState(false);
     const [chatDayIdx, setChatDayIdx] = useState<number|null>(null);
     const [chatActIdx, setChatActIdx] = useState<number|null>(null);
     const [chatAnchor, setChatAnchor] = useState<React.RefObject<HTMLButtonElement | null> | null>(null);
+    const { logout } = useAuth();
 
     // --- Fetching Logic (triggered by click) ---
     const handleClosePopup = useCallback(() => {
@@ -623,142 +654,142 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
     };
 
     const handleSaveTrip = async () => {
-        if (isSaved) {
-            toast.info("Trip already saved!");
-            return;
-        }
-
         const attemptSave = async (tokenToUse: string | undefined, isRetry: boolean = false) => {
-            if (!tokenToUse) {
-                toast.error("Authentication token missing. Please log in to save your trip.");
-                setIsSaving(false); // Ensure loading state is reset
-                return;
-            }
-
-            const csrfToken = Cookies.get('csrftoken');
-            if (!csrfToken) {
-                toast.error("CSRF token not found. Please try refreshing or logging in again.");
-                setIsSaving(false);
-                return;
-            }
-
-            setIsSaving(true);
-            setSaveError(null);
-    
-            const formatDate = (date: string | Date | null | undefined): string | null => {
-                if (!date) return null;
-                try {
-                    const dateObj = new Date(date);
-                    if (isNaN(dateObj.getTime())) return null;
-                    return dateObj.toISOString().split('T')[0];
-                } catch (e) { return null; }
-            };
-
-            let planToSave: TripPlan | null = null;
             try {
-                const planStr = sessionStorage.getItem("fastplan_result");
-                if (planStr) {
-                    planToSave = JSON.parse(planStr);
+                if (!tokenToUse) {
+                    // If no token, try to get refresh token
+                    const refresh = Cookies.get('refresh');
+                    if (refresh) {
+                        try {
+                            const refreshRes = await fetch(`${API_BASE}/api/token/refresh/`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'Origin': window.location.origin
+                                },
+                                credentials: 'include',
+                                body: JSON.stringify({ refresh })
+                            });
+
+                            if (refreshRes.ok) {
+                                const refreshData = await refreshRes.json();
+                                if (refreshData.access) {
+                                    // Update tokens after successful refresh
+                                    Cookies.remove('access');
+                                    Cookies.remove('refresh');
+
+                                    Cookies.set('access', refreshData.access, {
+                                        path: '/',
+                                        expires: 7,
+                                        sameSite: 'lax'
+                                    });
+                                    if (refreshData.refresh) {
+                                        Cookies.set('refresh', refreshData.refresh, {
+                                            path: '/',
+                                            expires: 30,
+                                            sameSite: 'lax'
+                                        });
+                                    }
+                                    // Retry save with new token
+                                    await attemptSave(refreshData.access, true);
+                                    return;
+                                }
+                            }
+                        } catch (err) {
+                            console.error('Token refresh failed:', err);
+                        }
+                    }
+                    
+                    // If no refresh token or refresh failed, redirect to login
+                    toast.error("Please log in to save your trip.");
+                    logout();
+                    router.push('/signin');
+                    setIsSaving(false);
+                    return;
                 }
-            } catch (e) {
-                planToSave = localPlan;
-            }
-            if (!planToSave) {
-                planToSave = localPlan;
-            }
-    
-            const payload = {
-                destination: originalRequestData.destination,
-                start_date: formatDate(originalRequestData.startDate),
-                end_date: formatDate(originalRequestData.endDate),
-                plan_json: planToSave 
-            };
-            // console.log("Saving trip with payload:", payload);
-            // console.log("CSRF Token:", csrfToken);
-    
-            try {
+
+                // Get CSRF token
+                const csrfResponse = await fetch(`${API_BASE}/api/csrf/`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (!csrfResponse.ok) {
+                    toast.error("Failed to get CSRF token. Please try again.");
+                    setIsSaving(false);
+                    return;
+                }
+
+                setIsSaving(true);
+                setSaveError(null);
+
                 const response = await fetch(`${API_BASE}/api/trips/save/`, { 
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
                         'Authorization': `Bearer ${tokenToUse}`,
-                        'X-CSRFToken': csrfToken, 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Origin': window.location.origin
                     },
-                    body: JSON.stringify(payload),
-                    credentials: 'include'
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        title: plan.summary,
+                        destination: originalRequestData.destination,
+                        plan_json: plan,
+                        original_request: originalRequestData
+                    })
                 });
-    
-                let data: any = {}; // Use 'any' or a more specific type
-                 if (response.status !== 204) { 
-                   try {
-                       data = await response.json();
-                   } catch (jsonError) {
-                       console.warn("Could not parse JSON response (status not 204):", jsonError); 
-                       // If not OK, and not JSON, it might be the token error
-                       if (!response.ok) {
-                           const errorText = await response.text();
-                           console.error("Non-JSON error response text:", errorText);
-                           if (response.status === 401 || errorText.toUpperCase().includes("TOKEN NOT VALID")) {
-                               throw new Error("TokenExpiredError"); // Custom error to trigger refresh
-                           }
-                           throw new Error(errorText || `Server error: ${response.status}`);
-                       }
-                   }
-                 }
-    
-                if (response.ok) {
-                    toast.success('Trip saved successfully! 🎉');
-                    setIsSaved(true);
-                } else {
-                    // Handle errors that might have been parsed as JSON
-                    const errorDetail = data?.detail || data?.error || "";
-                    if (response.status === 401 || (typeof errorDetail === 'string' && errorDetail.toUpperCase().includes("TOKEN NOT VALID"))) {
-                        throw new Error("TokenExpiredError"); // Trigger refresh
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        if (isRetry) {
+                            console.error("Token refresh failed or retried save also failed with token error."); 
+                            toast.error("Session issue. Please log out and log in again.");
+                            setSaveError("Session invalid. Please re-login.");
+                            Cookies.remove('access');
+                            Cookies.remove('refresh');
+                            logout();
+                            router.push('/signin');
+                            return;
+                        }
+                        const newAccessToken = await refreshAuthToken();
+                        if (newAccessToken) {
+                            await attemptSave(newAccessToken, true);
+                            return;
+                        } else {
+                            toast.error("Your session has expired. Please log in again to save your trip.");
+                            setSaveError("Session expired. Please log in again.");
+                            logout();
+                            router.push('/signin');
+                            return;
+                        }
                     }
-                    const errorMessage = errorDetail || `Failed to save (Status: ${response.status})`;
-                    setSaveError(errorMessage);
-                    toast.error(`Save failed: ${errorMessage}`);
+                    const errorData = await response.json().catch(() => ({ detail: 'Failed to parse error response' }));
+                    throw new Error(errorData.detail || `Failed to save trip (status: ${response.status})`);
                 }
+
+                const savedTrip = await response.json();
+                setIsSaved(true);
+                toast.success('Trip saved successfully!');
+                router.push(`/mytrips/${savedTrip.id}/live`);
+
             } catch (err: any) {
-                if (err.message === "TokenExpiredError") {
-                    if (isRetry) {
-                        console.error("Token refresh failed or retried save also failed with token error."); 
-                        toast.error("Session issue. Please log out and log in again.");
-                        setSaveError("Session invalid. Please re-login.");
-                        // Potentially clear tokens or call a global logout function
-                        Cookies.remove('access');
-                        Cookies.remove('refresh');
-                        // router.push('/signin'); // Or use a context-based logout
-                        return; // Stop retrying
-                    }
-                    const newAccessToken = await refreshAuthToken();
-                    if (newAccessToken) {
-                        await attemptSave(newAccessToken, true); // Retry with the new token, mark as retry
-                        return; // Exit this catch block as retry is handled
-                    } else {
-                        toast.error("Your session has expired. Please log in again to save your trip.");
-                        setSaveError("Session expired. Please log in again.");
-                        // router.push('/signin'); // if router is available
-                    }
-                } else {
-                    console.error("Error saving trip:", err); 
-                    const message = err instanceof Error ? err.message : "An unknown error occurred.";
-                    setSaveError(`Error: ${message}`);
-                    toast.error(`Error: ${message}`);
-                }
+                console.error("Error saving trip:", err); 
+                const message = err instanceof Error ? err.message : "An unknown error occurred.";
+                setSaveError(`Error: ${message}`);
+                toast.error(`Error: ${message}`);
             } finally {
-                // The isSaving will be set to false after the final attempt (successful or failed)
-                // or if initial checks fail.
-                // If a retry is initiated, setIsSaving(true) will be called again at the start of attemptSave.
-                // This means it will correctly show "Saving..." during the retry.
-                 setIsSaving(false);
+                setIsSaving(false);
             }
         };
         
         const initialAccessToken = Cookies.get('access');
-        if (!initialAccessToken && !isSaved) { // Added !isSaved to prevent login prompt if already saved
-             toast.error("Please log in to save your trip.");
-             return; // No token, no save attempt
+        if (!initialAccessToken && !isSaved) {
+            toast.error("Please log in to save your trip.");
+            logout();
+            router.push('/signin');
+            return;
         }
         await attemptSave(initialAccessToken);
     };

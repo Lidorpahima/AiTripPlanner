@@ -86,7 +86,7 @@ const Step2_TravelDates: React.FC<Step2TravelDatesProps> = ({
             value={formData.startDate}
             onChange={handleInputChange}
             min={today}
-            className="w-full rounded-lg border border-gray-300 py-3 pl-4 text-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            className="w-full rounded-lg border border-gray-300 py-3 pl-4 text-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 cursor-pointer"
           />
         </div>
         {/* End date input */}
@@ -101,7 +101,7 @@ const Step2_TravelDates: React.FC<Step2TravelDatesProps> = ({
             value={formData.endDate}
             onChange={handleInputChange}
             min={formData.startDate || today}
-            className="w-full rounded-lg border border-gray-300 py-3 pl-4 text-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            className="w-full rounded-lg border border-gray-300 py-3 pl-4 text-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 cursor-pointer"
           />
           {/* Date validation error message */}
           {dateError && (
@@ -127,7 +127,7 @@ const Step2_TravelDates: React.FC<Step2TravelDatesProps> = ({
         <button
           type="button"
           onClick={prevStep}
-          className="rounded-full border border-gray-300 bg-white px-6 py-3 text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+          className="rounded-full border cursor-pointer border-gray-300 bg-white px-6 py-3 text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
         >
           ← Back
         </button>
@@ -135,7 +135,7 @@ const Step2_TravelDates: React.FC<Step2TravelDatesProps> = ({
           type="button"
           onClick={nextStep}
           disabled={!formData.startDate || !formData.endDate}
-          className={`rounded-full px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300 ease-in-out ${
+          className={`rounded-full px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300 ease-in-out cursor-pointer ${
             formData.startDate && formData.endDate
               ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
               : 'cursor-not-allowed bg-gray-400'

@@ -1204,4 +1204,12 @@ class GoogleOAuthCallbackView(APIView):
                 }, status=400)
             return Response({'error': 'Failed to verify id_token', 'details': error_message}, status=400)
 
+# ──────────────────────────────── SavedTrip Detail ──────────────────────────────── #
+class MyTripDetailView(generics.RetrieveAPIView):
+    serializer_class = SavedTripSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return SavedTrip.objects.filter(user=self.request.user)
+
 

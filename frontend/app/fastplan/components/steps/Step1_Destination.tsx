@@ -89,7 +89,7 @@ const Step1_Destination: React.FC<Step1DestinationProps> = ({
               key={dest.name}
               type="button"
               onClick={() => handleDestinationChange(dest.name)}
-              className={`group relative h-36 overflow-hidden rounded-xl transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-lg ${
+              className={`group relative h-36 overflow-hidden rounded-xl transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-lg cursor-pointer ${
                 formData.destination === dest.name 
                   ? 'ring-4 ring-blue-500 ring-offset-2' 
                   : 'ring-0'
@@ -166,13 +166,13 @@ const Step1_Destination: React.FC<Step1DestinationProps> = ({
           type="button"
           onClick={nextStep} // Parent handles step navigation
           disabled={!formData.destination}
-          className={`relative overflow-hidden rounded-full px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all duration-300 ease-in-out ${
+          className={`relative overflow-hidden rounded-full px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all duration-300 ease-in-out cursor-pointer ${
             formData.destination
               ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
               : 'cursor-not-allowed bg-gray-400'
           }`}
         >
-          <span className="relative z-10">Let's plan your trip →</span>
+          <span className="relative cursor-pointer z-10">Let's plan your trip →</span>
         </button>
       </div>
     </motion.div>

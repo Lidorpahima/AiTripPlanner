@@ -92,7 +92,7 @@ const Step3_TripStyleAndTravelWith: React.FC<Step3TripStyleAndTravelWithProps> =
             key={style.value}
             type="button"
             onClick={() => handleCheckboxChange(style.value, 'tripStyle')}
-            className={`flex flex-col items-center rounded-xl border-2 p-4 text-center transition-all duration-200 hover:bg-blue-50 ${
+            className={`flex flex-col items-center rounded-xl border-2 p-4 text-center transition-all duration-200 hover:bg-blue-50 cursor-pointer ${
               formData.tripStyle.includes(style.value)
                 ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
                 : 'border-gray-200'
@@ -113,7 +113,7 @@ const Step3_TripStyleAndTravelWith: React.FC<Step3TripStyleAndTravelWithProps> =
               key={option.value}
               type="button"
               onClick={() => handleSingleSelectChange('travelWith', option.value)}
-              className={`flex flex-col items-center rounded-xl border-2 p-3 text-center transition-all duration-200 hover:bg-blue-50 ${
+              className={`flex flex-col items-center rounded-xl border-2 p-3 text-center transition-all duration-200 hover:bg-blue-50 cursor-pointer ${
                 formData.travelWith === option.value
                   ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
                   : 'border-gray-200'
@@ -131,7 +131,7 @@ const Step3_TripStyleAndTravelWith: React.FC<Step3TripStyleAndTravelWithProps> =
         <button
           type="button"
           onClick={prevStep}
-          className="rounded-full border border-gray-300 bg-white px-6 py-3 text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+          className="rounded-full cursor-pointer border border-gray-300 bg-white px-6 py-3 text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
         >
           ← Back
         </button>
@@ -139,7 +139,7 @@ const Step3_TripStyleAndTravelWith: React.FC<Step3TripStyleAndTravelWithProps> =
           type="button"
           onClick={nextStep}
           disabled={formData.tripStyle.length === 0}
-          className={`rounded-full px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300 ease-in-out ${
+          className={`rounded-full px-8 py-3 text-lg font-semibold text-white shadow-lg transition-all duration-300 ease-in-out cursor-pointer ${
             formData.tripStyle.length > 0
               ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
               : 'cursor-not-allowed bg-gray-400'
