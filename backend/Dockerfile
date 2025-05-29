@@ -23,11 +23,6 @@ RUN chown -R appuser:appuser /app
 
 USER appuser
 
-ARG DJANGO_SECRET_KEY="dummy_secret_key_for_build"
-ENV DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
-
-ARG DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
-ENV DATABASE_URL=${DATABASE_URL}
 
 RUN python manage.py collectstatic --noinput --clear
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "backend.wsgi:application"]
