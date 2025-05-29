@@ -23,7 +23,7 @@ import TripDetailModal from '@/components/TripDetailModal';
 import { Loader, AlertTriangle, List, MapPin, Calendar, Eye, ImageOff, PlayCircle } from 'lucide-react'; 
 
 // API configuration
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 /**
  * Interface for saved trip data

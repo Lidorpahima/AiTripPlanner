@@ -20,7 +20,7 @@ import { useAuth } from "@/app/(auth)/context/AuthContext";
 import AuthInput from "./AuthInput";
 import AuthButton from "./AuthButton";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ;
 
 /**
  * Extracts error messages from API response data

@@ -19,7 +19,7 @@ import Cookies from 'js-cookie';
 import { useAuth } from '../context/AuthContext';
 import { extractErrorMessages } from '../utils/authUtils';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://resourceful-tranquility-production.up.railway.app';
 
 /**
  * Props interface for useAuthForm hook
