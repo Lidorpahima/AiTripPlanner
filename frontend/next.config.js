@@ -28,12 +28,13 @@ const nextConfig = {
         headers: [
           { key: 'Cross-Origin-Opener-Policy', value: 'same-origin-allow-popups' },
           { key: 'Cross-Origin-Embedder-Policy', value: 'unsafe-none' },
-          { key: 'Access-Control-Allow-Origin', value: 'https://conversations-widget.brevo.com' },
-          { key: 'Access-Control-Allow-Origin', value: 'https://accounts.google.com' },
+          { key: 'Access-Control-Allow-Origin', value: process.env.NEXT_PUBLIC_API_URL 
+            || 'http://localhost:8000' 
+            || 'https://conversations-widget.brevo.com' 
+            || 'https://accounts.google.com' },
           { key: 'Access-Control-Allow-Methods', value: 'GET, POST, OPTIONS' },
-          { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization' },
-          
-
+          { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization, X-CSRF-Token' },
+          { key: 'Access-Control-Allow-Credentials', value: 'true' },
         ],
       },
     ];

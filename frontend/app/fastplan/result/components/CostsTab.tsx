@@ -1,3 +1,18 @@
+/**
+ * CostsTab Component
+ * 
+ * A component that displays the cost breakdown and budget information for a trip.
+ * Features include:
+ * - Total budget estimate
+ * - Cost breakdown by category
+ * - Visual cost breakdown cards
+ * - Money-saving passes and discounts
+ * - Animated entrance effect
+ * - Responsive design
+ * - Currency formatting
+ * - Informative tooltips
+ */
+
 'use client';
 
 import React from 'react';
@@ -6,12 +21,24 @@ import { Bed, Utensils, TicketIcon, Bus, ShoppingBag, Info, Gift } from 'lucide-
 import CostBreakdownCard from './CostBreakdownCard';
 import { TripPlan, OriginalRequestData } from "@/constants/planTypes";
 
+/**
+ * Props interface for CostsTab component
+ * @property plan - The trip plan data containing cost estimates
+ * @property originalRequest - The original request data containing budget preferences
+ * @property formatCurrency - Function to format currency values
+ */
 interface CostsTabProps {
   plan: TripPlan;
   originalRequest: OriginalRequestData;
   formatCurrency: (amount: number, currency?: string) => string;
 }
 
+/**
+ * CostsTab Component
+ * 
+ * Renders a detailed breakdown of trip costs, including total budget,
+ * category-wise expenses, and available discount options.
+ */
 const CostsTab: React.FC<CostsTabProps> = ({ plan, originalRequest, formatCurrency }) => {
   const duration = plan.days.length;
   
@@ -22,13 +49,16 @@ const CostsTab: React.FC<CostsTabProps> = ({ plan, originalRequest, formatCurren
       transition={{ duration: 0.4 }}
       className="max-w-4xl mx-auto"
     >
+      {/* Total Budget Section */}
       {plan.total_cost_estimate && (
         <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+          {/* Budget Header */}
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
             <h2 className="text-2xl font-bold mb-2">Trip Budget Estimate</h2>
             <p className="opacity-90">
               Estimated total cost for your {duration}-day trip to {originalRequest.destination.split(',')[0]}
             </p>
+            {/* Budget Range */}
             <div className="mt-4 flex items-baseline">
               <span className="text-4xl font-bold mr-2">
                 {formatCurrency(plan.total_cost_estimate.min)}
@@ -43,9 +73,10 @@ const CostsTab: React.FC<CostsTabProps> = ({ plan, originalRequest, formatCurren
             </p>
           </div>
           
-          {/* Cost Breakdown Chart */}
+          {/* Cost Breakdown Section */}
           <div className="p-6">
             <h3 className="text-lg font-bold text-gray-800 mb-4">Cost Breakdown</h3>
+            {/* Accommodation Costs */}
             {plan.total_cost_estimate.accommodations && (
               <CostBreakdownCard
                 icon={<Bed className="w-4 h-4 mr-2" />}
@@ -56,6 +87,7 @@ const CostsTab: React.FC<CostsTabProps> = ({ plan, originalRequest, formatCurren
                 colorClass="bg-blue-600"
               />
             )}
+            {/* Food & Drinks Costs */}
             {plan.total_cost_estimate.food && (
               <CostBreakdownCard
                 icon={<Utensils className="w-4 h-4 mr-2" />}
@@ -66,6 +98,7 @@ const CostsTab: React.FC<CostsTabProps> = ({ plan, originalRequest, formatCurren
                 colorClass="bg-green-600"
               />
             )}
+            {/* Attractions & Activities Costs */}
             {plan.total_cost_estimate.attractions && (
               <CostBreakdownCard
                 icon={<TicketIcon className="w-4 h-4 mr-2" />}
@@ -76,6 +109,7 @@ const CostsTab: React.FC<CostsTabProps> = ({ plan, originalRequest, formatCurren
                 colorClass="bg-purple-600"
               />
             )}
+            {/* Transportation Costs */}
             {plan.total_cost_estimate.transportation && (
               <CostBreakdownCard
                 icon={<Bus className="w-4 h-4 mr-2" />}
@@ -86,6 +120,7 @@ const CostsTab: React.FC<CostsTabProps> = ({ plan, originalRequest, formatCurren
                 colorClass="bg-yellow-500"
               />
             )}
+            {/* Miscellaneous Costs */}
             {plan.total_cost_estimate.other && (
               <CostBreakdownCard
                 icon={<ShoppingBag className="w-4 h-4 mr-2" />}
@@ -96,6 +131,7 @@ const CostsTab: React.FC<CostsTabProps> = ({ plan, originalRequest, formatCurren
                 colorClass="bg-red-500"
               />
             )}
+            {/* Cost Estimate Information */}
             <div className="mt-8 p-4 bg-blue-50 rounded-lg">
               <h4 className="font-medium text-blue-800 flex items-center mb-2">
                 <Info className="w-4 h-4 mr-2" /> About These Estimates
@@ -117,6 +153,7 @@ const CostsTab: React.FC<CostsTabProps> = ({ plan, originalRequest, formatCurren
             Money-Saving Passes & Discounts
           </h3>
           
+          {/* Discount Options Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {plan.destination_info.discount_options.map((option, index) => (
               <div 

@@ -1,8 +1,29 @@
+/**
+ * ShareButton Component
+ * 
+ * A component that provides sharing functionality for trip itineraries.
+ * Features include:
+ * - Copy to clipboard
+ * - Share via WhatsApp
+ * - Share via Email
+ * - Responsive dropdown menu
+ * - Smart positioning based on screen space
+ * - Click outside to close
+ * - Touch support for mobile devices
+ * - Toast notifications for feedback
+ * - Fallback for older browsers
+ */
+
 import React, { useState, useRef, useEffect } from "react";
 import { toast } from "react-toastify";
 import { Share2, Copy, MessageCircle, Mail } from "lucide-react";
 import { TripPlan } from "@/constants/planTypes";
 
+/**
+ * Formats the trip plan into a readable text format
+ * @param plan - The trip plan to format
+ * @returns Formatted text string with trip details
+ */
 function formatPlanText(plan: TripPlan): string {
   let text = `🗓️ Trip Plan\n`;
   text += plan.summary + "\n\n";
@@ -16,13 +37,23 @@ function formatPlanText(plan: TripPlan): string {
   return text.trim();
 }
 
+/**
+ * ShareButton Component
+ * 
+ * Renders a button with a dropdown menu for sharing trip itineraries
+ * through various channels.
+ */
 const ShareButton: React.FC<{ plan: TripPlan }> = ({ plan }) => {
+  // State for dropdown menu
   const [open, setOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState<'left'|'right'>('right');
   const shareText = formatPlanText(plan);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   
+  /**
+   * Updates menu position based on available screen space
+   */
   useEffect(() => {
     const updateMenuPosition = () => {
       if (!buttonRef.current) return;
@@ -45,6 +76,9 @@ const ShareButton: React.FC<{ plan: TripPlan }> = ({ plan }) => {
     };
   }, []);
 
+  /**
+   * Handles clicks outside the menu to close it
+   */
   useEffect(() => {
     function handleClickOutside(event: MouseEvent | TouchEvent) {
       if (
@@ -69,6 +103,10 @@ const ShareButton: React.FC<{ plan: TripPlan }> = ({ plan }) => {
     };
   }, [open]);
 
+  /**
+   * Copies the formatted itinerary to clipboard
+   * Includes fallback for browsers without clipboard API
+   */
   const handleCopy = () => {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(shareText)
@@ -102,11 +140,17 @@ const ShareButton: React.FC<{ plan: TripPlan }> = ({ plan }) => {
     setOpen(false);
   };
   
+  /**
+   * Opens WhatsApp with pre-filled itinerary text
+   */
   const handleWhatsapp = () => {
     window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`);
     setOpen(false);
   };
   
+  /**
+   * Opens default email client with pre-filled itinerary
+   */
   const handleEmail = () => {
     window.open(`mailto:?subject=My Trip Itinerary&body=${encodeURIComponent(shareText)}`);
     setOpen(false);
@@ -114,6 +158,7 @@ const ShareButton: React.FC<{ plan: TripPlan }> = ({ plan }) => {
   
   return (
     <div className="relative inline-block text-left ml-2">
+      {/* Share button */}
       <button
         ref={buttonRef}
         className="p-2 rounded-full bg-blue-100 hover:bg-blue-200 border border-blue-300 shadow-md transition focus:outline-none focus:ring-2 focus:ring-blue-400 mt-5"
@@ -126,6 +171,7 @@ const ShareButton: React.FC<{ plan: TripPlan }> = ({ plan }) => {
         <Share2 size={22} className="text-blue-600" />
       </button>
       
+      {/* Share menu dropdown */}
       {open && (
         <div
           ref={menuRef}
@@ -136,11 +182,13 @@ const ShareButton: React.FC<{ plan: TripPlan }> = ({ plan }) => {
             animate-fade-in
           `}
         >
+          {/* Menu header */}
           <div className="px-4 py-3 border-b border-gray-100 font-semibold text-gray-700 text-sm flex items-center gap-2">
             <Share2 size={16} className="text-blue-500 flex-shrink-0" /> 
             <span className="truncate">Share this itinerary</span>
           </div>
           
+          {/* Copy button */}
           <button
             onClick={handleCopy}
             className="flex items-center w-full px-4 py-3 hover:bg-gray-50 text-sm transition group"
@@ -151,6 +199,7 @@ const ShareButton: React.FC<{ plan: TripPlan }> = ({ plan }) => {
           
           <div className="border-t border-gray-100 mx-3" />
           
+          {/* WhatsApp button */}
           <button
             onClick={handleWhatsapp}
             className="flex items-center w-full px-4 py-3 hover:bg-green-50 text-sm transition group"
@@ -161,6 +210,7 @@ const ShareButton: React.FC<{ plan: TripPlan }> = ({ plan }) => {
           
           <div className="border-t border-gray-100 mx-3" />
           
+          {/* Email button */}
           <button
             onClick={handleEmail}
             className="flex items-center w-full px-4 py-3 hover:bg-blue-50 text-sm transition group"

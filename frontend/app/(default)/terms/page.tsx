@@ -1,8 +1,46 @@
+/**
+ * Terms of Service Page Component
+ * 
+ * Displays the terms of service of the application, including:
+ * - Terms acceptance
+ * - Use license
+ * - Disclaimers
+ * - Limitations
+ * - Revisions and errata
+ * - External links policy
+ * - Terms modifications
+ * - Governing law
+ * - Contact information
+ * 
+ * Features:
+ * - Clean and organized layout
+ * - Responsive design
+ * - Clear section headings
+ * - Interactive elements (email link)
+ */
+
 export const metadata = {
   title: "Terms of Service - AiTripPlanner",
   description: "Our terms of service.",
 };
 
+/**
+ * TermsPage Component
+ * 
+ * Renders the terms of service page with sections covering:
+ * 1. Acceptance of Terms
+ * 2. Use License
+ * 3. Disclaimer
+ * 4. Limitations
+ * 5. Revisions and Errata
+ * 6. Links
+ * 7. Site Terms of Use Modifications
+ * 8. Governing Law
+ * 9. Contact Information
+ * 
+ * Each section provides detailed information about the terms and conditions
+ * governing the use of our service.
+ */
 export default function TermsPage() {
   return (
     <section className="relative bg-white py-8">

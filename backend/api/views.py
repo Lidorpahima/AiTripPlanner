@@ -1,7 +1,36 @@
+"""
+Django Views for Trip Planner Application
+
+This module contains all the API views for the Trip Planner application.
+It includes views for:
+- User authentication (registration, login, password reset)
+- Profile management
+- Trip planning and management
+- Activity notes
+- Google Places integration
+- Image handling
+
+Key Features:
+- JWT-based authentication
+- Google OAuth integration
+- Password reset functionality
+- User profile management
+- Trip planning with AI
+- Place details and photos
+- Activity notes and modifications
+- Image proxy and caching
+"""
+
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
-from .serializers import RegisterSerializer ,  PlanTripSerializer ,UserProfileSerializer,SavedTripSerializer ,ActivityNoteSerializer
-from .models import VisitedCountry,UserProfile,SavedTrip,ActivityNote
+from .serializers import (
+    RegisterSerializer,
+    PlanTripSerializer,
+    UserProfileSerializer,
+    SavedTripSerializer,
+    ActivityNoteSerializer
+)
+from .models import VisitedCountry, UserProfile, SavedTrip, ActivityNote
 from rest_framework_simplejwt.tokens import RefreshToken
 from datetime import date
 import redis
@@ -23,8 +52,8 @@ from rest_framework import generics
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
-from django.utils.http import urlsafe_base64_encode ,urlsafe_base64_decode
-from django.utils.encoding import force_bytes ,force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ObjectDoesNotExist
@@ -35,15 +64,40 @@ from google.auth.transport import requests as google_requests
 # ──────────────────────────────── CSRF Token ──────────────────────────────── #
 @ensure_csrf_cookie
 def get_csrf_token(request):
+    """
+    View to set CSRF token cookie for the client.
+    
+    Returns:
+        JsonResponse: Confirmation that CSRF cookie has been set
+    """
     return JsonResponse({"detail": "CSRF cookie set"})
-# ──────────────────────────────── Register ──────────────────────────────── #
 
+# ──────────────────────────────── Register ──────────────────────────────── #
 class RegisterView(generics.CreateAPIView):
+    """
+    View for user registration.
+    
+    Creates a new user account and returns JWT tokens for authentication.
+    
+    Features:
+    - User registration with email and password
+    - JWT token generation
+    - Basic user profile creation
+    """
     queryset = RegisterSerializer 
     permission_classes = (permissions.AllowAny,)
     serializer_class = RegisterSerializer
 
     def create(self, request, *args, **kwargs):
+        """
+        Create a new user and return authentication tokens.
+        
+        Args:
+            request: The HTTP request containing user registration data
+            
+        Returns:
+            Response: JWT tokens and user data
+        """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -57,16 +111,36 @@ class RegisterView(generics.CreateAPIView):
                 'id': user.id,
                 'username': user.username,
                 'email': user.email,
-
             }
         }
         headers = self.get_success_headers(serializer.data)
         return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
+
 # ──────────────────────────────── GOOGLELOGIN ──────────────────────────────── #
 class GoogleLoginView(APIView):
+    """
+    View for handling Google OAuth login.
+    
+    Verifies Google ID token and creates/retrieves user account.
+    
+    Features:
+    - Google OAuth token verification
+    - Automatic user creation for new Google users
+    - JWT token generation
+    - User profile synchronization
+    """
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
+        """
+        Handle Google login request.
+        
+        Args:
+            request: The HTTP request containing Google ID token
+            
+        Returns:
+            Response: JWT tokens and user data if successful
+        """
         print("Starting Google login process...")  # Log the start of the process
 
         token = request.data.get('token')
@@ -130,7 +204,27 @@ class GoogleLoginView(APIView):
 
 # ──────────────────────────────── RestPassword ──────────────────────────────── #
 class PasswordResetRequestView(APIView): 
+    """
+    View for handling password reset requests.
+    
+    Sends password reset email to user if email exists in database.
+    
+    Features:
+    - Email-based password reset
+    - Secure token generation
+    - Custom reset link generation
+    - Email notification
+    """
     def post(self, request): 
+        """
+        Handle password reset request.
+        
+        Args:
+            request: The HTTP request containing user's email
+            
+        Returns:
+            Response: Confirmation message
+        """
         email = request.data.get('email') 
         user = User.objects.filter(email=email).first() 
 
@@ -152,8 +246,27 @@ class PasswordResetRequestView(APIView):
     
 # ──────────────────────────────── SETNEW PASSWORD ──────────────────────────────── #
 class PasswordResetConfirmView(APIView):
+    """
+    View for confirming and setting new password.
+    
+    Features:
+    - Token validation
+    - Password confirmation
+    - Password strength validation
+    - Secure password update
+    """
     def post(self, request, uidb64=None, token=None):
-
+        """
+        Handle password reset confirmation.
+        
+        Args:
+            request: The HTTP request containing new password
+            uidb64: Base64 encoded user ID
+            token: Password reset token
+            
+        Returns:
+            Response: Success or error message
+        """
         new_password = request.data.get('new_password')
         new_password_confirm = request.data.get('new_password_confirm') 
 
@@ -180,8 +293,18 @@ class PasswordResetConfirmView(APIView):
             return Response({'message': 'Password has been reset successfully.'}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid reset link or token expired.'}, status=status.HTTP_400_BAD_REQUEST)
+
 # ──────────────────────────────── Profile ──────────────────────────────── #
-class ProfileRetrieveView(generics.RetrieveAPIView): 
+class ProfileRetrieveView(generics.RetrieveAPIView):
+    """
+    View for retrieving user profile information.
+    
+    Features:
+    - User profile data retrieval
+    - Visited countries list
+    - Profile statistics
+    - Authentication required
+    """
     serializer_class = UserProfileSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -190,6 +313,15 @@ class ProfileRetrieveView(generics.RetrieveAPIView):
         return profile
 
 class ProfileUpdateView(generics.UpdateAPIView):
+    """
+    View for updating user profile information.
+    
+    Features:
+    - Profile data updates
+    - Visited countries management
+    - Profile picture handling
+    - Authentication required
+    """
     serializer_class = UserProfileSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -1025,7 +1157,7 @@ class GoogleOAuthCallbackView(APIView):
             'code': code,
             'client_id': settings.GOOGLE_CLIENT_ID,
             'client_secret': settings.GOOGLE_CLIENT_SECRET,
-            'redirect_uri': 'http://localhost:3000/api/auth/google/callback',  
+            'redirect_uri': f"{settings.FRONTEND_BASE_URL}/api/auth/google/callback",  
             'grant_type': 'authorization_code',
         }
         r = requests.post(token_url, data=data)
@@ -1038,10 +1170,12 @@ class GoogleOAuthCallbackView(APIView):
             return Response({'error': 'Failed to get id_token from Google', 'details': token_data}, status=400)
 
         try:
+            # Add a small time buffer to handle slight clock differences
             idinfo = google_id_token.verify_oauth2_token(
                 id_token,
                 google_requests.Request(),
-                settings.GOOGLE_CLIENT_ID
+                settings.GOOGLE_CLIENT_ID,
+                clock_skew_in_seconds=10  # Allow 10 seconds of clock skew
             )
             email = idinfo['email']
             name = idinfo.get('name', '')
@@ -1062,6 +1196,20 @@ class GoogleOAuthCallbackView(APIView):
             })
         except Exception as e:
             print("Failed to verify id_token:", e)
-            return Response({'error': 'Failed to verify id_token', 'details': str(e)}, status=400)
+            error_message = str(e)
+            if "Token used too early" in error_message:
+                return Response({
+                    'error': 'Time synchronization issue detected. Please ensure your system clock is set correctly.',
+                    'details': error_message
+                }, status=400)
+            return Response({'error': 'Failed to verify id_token', 'details': error_message}, status=400)
+
+# ──────────────────────────────── SavedTrip Detail ──────────────────────────────── #
+class MyTripDetailView(generics.RetrieveAPIView):
+    serializer_class = SavedTripSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return SavedTrip.objects.filter(user=self.request.user)
 
 

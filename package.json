@@ -7,6 +7,7 @@
     "react-simple-maps": "^3.0.0"
   },
   "devDependencies": {
-    "@types/axios": "^0.9.36"
+    "@types/axios": "^0.9.36",
+    "@types/google.maps": "^3.58.1"
   }
 }

@@ -1,3 +1,19 @@
+/**
+ * PlaceDetailsPopup Component
+ * 
+ * A modal dialog that displays detailed information about a place from Google Maps.
+ * Features include:
+ * - Photo gallery with navigation
+ * - Place information (name, address, rating)
+ * - Contact details (phone, website)
+ * - Opening hours
+ * - User reviews
+ * - Google Maps integration
+ * - Loading and error states
+ * - Responsive design
+ * - Keyboard accessibility
+ */
+
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -6,12 +22,21 @@ import { X, ChevronLeft, ChevronRight, ImageIcon, MapPin, Phone, Globe, Clock, S
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+/**
+ * Props interface for PlaceDetailsPopup component
+ * @property details - Place details data or loading/error state
+ * @property onClose - Callback function to close the popup
+ * @property placeNameQuery - Name of the place being displayed
+ */
 interface PlaceDetailsPopupProps {
     details: PlaceDetailsData | 'loading' | 'error';
     onClose: () => void;
     placeNameQuery: string;
 }
 
+/**
+ * Review data structure from Google Maps API
+ */
 interface Review {
   author_name: string;
   rating: number;
@@ -19,6 +44,9 @@ interface Review {
   time: string;
 };
 
+/**
+ * Place details data structure from Google Maps API
+ */
 interface PlaceDetailsData {
   name: string;
   address: string | null; 
@@ -33,11 +61,22 @@ interface PlaceDetailsData {
   reviews: Review[];
 };
 
+/**
+ * PlaceDetailsPopup Component
+ * 
+ * Renders a modal dialog with detailed information about a place,
+ * including photos, contact information, opening hours, and reviews.
+ */
 const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose, placeNameQuery }) => {
+    // State for photo gallery navigation
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
     const router = useRouter();
     
-    // Extract photo reference from Google Maps URL
+    /**
+     * Extracts photo reference from Google Maps URL
+     * @param url - Google Maps photo URL
+     * @returns Photo reference string or null
+     */
     const getPhotoReference = (url: string): string | null => {
         if (!url) return null;
         try {
@@ -48,13 +87,21 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
         }
     };
     
-    // Create a proxied URL for the photo
+    /**
+     * Creates a proxied URL for the photo to avoid CORS issues
+     * @param googlePhotoUrl - Original Google Maps photo URL
+     * @returns Proxied photo URL or loading image
+     */
     const getProxiedPhotoUrl = (googlePhotoUrl: string): string => {
         const photoRef = getPhotoReference(googlePhotoUrl);
         if (!photoRef) return '/images/loading.gif';
         return `${API_BASE}/api/place-photo/?photo_reference=${photoRef}&maxwidth=800`;
     };
     
+    /**
+     * Handles photo navigation in the gallery
+     * @param direction - 'next' or 'prev' to indicate navigation direction
+     */
     const handlePhotoChange = (direction: 'next' | 'prev') => {
         if (typeof details !== 'object' || !details.photos || details.photos.length === 0) return;
         setCurrentPhotoIndex(prev => {
@@ -65,10 +112,12 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
         });
     };
 
+    // Reset photo index when details change
     useEffect(() => {
         setCurrentPhotoIndex(0);
     }, [details]);
 
+    // Loading state
     if (details === 'loading') {
         return (
             <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in">
@@ -81,6 +130,7 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
         );
     }
 
+    // Error state
     if (details === 'error') {
         return (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in">
@@ -93,6 +143,7 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
         );
     }
 
+    // Extract place details
     const { name, address, rating, total_ratings, phone, website, photos, opening_hours, reviews, location } = details;
     const currentPhotoUrl = photos?.[currentPhotoIndex];
     const proxiedPhotoUrl = currentPhotoUrl ? getProxiedPhotoUrl(currentPhotoUrl) : null;
@@ -102,10 +153,12 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
 
     return (
     <Dialog open={true} onClose={onClose} className="relative z-50">
+        {/* Backdrop */}
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" aria-hidden="true" />
         <div className="fixed inset-0 overflow-y-auto">
         <div className="flex min-h-full items-center justify-center p-4">
             <div className="bg-white rounded-xl shadow-2xl overflow-hidden max-w-lg w-full max-h-[90vh] flex flex-col">
+            {/* Header */}
             <div className="flex justify-between items-center p-3 bg-gray-100 border-b">
                 <h3 className="text-lg font-semibold text-gray-800">{name}</h3>
                 <button onClick={onClose} className="text-gray-500 hover:text-black p-1 rounded-full">
@@ -113,6 +166,7 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
                 </button>
             </div>
             <div className="overflow-y-auto p-4 flex-grow">
+                {/* Photo Gallery */}
                 {photos && photos.length > 0 && (
                 <div className="relative mb-4 rounded-lg overflow-hidden">
                     <Image
@@ -128,6 +182,7 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
                     }}
                     unoptimized={process.env.NODE_ENV === 'development'}
                     />
+                    {/* Photo Navigation */}
                     {photos.length > 1 && (
                     <>
                         <button
@@ -151,13 +206,16 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
                     )}
                 </div>
                 )}
+                {/* No Photos State */}
                 {!photos || photos.length === 0 && (
                 <div className="mb-4 p-4 bg-gray-100 rounded-lg text-center text-gray-500">
                     <ImageIcon size={24} className="mx-auto mb-1" />
                     No photos available.
                 </div>
                 )}
+                {/* Place Information */}
                 <div className="space-y-2 text-sm mb-4">
+                {/* Rating */}
                 {rating && total_ratings && (
                     <div className="flex items-center text-yellow-500">
                     <Star size={16} className="mr-1 fill-current" />
@@ -165,6 +223,7 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
                     <span className="text-gray-600 ml-1">({total_ratings} reviews)</span>
                     </div>
                 )}
+                {/* Address */}
                 {address && (
                     <div className="flex items-start">
                     <MapPin size={16} className="mr-2 mt-0.5 text-gray-600 flex-shrink-0" />
@@ -180,12 +239,14 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
                     </a>
                     </div>
                 )}
+                {/* Phone */}
                 {phone && (
                     <div className="flex items-center">
                     <Phone size={16} className="mr-2 text-gray-600" />
                     <a href={`tel:${phone}`} className="text-blue-600 hover:underline">{phone}</a>
                     </div>
                 )}
+                {/* Website */}
                 {website && (
                     <div className="flex items-center">
                     <Globe size={16} className="mr-2 text-gray-600" />
@@ -195,6 +256,7 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
                     </div>
                 )}
                 </div>
+                {/* Opening Hours */}
                 {opening_hours && opening_hours.length > 0 && (
                 <div className="mb-4">
                     <h4 className="font-semibold text-sm mb-1 flex items-center">
@@ -205,6 +267,7 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
                     </ul>
                 </div>
                 )}
+                {/* Reviews */}
                 {reviews && reviews.length > 0 && (
                 <div className="mb-4">
                     <h4 className="font-semibold text-sm mb-2 flex items-center">
@@ -226,6 +289,7 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
                     </div>
                 </div>
                 )}
+                {/* No Reviews State */}
                 {!reviews || reviews.length === 0 && (
                 <div className="text-center text-sm text-gray-500 py-2">No reviews available.</div>
                 )}

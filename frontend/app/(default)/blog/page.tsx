@@ -1,3 +1,19 @@
+/**
+ * Blog Page Component
+ * 
+ * Displays the blog section of the application, featuring:
+ * - Blog header and introduction
+ * - Grid of recent blog posts
+ * - Post previews with titles, dates, and excerpts
+ * - Links to full blog posts
+ * 
+ * Features:
+ * - Responsive grid layout
+ * - Hover effects on post cards
+ * - Clean typography
+ * - Interactive elements
+ */
+
 import Link from 'next/link';
 
 export const metadata = {
@@ -5,6 +21,25 @@ export const metadata = {
   description: "Stay updated with the latest blog posts and news from AiTripPlanner.",
 };
 
+/**
+ * BlogPage Component
+ * 
+ * Renders the blog page with:
+ * 1. Page header with title
+ * 2. Introduction text
+ * 3. Grid of recent blog posts including:
+ *    - Post title with link
+ *    - Publication date
+ *    - Post excerpt
+ *    - Read more link
+ * 
+ * The component displays a collection of blog posts about:
+ * - AI tools for travel
+ * - Platform usage guides
+ * - Development insights
+ * - Travel tips and guides
+ * - Industry trends
+ */
 export default function BlogPage() {
   return (
     <section className="relative bg-white py-8">

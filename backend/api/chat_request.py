@@ -1,3 +1,17 @@
+"""
+Google Gemini AI Integration for Trip Planner Application
+
+This module provides integration with Google's Gemini AI model for generating
+trip plans and handling chat interactions.
+
+Key Features:
+- Gemini AI model integration
+- Safety settings configuration
+- JSON response extraction
+- Error handling
+- Response validation
+"""
+
 import requests
 import os
 import json
@@ -30,7 +44,22 @@ print(f"Using model: {model_name}")
 
 # ─────────────────────────── GEMINI Model Function ─────────────────────────── #
 def ask_gemini(prompt: str, model_to_use: str) -> str | None:
-    """Sends a prompt to the specified Gemini model and returns the text response."""
+    """
+    Send a prompt to the specified Gemini model and get the response.
+    
+    Features:
+    - Safety settings configuration
+    - Response validation
+    - Error handling
+    - Detailed logging
+    
+    Args:
+        prompt (str): The input prompt for the model
+        model_to_use (str): The specific Gemini model to use
+        
+    Returns:
+        str | None: The model's response text or None if error/blocked
+    """
     print(f"\n🤖 Sending prompt to model: {model_to_use}...")
     try:
         model = genai.GenerativeModel(model_to_use)
@@ -42,7 +71,7 @@ def ask_gemini(prompt: str, model_to_use: str) -> str | None:
         ]
         response = model.generate_content(prompt, safety_settings=safety_settings)
 
-
+        # Check for safety blocks
         prompt_feedback = getattr(response, 'prompt_feedback', None)
         if prompt_feedback and getattr(prompt_feedback, 'block_reason', None):
              block_reason_value = getattr(prompt_feedback, 'block_reason', 'UNKNOWN')
@@ -53,18 +82,19 @@ def ask_gemini(prompt: str, model_to_use: str) -> str | None:
                   print(f"   Safety Ratings (Prompt): {safety_ratings}")
              return None
 
+        # Handle empty response
         if not response.candidates:
             print("⚠️ No candidates returned in the response.")
-
             if hasattr(response, 'text') and response.text:
                  print("   ℹ️ Found text directly on response object.")
                  return response.text
             return None
 
+        # Process response
         candidate = response.candidates[0]
         finish_reason_value = getattr(candidate, 'finish_reason', None) 
 
-        if finish_reason_value == 1: 
+        if finish_reason_value == 1:  # Normal completion
             content = getattr(candidate, 'content', None)
             parts = getattr(content, 'parts', []) if content else []
 
@@ -82,12 +112,12 @@ def ask_gemini(prompt: str, model_to_use: str) -> str | None:
                 return "" 
 
         else:
+            # Handle other completion reasons
             reason_name = "UNKNOWN"
             if finish_reason_value is not None:
                  reason_name = getattr(genai.types.FinishReason(finish_reason_value), 'name', str(finish_reason_value))
 
             print(f"⚠️ Model finished for reason: {reason_name} (Value: {finish_reason_value})")
-
             safety_ratings = getattr(candidate, 'safety_ratings', [])
             if safety_ratings:
                 print(f"   Safety Ratings (Response): {safety_ratings}")
@@ -119,11 +149,26 @@ def ask_gemini(prompt: str, model_to_use: str) -> str | None:
 # ─────────────────────────── JSON Extraction Utility ─────────────────────────── #
 
 def extract_json_from_response(response: str | None) -> str:
+    """
+    Extract JSON from a model response string.
+    
+    Features:
+    - Multiple extraction methods
+    - JSON validation
+    - Error handling
+    
+    Args:
+        response (str | None): The model response to process
+        
+    Returns:
+        str: Extracted JSON string or empty string if not found/invalid
+    """
     if not response:
         return ""
 
     response = response.strip()
 
+    # Try to extract JSON from markdown code block
     match_block = re.search(r"```json\s*(\{.*?\})\s*```", response, re.DOTALL | re.IGNORECASE)
     if match_block:
         potential_json = match_block.group(1).strip()
@@ -134,6 +179,7 @@ def extract_json_from_response(response: str | None) -> str:
         except json.JSONDecodeError:
             print("⚠️ Found ```json block, but content is not valid JSON.")
 
+    # Try to extract JSON using first and last braces
     first_brace = response.find('{')
     last_brace = response.rfind('}')
 

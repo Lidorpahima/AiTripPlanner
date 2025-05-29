@@ -1,9 +1,35 @@
+/**
+ * ActivitiesList Component
+ * 
+ * A component that displays a list of activities for a given day in the trip plan.
+ * Features include:
+ * - Activity list rendering with completion status
+ * - Add activity buttons between activities
+ * - Empty state handling
+ * - Activity highlighting
+ * - Navigation and completion toggling
+ * - Note management
+ */
+
 import React from 'react';
 import { CheckCircle, MessageSquarePlus, PlusCircle } from 'lucide-react';
 import { LiveDay } from '../liveTypes'; // Changed import path for LiveDay
 import ActivityItem from './ActivityItem';
 import { ActivityNotesMap } from '../hooks/useActivityNotes';
 
+/**
+ * Props interface for ActivitiesList component
+ * @property currentDayPlan - The current day's plan containing activities
+ * @property highlightedActivityId - ID of the currently highlighted activity
+ * @property onToggleComplete - Callback for toggling activity completion
+ * @property onNavigate - Callback for navigation to activity location
+ * @property onOpenAddActivityChat - Callback for opening activity addition chat
+ * @property currentDayIndex - Index of the current day
+ * @property tripId - ID of the current trip
+ * @property token - Authentication token
+ * @property notes - Map of activity notes
+ * @property setNotes - Function to update activity notes
+ */
 interface ActivitiesListProps {
     currentDayPlan: LiveDay;
     highlightedActivityId: string | null;
@@ -17,6 +43,15 @@ interface ActivitiesListProps {
     setNotes: React.Dispatch<React.SetStateAction<ActivityNotesMap>>;
 }
 
+/**
+ * ActivitiesList Component
+ * 
+ * Renders a list of activities for the current day, with options to:
+ * - Add new activities between existing ones
+ * - Toggle activity completion
+ * - Navigate to activity locations
+ * - Manage activity notes
+ */
 const ActivitiesList: React.FC<ActivitiesListProps> = ({
     currentDayPlan,
     highlightedActivityId,
@@ -29,6 +64,7 @@ const ActivitiesList: React.FC<ActivitiesListProps> = ({
     notes,
     setNotes,
 }) => {
+    // Empty state handling
     if (currentDayPlan.activities.length === 0) {
         return (
             <div className="text-center py-10 bg-white/50 rounded-lg shadow">
@@ -36,7 +72,7 @@ const ActivitiesList: React.FC<ActivitiesListProps> = ({
                 <p className="text-gray-600 text-lg">No activities planned for this day, or all completed!</p>
                 <p className="text-sm text-gray-500 mt-1">Feel free to add something new.</p>
                 <button
-                    onClick={() => onOpenAddActivityChat(currentDayIndex, null)} // Add first activity
+                    onClick={() => onOpenAddActivityChat(currentDayIndex, null)}
                     className="mt-4 flex items-center justify-center mx-auto px-3 py-1.5 border border-dashed border-blue-400 text-blue-600 rounded-md hover:bg-blue-50 transition-colors text-sm"
                 >
                     <MessageSquarePlus size={16} className="mr-1.5" /> Add First Activity
@@ -47,6 +83,7 @@ const ActivitiesList: React.FC<ActivitiesListProps> = ({
 
     return (
         <div className="space-y-3">
+            {/* Add activity button at the top */}
             <div className="flex items-center my-2">
                 <div className="flex-grow border-t border-gray-200" />
                 <button
@@ -59,12 +96,15 @@ const ActivitiesList: React.FC<ActivitiesListProps> = ({
                 </button>
                 <div className="flex-grow border-t border-gray-200" />
             </div>
+
+            {/* Activity list */}
             {currentDayPlan.activities.map((activity, activityIndex) => {
                 const isFirst = activityIndex === 0;
                 const isLast = activityIndex === currentDayPlan.activities.length - 1;
                 const isCurrent = false;
                 return (
                     <React.Fragment key={activity.id}>
+                        {/* Activity item */}
                         <ActivityItem
                             activity={activity}
                             isHighlighted={activity.id === highlightedActivityId}
@@ -81,6 +121,8 @@ const ActivitiesList: React.FC<ActivitiesListProps> = ({
                             notes={notes}
                             setNotes={setNotes}
                         />
+                        
+                        {/* Add activity button between activities */}
                         <div className="flex items-center my-2">
                             <div className="flex-grow border-t border-blue-400" />
                             <button

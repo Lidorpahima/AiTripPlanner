@@ -1,6 +1,7 @@
-// app/my-trips/layout.tsx
+// app/mytrips/layout.tsx
 'use client'; 
 
+import { Suspense } from 'react';
 import Header from "@/components/ui/header"; 
 import Footer from "@/components/ui/footer"; 
 
@@ -12,8 +13,10 @@ export default function MyTripsLayout({
   return (
     <div className="flex min-h-screen flex-col bg-gray-100"> 
       <Header />
-      <main className="flex-grow relative z-10 py-19 md:py-25"> 
-        {children} 
+      <main className="flex-grow relative z-10 py-10"> 
+        <Suspense fallback={<div>Loading...</div>}>
+          {children} 
+        </Suspense>
       </main>
       <Footer showBigText={false} /> 
     </div>

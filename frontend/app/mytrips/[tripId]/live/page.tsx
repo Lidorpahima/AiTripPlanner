@@ -1,37 +1,59 @@
+/**
+ * Live Mode Page Component
+ * 
+ * A dynamic page component that enables users to interact with their trip plan in real-time.
+ * Features include:
+ * - Real-time activity tracking and completion
+ * - Day-by-day navigation
+ * - Activity notes and modifications
+ * - Side chat for trip modifications
+ * - Progress tracking
+ * - Authentication and token management
+ * - Responsive design with swipeable activities
+ */
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { ArrowLeft, CalendarDays, MapPin, Plus, CheckCircle, Edit3, Trash2, Navigation, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MessageSquarePlus } from 'lucide-react';
-import { SavedTripData } from '../../page'; // Assuming SavedTripData is exported from mytrips/page.tsx
-import Cookies from 'js-cookie'; // Added for accessing cookies
+import { SavedTripData } from '../../page'; 
+import Cookies from 'js-cookie'; 
 import { useActivityNotes } from './hooks/useActivityNotes';
+import { useAuth } from '@/app/(auth)/context/AuthContext';
 
-// Import SideChatPanel and related types
 import SideChatPanel, { ChatMessage } from '@/app/fastplan/result/components/SideChatPanel';
 import { Activity as FastPlanActivity, TripPlan as FastPlanTripPlan } from '@/constants/planTypes'; // Use Activity type from planTypes for consistency
-import LiveTripHeader from './components/LiveTripHeader'; // Import the new header component
-import LiveDayDetails from './components/LiveDayDetails'; // Import the new day details component
-import ActivitiesList from './components/ActivitiesList'; // Import the new activities list component
+import LiveTripHeader from './components/LiveTripHeader';
+import LiveDayDetails from './components/LiveDayDetails'; 
+import ActivitiesList from './components/ActivitiesList'; 
 import { PlanJson, LiveTripPlan, LiveDay, DayBase, ActivityBase, LiveActivity, DestinationInfo, TotalCostEstimate } from './liveTypes'; // Import types
-import LoadingStateDisplay from './components/LoadingStateDisplay'; // Import Loading component
-import ErrorStateDisplay from './components/ErrorStateDisplay'; // Import Error component
-import { useSideChat, SideChatContext } from './hooks/useSideChat'; // Import the new hook
+import LoadingStateDisplay from './components/LoadingStateDisplay'; 
+import ErrorStateDisplay from './components/ErrorStateDisplay'; 
+import { useSideChat, SideChatContext } from './hooks/useSideChat'; 
 import DailyProgressBar from './components/DailyProgressBar';
 import SwipeableActivities from './components/SwipeableActivities';
 import NoteModal from './components/NoteModal';
 import { saveNote } from './components/saveNote';
 
-// Helper function to get current date in YYYY-MM-DD format
+/**
+ * Utility function to get current date in YYYY-MM-DD format
+ * @returns {string} Current date string
+ */
 const getCurrentDateString = () => {
     const today = new Date();
     const year = today.getFullYear();
     const month = (today.getMonth() + 1).toString().padStart(2, '0');
-    const dayNum = today.getDate().toString().padStart(2, '0'); // Renamed to avoid conflict
+    const dayNum = today.getDate().toString().padStart(2, '0');
     return `${year}-${month}-${dayNum}`;
 };
 
+/**
+ * Checks if a JWT token is expired
+ * @param {string | undefined} token - JWT token to check
+ * @returns {boolean} True if token is expired or invalid
+ */
 function isTokenExpired(token: string | undefined): boolean {
     if (!token) return true;
     try {
@@ -42,6 +64,11 @@ function isTokenExpired(token: string | undefined): boolean {
     }
 }
 
+/**
+ * Attempts to refresh the access token using a refresh token
+ * @param {string | undefined} refreshToken - Refresh token to use
+ * @returns {Promise<string | null>} New access token or null if refresh failed
+ */
 async function refreshAccessToken(refreshToken: string | undefined): Promise<string | null> {
     if (!refreshToken) return null;
     try {
@@ -53,7 +80,21 @@ async function refreshAccessToken(refreshToken: string | undefined): Promise<str
         if (!res.ok) return null;
         const data = await res.json();
         if (data.access) {
-            Cookies.set('token', data.access);
+            Cookies.remove('access');
+            Cookies.remove('refresh');
+            
+            Cookies.set('access', data.access, {
+                path: '/',
+                expires: 7,
+                sameSite: 'lax'
+            });
+            if (data.refresh) {
+                Cookies.set('refresh', data.refresh, {
+                    path: '/',
+                    expires: 30,
+                    sameSite: 'lax'
+                });
+            }
             return data.access;
         }
         return null;
@@ -62,10 +103,21 @@ async function refreshAccessToken(refreshToken: string | undefined): Promise<str
     }
 }
 
-// --- Constants ---
+// API configuration
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+/**
+ * TripLiveModePage Component
+ * 
+ * Main component for the live trip mode interface. Manages:
+ * - Trip data and state
+ * - Authentication
+ * - Activity tracking
+ * - Navigation
+ * - Notes and modifications
+ */
 export default function TripLiveModePage() {
+    // State management
     const [trip, setTrip] = useState<SavedTripData | null>(null);
     const [livePlan, setLivePlan] = useState<LiveTripPlan | null>(null);
     const [currentDayPlan, setCurrentDayPlan] = useState<LiveDay | null>(null);
@@ -79,16 +131,21 @@ export default function TripLiveModePage() {
     const [noteInitial, setNoteInitial] = useState('');
     const [swipeView, setSwipeView] = useState(false);
 
+    // Router and params setup
     const router = useRouter();
     const params = useParams();
     const tripId = params.tripId as string;
     const token = Cookies.get('access');
     const refreshToken = Cookies.get('refresh');
+    const { logout } = useAuth();
 
-    // Token check and refresh logic
+    /**
+     * Effect hook for token management
+     * Handles token validation and refresh
+     */
     useEffect(() => {
         async function checkAndRefreshToken() {
-            let currentToken = Cookies.get('token');
+            let currentToken = Cookies.get('access');
             if (!currentToken || isTokenExpired(currentToken)) {
                 const newToken = await refreshAccessToken(refreshToken);
                 if (newToken) {
@@ -96,6 +153,7 @@ export default function TripLiveModePage() {
                     setAuthLoading(false);
                 } else {
                     toast.error('Session expired. Please log in again.');
+                    logout?.();
                     router.push('/signin');
                 }
             } else {
@@ -104,15 +162,15 @@ export default function TripLiveModePage() {
             }
         }
         checkAndRefreshToken();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [refreshToken, router]);
+    }, [refreshToken, router, logout]);
 
+    // Activity notes hook
     const { notes, setNotes, loading: notesLoading } = useActivityNotes(tripId, tokenState);
 
-    // Use the side chat hook
+    // Side chat functionality
     const {
         isSideChatOpen,
-        sideChatContext, // This context is managed by the hook but needed for SideChatPanel props
+        sideChatContext,
         conversationHistory,
         sideChatLoading,
         handleOpenAddActivityChat,
@@ -121,10 +179,12 @@ export default function TripLiveModePage() {
         handleAcceptNewActivitySuggestion,
         handleRejectSuggestionForAdd,
         handleRejectIndividualActivity,
-        // setConversationHistory // Not typically used directly from parent
     } = useSideChat({ livePlan, trip, setLivePlan, setCurrentDayPlan });
 
-    // Effect to hide/show third-party chat widget (e.g., Brevo)
+    /**
+     * Effect hook to manage third-party chat widget visibility
+     * Hides external chat widgets when live mode is active
+     */
     useEffect(() => {
         const selectors = [
             'div.brevo-conversations__iframe-wrapper',
@@ -185,55 +245,106 @@ export default function TripLiveModePage() {
         } else {
             console.log("Live Mode: Brevo chat widget not found or already hidden.");
         }
-    }, []); // Empty dependency array: runs once on mount, cleans up on unmount
+    }, []);
 
+    /**
+     * Effect hook to initialize trip data
+     * Loads and validates trip data from session storage or fetches from API
+     */
     useEffect(() => {
+        async function loadTripData() {
+            try {
+                // First try to get from session storage
         const storedTripData = sessionStorage.getItem('liveTripData');
+                let tripData: SavedTripData | null = null;
+
         if (storedTripData) {
             try {
                 const parsedTrip: SavedTripData = JSON.parse(storedTripData);
                 if (parsedTrip.id.toString() === tripId) {
-                    setTrip(parsedTrip);
+                            tripData = parsedTrip;
+                        }
+                    } catch (e) {
+                        console.error('Error parsing stored trip data:', e);
+                    }
+                }
 
-                    if (parsedTrip.plan_json && parsedTrip.plan_json.days) {
-                        const planJsonTyped = parsedTrip.plan_json as PlanJson; // Use the well-defined PlanJson
+                // If no valid data in session storage, fetch from API
+                if (!tripData) {
+                    if (!tokenState) {
+                        setError('Authentication required');
+                        return;
+                    }
+
+                    const response = await fetch(`${API_BASE_URL}/api/my-trips/${tripId}/`, {
+                        headers: {
+                            'Authorization': `Bearer ${tokenState}`,
+                            'Accept': 'application/json',
+                        },
+                        credentials: 'include'
+                    });
+
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            throw new Error('Trip not found. Please make sure you have saved this trip.');
+                        } else if (response.status === 401) {
+                            throw new Error('Authentication required. Please log in again.');
+                        } else {
+                            throw new Error(`Failed to fetch trip data: ${response.statusText}`);
+                        }
+                    }
+
+                    tripData = await response.json();
+                    // Store in session storage for future use
+                    sessionStorage.setItem('liveTripData', JSON.stringify(tripData));
+                }
+
+                if (tripData) {
+                    setTrip(tripData);
+
+                    if (tripData.plan_json && tripData.plan_json.days) {
+                        try {
+                            const planJsonTyped = tripData.plan_json as PlanJson;
                         const initializedPlan: LiveTripPlan = {
                             ...planJsonTyped,
                             days: planJsonTyped.days.map((day: DayBase, dayIndex: number) => ({
                                 ...day,
                                 activities: day.activities.map((activity: ActivityBase, activityIndex: number) => ({
                                     ...activity,
-                                    id: `day-${dayIndex}-activity-${activityIndex}-${Date.now()}`,
-                                    is_completed: false 
+                                        id: `${dayIndex}-${activityIndex}`,
+                                        is_completed: false,
+                                        notes: '',
+                                        cost_estimate: null
                                 }))
                             }))
                         };
                         setLivePlan(initializedPlan);
+                            setCurrentDayPlan(initializedPlan.days[0]);
+                        } catch (e) {
+                            console.error('Error initializing plan:', e);
+                            setError('Error initializing trip plan');
+                        }
                     } else {
-                        setError("Trip plan data is incomplete. Please try again.");
-                        toast.error("Trip plan data is incomplete.");
-                        router.push('/mytrips');
+                        setError('Invalid trip plan data');
                     }
-                    
-                } else {
-                    setError("Trip data mismatch. Please try starting Live Mode again.");
-                    toast.error("Trip data mismatch.");
-                    router.push('/mytrips');
                 }
             } catch (e) {
-                console.error("Error parsing trip data from sessionStorage:", e);
-                setError("Could not load trip data. Please try again.");
-                toast.error("Error loading trip data.");
-                router.push('/mytrips');
+                console.error('Error loading trip data:', e);
+                setError('Failed to load trip data');
+            } finally {
+                setIsLoading(false);
             }
-        } else {
-            setError("No trip data found for Live Mode. Please start from My Trips.");
-            toast.warn("No trip data found for Live Mode.");
-            router.push('/mytrips');
         }
-        setIsLoading(false);
-    }, [tripId, router]);
 
+        if (!authLoading) {
+            loadTripData();
+        }
+    }, [tripId, tokenState, authLoading]);
+
+    /**
+     * Effect hook to update current day plan
+     * Updates the current day when live plan changes
+     */
     useEffect(() => {
         if (livePlan && livePlan.days && livePlan.days.length > 0) {
             setCurrentDayPlan(livePlan.days[currentDayIndex] || livePlan.days[0]);

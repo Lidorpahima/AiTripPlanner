@@ -37,3 +37,7 @@ next-env.d.ts
 
 # contentlayer
 .contentlayer
+list_structure.py
+README.md
+Procfile
+preview.png

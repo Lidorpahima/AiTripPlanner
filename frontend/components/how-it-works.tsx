@@ -1,3 +1,14 @@
+/**
+ * How It Works Component
+ * 
+ * A section that explains the trip planning process through an interactive step-by-step guide.
+ * Features:
+ * - Animated step cards with icons
+ * - Responsive grid layout
+ * - Fade-in and stagger animations
+ * - Clear call-to-action
+ */
+
 'use client';
 
 import React from 'react';
@@ -5,6 +16,9 @@ import Link from 'next/link';
 import { MapPin, Calendar, ListChecks, Plane, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+/**
+ * Animation configuration for fade-in effect
+ */
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
   visible: {
@@ -16,6 +30,9 @@ const fadeIn = {
   }
 };
 
+/**
+ * Animation configuration for staggered container effect
+ */
 const staggerContainer = {
   hidden: { opacity: 0 },
   visible: {
@@ -26,8 +43,28 @@ const staggerContainer = {
   }
 };
 
+/**
+ * Step interface defining the structure of each process step
+ */
+interface ProcessStep {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  subtext: string;
+}
+
+/**
+ * HowItWorksSection Component
+ * 
+ * Displays a step-by-step guide of the trip planning process.
+ * Each step is presented in an animated card with an icon, title, and description.
+ */
 const HowItWorksSection: React.FC = () => {
-  const steps = [
+  /**
+   * Process steps configuration
+   * Defines the content and structure of each step in the planning process
+   */
+  const steps: ProcessStep[] = [
     {
       icon: <MapPin className="h-10 w-10 text-blue-600" />,
       title: "Select Your Destination",
@@ -57,6 +94,7 @@ const HowItWorksSection: React.FC = () => {
   return (
     <section className="py-16 md:py-24 overflow-hidden">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        {/* Section Header */}
         <motion.div 
           initial="hidden"
           whileInView="visible"
@@ -77,6 +115,7 @@ const HowItWorksSection: React.FC = () => {
           </motion.p>
         </motion.div>
 
+        {/* Process Steps Grid */}
         <motion.div 
           variants={staggerContainer}
           initial="hidden"
@@ -90,12 +129,15 @@ const HowItWorksSection: React.FC = () => {
               variants={fadeIn}
               className="flex flex-col items-center p-6 rounded-xl shadow-md transform transition-all duration-300 scale-105 shadow-lg bg-gray-50 h-[320px] relative"
             >
+              {/* Step Icon */}
               <div className="mb-4 p-3 bg-blue-50 rounded-full">
                 {step.icon}
               </div>
+              {/* Step Title */}
               <h3 className="text-xl text-center font-semibold mb-4 text-gray-800">
                 {step.title}
               </h3>
+              {/* Step Description */}
               <div className="flex flex-col items-center text-center w-full mb-8">
                 <p className="text-gray-600 font-medium mb-2">
                   {step.description}
@@ -104,6 +146,7 @@ const HowItWorksSection: React.FC = () => {
                   {step.subtext}
                 </p>
               </div>
+              {/* Step Number */}
               <div className="absolute bottom-6 flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-semibold">
                 {index + 1}
               </div>
@@ -111,6 +154,7 @@ const HowItWorksSection: React.FC = () => {
           ))}
         </motion.div>
 
+        {/* Call to Action */}
         <motion.div 
           variants={fadeIn}
           initial="hidden"

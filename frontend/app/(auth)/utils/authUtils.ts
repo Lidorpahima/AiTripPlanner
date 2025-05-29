@@ -1,5 +1,24 @@
 /**
- * Helper function to extract and format error messages from API responses
+ * Authentication Utilities
+ * 
+ * A collection of utility functions for handling authentication-related operations:
+ * - Error message extraction and formatting
+ * - API response handling
+ * - Error state management
+ * - Response parsing
+ */
+
+/**
+ * Extracts and formats error messages from API responses
+ * 
+ * @param data - The response data from the API
+ * @returns Formatted error message string
+ * 
+ * Handles various error response formats:
+ * - String error messages
+ * - Object with detail property
+ * - Object with field-specific errors
+ * - Array of error messages
  */
 export const extractErrorMessages = (data: any): string => {
   if (!data) return 'An unexpected error occurred. Please try again.';
@@ -29,6 +48,16 @@ export const extractErrorMessages = (data: any): string => {
 
 /**
  * Common response handling for authentication API calls
+ * 
+ * @param response - The fetch Response object
+ * @returns Parsed response data
+ * @throws Error with formatted message if response is not successful
+ * 
+ * Handles:
+ * - JSON parsing
+ * - Error message extraction
+ * - Response validation
+ * - Error state management
  */
 export const handleAuthResponse = async (response: Response) => {
   let data: any = {};

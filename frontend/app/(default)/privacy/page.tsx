@@ -1,8 +1,45 @@
+/**
+ * Privacy Policy Page Component
+ * 
+ * Displays the privacy policy of the application, including:
+ * - Information collection and usage
+ * - Data security measures
+ * - Cookie policy
+ * - Third-party services
+ * - Children's privacy
+ * - Policy updates
+ * - Contact information
+ * 
+ * Features:
+ * - Clean and organized layout
+ * - Responsive design
+ * - Clear section headings
+ * - Interactive elements (email link)
+ */
+
 export const metadata = {
   title: "Privacy Policy - AiTripPlanner",
   description: "Our privacy policy.",
 };
 
+/**
+ * PrivacyPage Component
+ * 
+ * Renders the privacy policy page with sections covering:
+ * 1. Introduction
+ * 2. Information Collection and Use
+ * 3. How We Use Your Information
+ * 4. Log Data
+ * 5. Cookies
+ * 6. Data Security
+ * 7. Third-Party Services
+ * 8. Children's Privacy
+ * 9. Changes to Privacy Policy
+ * 10. Contact Information
+ * 
+ * Each section provides detailed information about our data handling practices
+ * and user privacy protections.
+ */
 export default function PrivacyPage() {
   return (
     <section className="relative bg-white py-8">

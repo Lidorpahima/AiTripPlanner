@@ -1,3 +1,15 @@
+/**
+ * My Trips Page
+ * 
+ * A page that displays the user's saved trip plans. Features include:
+ * - Authentication and token management
+ * - Trip list display with images and details
+ * - Trip detail modal view
+ * - Live mode navigation
+ * - Token refresh handling
+ * - Error handling and user feedback
+ */
+
 'use client'; 
 
 import { useState, useEffect } from 'react';
@@ -10,10 +22,20 @@ import { useAuth } from '@/app/(auth)/context/AuthContext';
 import TripDetailModal from '@/components/TripDetailModal';
 import { Loader, AlertTriangle, List, MapPin, Calendar, Eye, ImageOff, PlayCircle } from 'lucide-react'; 
 
-// Configuration
+// API configuration
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
-// --- Type Definitions ---
+/**
+ * Interface for saved trip data
+ * @property id - Unique identifier for the trip
+ * @property destination - Trip destination name
+ * @property start_date - Trip start date
+ * @property end_date - Trip end date
+ * @property plan_json - Trip plan data including summary and daily activities
+ * @property saved_at - Timestamp when the trip was saved
+ * @property destination_image_urls - Array of destination image URLs
+ * @property title - Optional custom trip title
+ */
 export interface SavedTripData {
     id: number;
     destination: string;
@@ -28,8 +50,14 @@ export interface SavedTripData {
     title?: string;     
 }
 
-// --- Page Component ---
+/**
+ * MyTripsPage Component
+ * 
+ * Main component for displaying and managing saved trips.
+ * Handles authentication, data fetching, and user interactions.
+ */
 export default function MyTripsPage() {
+    // State management
     const [trips, setTrips] = useState<SavedTripData[]>([]); 
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);   
@@ -37,25 +65,119 @@ export default function MyTripsPage() {
     const router = useRouter();
     const { isAuthenticated: isUserAuthenticated, logout } = useAuth(); 
 
-    // --- Fetch Trips Effect ---
+    /**
+     * Effect hook for fetching saved trips
+     * Handles authentication state and token refresh
+     */
     useEffect(() => {
         const fetchMyTrips = async () => {
-             // Check authentication state
-             if (isUserAuthenticated === null) { 
-                 setIsLoading(true);
-                 return; 
-             }
-             if (isUserAuthenticated === false) {
-                 toast.error("Please log in to view your saved trips.");
-                 router.push('/signin');
-                 return;
-             }
+            // Authentication state check
+            if (isUserAuthenticated === null) {
+                setIsLoading(true);
+                return;
+            }
+            if (isUserAuthenticated === false) {
+                // Token refresh attempt
+                const refresh = Cookies.get('refresh');
+                if (refresh) {
+                    try {
+                        const refreshRes = await fetch(`${API_BASE}/api/token/refresh/`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'Origin': window.location.origin
+                            },
+                            credentials: 'include',
+                            body: JSON.stringify({ refresh: refresh })
+                        });
 
-            // Proceed only if authenticated
+                        if (refreshRes.ok) {
+                            const refreshData = await refreshRes.json();
+                            if (refreshData.access) {
+                                // Token refresh successful - update cookies
+                                Cookies.remove('access');
+                                Cookies.remove('refresh');
+
+                                Cookies.set('access', refreshData.access, {
+                                    path: '/',
+                                    expires: 7,
+                                    sameSite: 'lax'
+                                });
+                                if (refreshData.refresh) {
+                                    Cookies.set('refresh', refreshData.refresh, {
+                                        path: '/',
+                                        expires: 30,
+                                        sameSite: 'lax'
+                                    });
+                                }
+                                return;
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Token refresh failed:', err);
+                    }
+                }
+                
+                // Authentication failed - redirect to login
+                Cookies.remove('access');
+                Cookies.remove('refresh');
+                toast.error("Please log in to view your saved trips.");
+                logout?.();
+                router.push('/signin');
+                return;
+            }
+
+            // Get access token and fetch trips
             const token = Cookies.get('access');
             if (!token) {
+                // Handle missing token
+                const refresh = Cookies.get('refresh');
+                if (refresh) {
+                    try {
+                        const refreshRes = await fetch(`${API_BASE}/api/token/refresh/`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'Origin': window.location.origin
+                            },
+                            credentials: 'include',
+                            body: JSON.stringify({ refresh: refresh })
+                        });
+
+                        if (refreshRes.ok) {
+                            const refreshData = await refreshRes.json();
+                            if (refreshData.access) {
+                                // Update tokens after successful refresh
+                                Cookies.remove('access');
+                                Cookies.remove('refresh');
+
+                                Cookies.set('access', refreshData.access, {
+                                    path: '/',
+                                    expires: 7,
+                                    sameSite: 'lax'
+                                });
+                                if (refreshData.refresh) {
+                                    Cookies.set('refresh', refreshData.refresh, {
+                                        path: '/',
+                                        expires: 30,
+                                        sameSite: 'lax'
+                                    });
+                                }
+                                return;
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Token refresh failed:', err);
+                    }
+                }
+
+                // Authentication failed - redirect to login
+                Cookies.remove('access');
+                Cookies.remove('refresh');
                 toast.error("Authentication token missing. Please log in.");
-                logout?.(); 
+                logout?.();
                 router.push('/signin');
                 return;
             }
@@ -63,6 +185,11 @@ export default function MyTripsPage() {
             setIsLoading(true);
             setError(null);
 
+            /**
+             * Helper function to fetch trips with token refresh handling
+             * @param tokenToUse - Access token to use for the request
+             * @returns Promise with saved trip data
+             */
             const tryFetch = async (tokenToUse: string): Promise<SavedTripData[]> => {
                 const response = await fetch(`${API_BASE}/api/my-trips/`, {
                     method: 'GET',
@@ -70,14 +197,17 @@ export default function MyTripsPage() {
                         'Authorization': `Bearer ${tokenToUse}`,
                         'Accept': 'application/json',
                     },
-                    credentials: 'include' 
+                    credentials: 'include'
                 });
 
                 if (response.status === 401) {
-                    // Token expired, try to refresh
+                    // Handle expired token
                     const refresh = Cookies.get('refresh');
                     
                     if (!refresh) {
+                        Cookies.remove('access');
+                        Cookies.remove('refresh');
+                        
                         toast.error("Session expired. Please log in again.");
                         logout?.();
                         router.push('/signin');
@@ -85,19 +215,22 @@ export default function MyTripsPage() {
                     }
 
                     try {
-                        // Attempt to refresh the token
+                        // Attempt token refresh
                         const refreshRes = await fetch(`${API_BASE}/api/token/refresh/`, {
                             method: 'POST',
-                            headers: { 
+                            headers: {
                                 'Content-Type': 'application/json',
                                 'Accept': 'application/json',
                                 'Origin': window.location.origin
                             },
-                            credentials: 'include', 
+                            credentials: 'include',
                             body: JSON.stringify({ refresh: refresh })
                         });
 
                         if (!refreshRes.ok) {
+                            Cookies.remove('access');
+                            Cookies.remove('refresh');
+                            
                             logout?.();
                             toast.error("Token refresh failed. Please log in again.");
                             router.push('/signin');
@@ -105,67 +238,90 @@ export default function MyTripsPage() {
                         }
 
                         const refreshData = await refreshRes.json();
-                        
+
                         if (!refreshData.access) {
+                            Cookies.remove('access');
+                            Cookies.remove('refresh');
+                            
                             logout?.();
                             toast.error("Invalid refresh response. Please log in again.");
                             router.push('/signin');
                             throw new Error("Invalid refresh response");
                         }
 
-                        // Store new tokens in cookies
-                        Cookies.set('access', refreshData.access, { 
-                            path: '/', 
+                        // Update tokens
+                        Cookies.remove('access');
+                        Cookies.remove('refresh');
+
+                        Cookies.set('access', refreshData.access, {
+                            path: '/',
                             expires: 7,
                             sameSite: 'lax'
                         });
-                        
+
                         if (refreshData.refresh) {
-                            Cookies.set('refresh', refreshData.refresh, { 
-                                path: '/', 
+                            Cookies.set('refresh', refreshData.refresh, {
+                                path: '/',
                                 expires: 30,
                                 sameSite: 'lax'
                             });
                         }
-                        
-                        // Try again with the new token
+
+                        // Retry fetch with new token
                         return await tryFetch(refreshData.access);
                     } catch (refreshErr) {
+                        Cookies.remove('access');
+                        Cookies.remove('refresh');
+                        
                         logout?.();
-                        toast.error("Could not refresh session. Please log in again.");
-                        router.push('/signin');
-                        throw new Error("Could not refresh session");
+                        throw refreshErr;
                     }
                 }
 
                 if (!response.ok) {
-                    throw new Error(`Failed to fetch trips (Status: ${response.status})`);
+                    throw new Error(`Failed to fetch trips: ${response.statusText}`);
                 }
 
                 return await response.json();
             };
 
             try {
-                const data = await tryFetch(token);
-                setTrips(data);
-            } catch (err: unknown) {
-                const message = err instanceof Error ? err.message : "An unknown error occurred.";
-                if (!(err instanceof Error && (err.message.includes("Session expired") || err.message.includes("Token refresh failed") || err.message.includes("Could not refresh session")))) { 
-                    setError(`Failed to load trips: ${message}`);
-                    toast.error(`Failed to load trips: ${message}`);
-                }
+                const tripsData = await tryFetch(token);
+                setTrips(tripsData);
+                setError(null);
+            } catch (err) {
+                console.error('Error fetching trips:', err);
+                setError(err instanceof Error ? err.message : 'Failed to fetch trips');
             } finally {
-                setIsLoading(false); 
+                setIsLoading(false);
             }
         };
 
-        // Call fetchMyTrips only when authentication status is determined
-        if (isUserAuthenticated !== null) {
-            fetchMyTrips();
-        }
+        fetchMyTrips();
+    }, [isUserAuthenticated, router, logout]);
 
-    }, [isUserAuthenticated, router, logout]); 
+    /**
+     * Handler for viewing trip details
+     * @param trip - The selected trip data
+     */
+    const handleViewPlanClick = (trip: SavedTripData) => {
+        setSelectedTrip(trip);
+    };
 
+    /**
+     * Handler for closing the trip detail modal
+     */
+    const handleCloseModal = () => {
+        setSelectedTrip(null);
+    };
+
+    /**
+     * Handler for starting live mode for a trip
+     * @param trip - The trip to start live mode for
+     */
+    const handleStartLiveMode = (trip: SavedTripData) => {
+        router.push(`/mytrips/${trip.id}/live`);
+    };
 
     // --- Render Logic ---
 
@@ -205,34 +361,13 @@ export default function MyTripsPage() {
                 <p className="mb-6">You haven't saved any trip plans. Start planning your next adventure!</p>
                 <button
                     onClick={() => router.push("/fastplan")}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md cursor-pointer"
                 >
                     Plan Your First Trip
                 </button>
             </div>
         );
     }
-
-    const handleViewPlanClick = (trip: SavedTripData) => {
-        setSelectedTrip(trip);
-    };
-
-    const handleCloseModal = () => {
-        setSelectedTrip(null);
-    };
-
-    const handleStartLiveMode = (trip: SavedTripData) => {
-        // Store the trip ID or the whole trip object in sessionStorage
-        // For now, let's store the whole trip object as it might be useful for quick display
-        // In a more complex scenario, just storing trip.id and fetching fresh data on the live page might be better.
-        try {
-            sessionStorage.setItem('liveTripData', JSON.stringify(trip));
-            router.push(`/mytrips/${trip.id}/live`);
-        } catch (e) {
-            console.error("Error storing trip data for live mode:", e);
-            toast.error("Could not start Live Mode. Please try again.");
-        }
-    };
 
     // --- Display Trips List ---
     return (

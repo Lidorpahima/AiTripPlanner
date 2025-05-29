@@ -11,6 +11,7 @@ from .views import (
     plan_trip_view, 
     SaveTripView, 
     MyTripsListView,
+    MyTripDetailView,
     get_csrf_token,
     chat_replace_activity,
     proxy_place_photo,
@@ -35,6 +36,7 @@ urlpatterns = [
     path('profile/update/', ProfileUpdateView.as_view(), name='profile-update'), 
     path('trips/save/', SaveTripView.as_view(), name='save_trip'),  
     path('my-trips/', MyTripsListView.as_view(), name='my_trips'),
+    path('my-trips/<int:pk>/', MyTripDetailView.as_view(), name='my_trip_detail'),
     path('chat-replace-activity/', chat_replace_activity, name='chat_replace_activity'),
     path('chat-add-activity/', chat_add_activity, name='chat_add_activity'),
     path('password-reset/request/', PasswordResetRequestView.as_view(), name='password_reset_request_api'),
@@ -43,6 +45,4 @@ urlpatterns = [
     path('activity-note/', save_activity_note, name='save_activity_note'),
     path('activity-notes/<int:trip_id>/', get_activity_notes, name='get_activity_notes'),
     path('auth/google/callback/', GoogleOAuthCallbackView.as_view(), name='google_oauth_callback'),
-
-
 ]

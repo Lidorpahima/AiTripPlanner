@@ -1,16 +1,37 @@
+/**
+ * Features Planet Component
+ * 
+ * A visually appealing section that showcases the key features of the trip planning application.
+ * Features:
+ * - Grid layout of feature cards with icons
+ * - Dark theme with blue accents
+ * - Responsive design for different screen sizes
+ * - Decorative grid lines between cards
+ * - SVG icons for each feature
+ */
+
 import Image from "next/image";
 
+/**
+ * FeaturesPlanet Component
+ * 
+ * Renders a section displaying the main features of the application in a grid layout.
+ * Each feature is presented with an icon, title, and description.
+ */
 export default function FeaturesPlanet() {
   return (
     <section className="relative before:absolute before:inset-0 before:-z-20 before:bg-gray-900">
       <div className="mx-auto max-w-0xl px-4 sm:px-6">
         <div className="py-10 md:py-10">
+          {/* Section Header */}
           <div className="mx-auto max-w-3xl pb-16 text-center md:pb-5">
             <h2 className="text-3xl font-bold text-gray-200 md:text-4xl">
               Explore Our Key Features
             </h2>
           </div>
+          {/* Features Grid */}
           <div className="grid overflow-hidden sm:grid-cols-2 lg:grid-cols-3 *:relative *:p-6 *:before:absolute *:before:bg-gray-800 *:before:[block-size:100vh] *:before:[inline-size:1px] *:before:[inset-block-start:0] *:before:[inset-inline-start:-1px] *:after:absolute *:after:bg-gray-800 *:after:[block-size:1px] *:after:[inline-size:100vw] *:after:[inset-block-start:-1px] *:after:[inset-inline-start:0] md:*:p-10">
+            {/* Intelligent Routing Feature */}
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-200">
                 <svg className="fill-blue-500" xmlns="http://www.w3.org/2000/svg" width={16} height={16}>
@@ -22,6 +43,7 @@ export default function FeaturesPlanet() {
                  Optimized routes between sights to save you time and hassle.
               </p>
             </article>
+            {/* Event Discovery Feature */}
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-200">
                 <svg className="fill-blue-500" xmlns="http://www.w3.org/2000/svg" width={16} height={16}>
@@ -33,6 +55,7 @@ export default function FeaturesPlanet() {
                  Automatically find and include relevant local events (festivals, concerts) happening during your trip.
               </p>
             </article>
+            {/* Rich Place Details Feature */}
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-200">
                 <svg className="fill-blue-500" xmlns="http://www.w3.org/2000/svg" width={16} height={16}>
@@ -45,6 +68,7 @@ export default function FeaturesPlanet() {
                   Access reviews, photos, and info for points of interest via Google Places.
                </p>
             </article>
+            {/* Personalized Pace Feature */}
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-200">
                 <svg className="fill-blue-500" xmlns="http://www.w3.org/2000/svg" width={16} height={16}>
@@ -56,6 +80,7 @@ export default function FeaturesPlanet() {
                   Choose your travel style (relaxed, moderate, fast-paced) for a tailored schedule.
                </p>
             </article>
+            {/* Save & Access Feature */}
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-200">
                 <svg className="fill-blue-500" xmlns="http://www.w3.org/2000/svg" width={16} height={16}>
@@ -67,6 +92,7 @@ export default function FeaturesPlanet() {
                   Keep all your generated travel plans organized in "My Trips".
                </p>
             </article>
+            {/* Map View Feature */}
             <article>
               <h3 className="mb-2 flex items-center space-x-2 font-medium text-gray-200">
                 <svg className="fill-blue-500" xmlns="http://www.w3.org/2000/svg" width={16} height={16}>
