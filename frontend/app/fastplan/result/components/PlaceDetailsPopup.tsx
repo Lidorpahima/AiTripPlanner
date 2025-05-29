@@ -20,7 +20,7 @@ import Image from "next/image";
 import { Dialog } from '@headlessui/react';
 import { X, ChevronLeft, ChevronRight, ImageIcon, MapPin, Phone, Globe, Clock, Star, MessageSquare } from 'lucide-react';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 /**
  * Props interface for PlaceDetailsPopup component

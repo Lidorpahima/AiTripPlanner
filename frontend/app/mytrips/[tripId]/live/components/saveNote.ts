@@ -16,7 +16,7 @@ export async function saveNote({
   token: string,
 }) {
   const csrfToken = Cookies.get('csrftoken');
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/activity-note/`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/activity-note/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

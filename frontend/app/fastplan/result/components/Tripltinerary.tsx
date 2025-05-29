@@ -25,7 +25,7 @@ import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/(auth)/context/AuthContext';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY; 
 
 /**

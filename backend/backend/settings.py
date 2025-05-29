@@ -37,7 +37,7 @@ PIXABAY_API_KEY = os.getenv("PIXABAY_API_KEY")
 GOOGLE_AI_API_KEY = os.getenv("GOOGLE_AI_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 BASE_DIR = Path(__file__).resolve().parent.parent
-FRONTEND_BASE_URL = os.getenv('FRONTEND_BASE_URL', 'http://localhost:3000') 
+FRONTEND_BASE_URL = os.getenv('FRONTEND_BASE_URL') 
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 

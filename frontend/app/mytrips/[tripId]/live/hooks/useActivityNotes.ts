@@ -16,7 +16,7 @@ export function useActivityNotes(tripId: number | string | undefined, token: str
   useEffect(() => {
     if (!tripId || !token) return;
     setLoading(true);
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/activity-notes/${tripId}/`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/activity-notes/${tripId}/`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },

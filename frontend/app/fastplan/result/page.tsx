@@ -14,7 +14,7 @@
 
 'use client';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -769,7 +769,7 @@ export default function TripResultPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white" ref={containerRef}>
-      <div className="max-w-7xl mx-auto px-4 pt-8 pb-20">
+      <div className="max-w-7xl mx-auto px-4 pb-20">
         {/* Hero Section */}
         <HeroSection plan={plan} originalRequest={originalRequest} />
         

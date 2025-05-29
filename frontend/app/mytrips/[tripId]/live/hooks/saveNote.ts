@@ -21,7 +21,7 @@ export async function saveNoteOrStatus({
     if (note !== undefined) body.note = note;
     if (is_done !== undefined) body.is_done = is_done;
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/activity-note/`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/activity-note/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

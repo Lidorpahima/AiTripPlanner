@@ -5,7 +5,7 @@ import { ChatMessage } from '@/app/fastplan/result/components/SideChatPanel';
 import { ActivityBase, LiveActivity, LiveTripPlan, PlanJson } from '../liveTypes'; 
 import { Activity as FastPlanActivity } from '@/constants/planTypes';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export interface SideChatContext {
     dayIndex: number;

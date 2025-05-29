@@ -72,7 +72,7 @@ function isTokenExpired(token: string | undefined): boolean {
 async function refreshAccessToken(refreshToken: string | undefined): Promise<string | null> {
     if (!refreshToken) return null;
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/token/refresh/`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/token/refresh/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ refresh: refreshToken }),
@@ -104,7 +104,7 @@ async function refreshAccessToken(refreshToken: string | undefined): Promise<str
 }
 
 // API configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 /**
  * TripLiveModePage Component

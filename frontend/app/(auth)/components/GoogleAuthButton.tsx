@@ -19,7 +19,7 @@ import { toast } from 'react-toastify';
 import Cookies from 'js-cookie';
 import { useAuth } from '../context/AuthContext';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
 /**
@@ -198,7 +198,7 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
    */
   const handleCustomGoogleButtonClick = () => {
     const clientId = GOOGLE_CLIENT_ID;
-    const redirectUri = encodeURIComponent(`http://localhost:3000/api/auth/google/callback`);
+    const redirectUri = encodeURIComponent(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/google/callback`);
     const scope = encodeURIComponent('openid email profile');
     const oauthUrl =
       `https://accounts.google.com/o/oauth2/v2/auth?` +
