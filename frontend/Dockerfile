@@ -1,4 +1,4 @@
-LABEL last_rebuild_trigger="some-new-value"
+
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
 ARG NEXT_PUBLIC_SEARCH_KEY
@@ -7,6 +7,15 @@ ARG NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 
 # -----------------------------builder -----------------------------
 FROM node:18-alpine AS builder
+
+ENV FORCE_REBUILD_BUILDER=1 
+
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
+ARG NEXT_PUBLIC_SEARCH_KEY
+ARG NEXT_PUBLIC_BREVO_CONVERSATIONS_ID
+ARG NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+
 WORKDIR /app
 
 # Set NEXT_PUBLIC_ environment variables (needed for build time)
@@ -17,14 +26,13 @@ ENV NEXT_PUBLIC_BREVO_CONVERSATIONS_ID=$NEXT_PUBLIC_BREVO_CONVERSATIONS_ID
 ENV NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=$NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 
 # --------ENV CHECK --------
-RUN echo "Value of NEXT_PUBLIC_API_URL during build: '$NEXT_PUBLIC_API_URL'"
-RUN echo "Value of NEXT_PUBLIC_GOOGLE_CLIENT_ID during build: '$NEXT_PUBLIC_GOOGLE_CLIENT_ID'"
+RUN echo "Builder - Value of NEXT_PUBLIC_API_URL during build: '$NEXT_PUBLIC_API_URL'"
+RUN echo "Builder - Value of NEXT_PUBLIC_GOOGLE_CLIENT_ID during build: '$NEXT_PUBLIC_GOOGLE_CLIENT_ID'"
 
 # Install dependencies
 COPY package.json package-lock.json* ./
 RUN npm ci 
 
-# Copy source code
 COPY . .
 
 # Build application
@@ -33,11 +41,18 @@ RUN npm run build
 
 # ----------------------------- runner -----------------------------
 FROM node:18-alpine AS runner
+ENV FORCE_REBUILD_RUNNER=1
+
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
+ARG NEXT_PUBLIC_SEARCH_KEY
+ARG NEXT_PUBLIC_BREVO_CONVERSATIONS_ID
+ARG NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+
 WORKDIR /app
 
 # Set environment variables for runtime
 ENV NODE_ENV=production
-
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL 
 ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID
 ENV NEXT_PUBLIC_SEARCH_KEY=$NEXT_PUBLIC_SEARCH_KEY
@@ -45,11 +60,11 @@ ENV NEXT_PUBLIC_BREVO_CONVERSATIONS_ID=$NEXT_PUBLIC_BREVO_CONVERSATIONS_ID
 ENV NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=$NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 
 
-# Copy necessary files
+# Copy necessary files from builder stage
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-EXPOSE 8080
+EXPOSE 3000
 
 CMD ["node", "server.js"]
