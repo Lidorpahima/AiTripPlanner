@@ -8,13 +8,12 @@ ARG NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 FROM node:18-alpine AS builder
 WORKDIR /app
 
-# Set environment variables
+# Set NEXT_PUBLIC_ environment variables (needed for build time)
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID
 ENV NEXT_PUBLIC_SEARCH_KEY=$NEXT_PUBLIC_SEARCH_KEY
 ENV NEXT_PUBLIC_BREVO_CONVERSATIONS_ID=$NEXT_PUBLIC_BREVO_CONVERSATIONS_ID
 ENV NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=$NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
-ENV NODE_ENV=production
 
 # --------ENV CHECK --------
 RUN echo "Value of NEXT_PUBLIC_API_URL during build: '$NEXT_PUBLIC_API_URL'"
@@ -22,31 +21,34 @@ RUN echo "Value of NEXT_PUBLIC_GOOGLE_CLIENT_ID during build: '$NEXT_PUBLIC_GOOG
 
 # Install dependencies
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm ci 
 
 # Copy source code
 COPY . .
 
 # Build application
+ENV NODE_ENV=production
 RUN npm run build
 
 # ----------------------------- runner -----------------------------
 FROM node:18-alpine AS runner
 WORKDIR /app
 
-# Set environment variables
+# Set environment variables for runtime
 ENV NODE_ENV=production
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL 
 ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID
 ENV NEXT_PUBLIC_SEARCH_KEY=$NEXT_PUBLIC_SEARCH_KEY
 ENV NEXT_PUBLIC_BREVO_CONVERSATIONS_ID=$NEXT_PUBLIC_BREVO_CONVERSATIONS_ID
 ENV NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=$NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+
 
 # Copy necessary files
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-EXPOSE 3000
+EXPOSE 8080
 
 CMD ["node", "server.js"]
