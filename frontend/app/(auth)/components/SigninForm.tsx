@@ -20,7 +20,7 @@ import { useAuth } from "@/app/(auth)/context/AuthContext";
 import AuthInput from "./AuthInput";
 import AuthButton from "./AuthButton";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://aitripplanner-production.up.railway.app";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 /**
  * Extracts error messages from API response data
@@ -113,6 +113,7 @@ const SignInForm: React.FC = () => {
       try {
         data = await res.json();
       } catch (jsonError) {
+        console.log("ENV", process.env.NEXT_PUBLIC_API_URL);
         console.error("Failed to parse JSON response:", jsonError);
         try {
           const textResponse = await res.text(); 

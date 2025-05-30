@@ -3,7 +3,7 @@
     "command": "npm install && npm run build"
   },
   "deploy": {
-    "startCommand": "node server.js",
+    "startCommand": "node run start",
     "preDeployCommand": "npm install && npm run build"
   }
 }
