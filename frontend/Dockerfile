@@ -6,6 +6,7 @@ ARG NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 
 # -----------------------------builder -----------------------------
 FROM node:18-alpine AS builder
+LABEL last_rebuild_trigger="2025-05-31-1000"
 WORKDIR /app
 
 # Set NEXT_PUBLIC_ environment variables (needed for build time)
