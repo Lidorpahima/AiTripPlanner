@@ -5,6 +5,7 @@ COPY package.json package-lock.json* ./
 RUN npm install --legacy-peer-deps # הוספתי --legacy-peer-deps למקרה הצורך, אפשר להסיר אם אין בעיות תאימות
 
 COPY . .
+RUN echo "NEXT_PUBLIC_API_URL in build: $NEXT_PUBLIC_API_URL"
 
 ENV NODE_ENV production
 RUN npm run build

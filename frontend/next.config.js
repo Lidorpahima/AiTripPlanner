@@ -28,10 +28,12 @@ const nextConfig = {
         headers: [
           { key: 'Cross-Origin-Opener-Policy', value: 'same-origin-allow-popups' },
           { key: 'Cross-Origin-Embedder-Policy', value: 'unsafe-none' },
-          { key: 'Access-Control-Allow-Origin', value: process.env.NEXT_PUBLIC_API_URL 
+          { key: 'Access-Control-Allow-Origin', value:  'https://aitripplanner-production.up.railway.app'
             || 'http://localhost:8000' 
             || 'https://conversations-widget.brevo.com' 
-            || 'https://accounts.google.com' },
+            || 'https://accounts.google.com' 
+            ||  process.env.NEXT_PUBLIC_API_URL },
+            
           { key: 'Access-Control-Allow-Methods', value: 'GET, POST, OPTIONS' },
           { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization, X-CSRF-Token' },
           { key: 'Access-Control-Allow-Credentials', value: 'true' },
