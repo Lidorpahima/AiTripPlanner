@@ -35,15 +35,52 @@ ENVIRONMENT = os.getenv('ENVIRONMENT', 'production')
 POSTGRES_LOCALLY = os.getenv('POSTGRES_LOCALLY', 'False').lower() == 'true'
 
 # Hosts and CORS configuration
-ALLOWED_HOSTS = [host.strip() for host in os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',') if host.strip()]
+ALLOWED_HOSTS = [
+    'aitripplanner-production.up.railway.app',
+    'localhost',
+    '127.0.0.1',
+] + [host.strip() for host in os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',') if host.strip()]
 
 # Fix for CSRF_TRUSTED_ORIGINS - must include scheme
-csrf_origins = os.getenv('DJANGO_CSRF_TRUSTED_ORIGINS', '')
-CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_origins.split(',') if origin.strip()]
+csrf_origins = os.getenv('DJANGO_CSRF_TRUSTED_ORIGINS', 'https://resourceful-tranquility-production.up.railway.app')
+CSRF_TRUSTED_ORIGINS = [
+    'https://resourceful-tranquility-production.up.railway.app',
+] + [origin.strip() for origin in csrf_origins.split(',') if origin.strip()]
+from datetime import timedelta
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=120),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+}
+
+if not DEBUG:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 # Fix for CORS_ALLOWED_ORIGINS - must include scheme  
 cors_origins = os.getenv('DJANGO_CORS_ALLOWED_ORIGINS', '')
-CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins.split(',') if origin.strip()]
+CORS_ALLOWED_ORIGINS = [
+    'https://resourceful-tranquility-production.up.railway.app',
+] + [origin.strip() for origin in cors_origins.split(',') if origin.strip()]
+
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
