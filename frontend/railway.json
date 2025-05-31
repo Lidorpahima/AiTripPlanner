@@ -1,14 +1,10 @@
 {
   "build": {
-    "command": "npm install && npm run build",
-    "env": {
-      "NODE_ENV": "production",
-      "NEXT_PUBLIC_API_URL": "https://aitripplanner-production.up.railway.app"
-    }
+    "builder": "DOCKERFILE"
   },
   "deploy": {
-    "startCommand": "npm start",
-    "restartPolicyType": "ON_FAILURE",
+    "startCommand": "node server.js",
+    "restartPolicyType": "ON_FAILURE", 
     "restartPolicyMaxRetries": 10
   }
 }

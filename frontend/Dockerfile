@@ -21,6 +21,10 @@ RUN npm install -g pnpm
 COPY package.json pnpm-lock.yaml* ./
 COPY .npmrc ./
 
+# Clean npm and pnpm caches
+RUN npm cache clean --force
+RUN pnpm store prune
+
 RUN pnpm install --frozen-lockfile
 
 COPY . .
