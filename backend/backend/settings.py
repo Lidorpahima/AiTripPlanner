@@ -15,53 +15,59 @@ import os
 from dotenv import load_dotenv
 import dj_database_url
 
+# Load environment variables
 env_path = Path(__file__).resolve().parent.parent / '.env'
 load_dotenv(dotenv_path=env_path)
 
-
-#Email settings
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.getenv("EMAIL_HOST")
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD =  os.getenv("EMAIL_HOST_PASSWORD")
-
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-MODEL = os.getenv("MODEL")
-MODEL_URL = os.getenv("MODEL_URL")
-PIXABAY_API_KEY = os.getenv("PIXABAY_API_KEY")
-GOOGLE_AI_API_KEY = os.getenv("GOOGLE_AI_API_KEY")
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+# Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent
-FRONTEND_BASE_URL = os.getenv('FRONTEND_BASE_URL') 
-GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 if not SECRET_KEY:
-    raise Exception(f"DJANGO_SECRET_KEY environment variable is not set!, {SECRET_KEY}")
+    raise Exception("DJANGO_SECRET_KEY environment variable is not set!")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
+DEBUG = os.getenv('DJANGO_DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',') if os.getenv('DJANGO_ALLOWED_HOSTS') else []
-CSRF_TRUSTED_ORIGINS = os.getenv('DJANGO_CSRF_TRUSTED_ORIGINS')
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOWED_ORIGINS = os.getenv('DJANGO_CORS_ALLOWED_ORIGINS')
-
+# Environment configuration
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'production')
-POSTGRES_LOCALLY = os.getenv('POSTGRES_LOCALLY', 'False') == 'True'
+POSTGRES_LOCALLY = os.getenv('POSTGRES_LOCALLY', 'False').lower() == 'true'
 
-# Database configuration
-DATABASES = {
-    'default': dj_database_url.parse(os.getenv('DATABASE_URL'))
-}
+# Hosts and CORS configuration
+ALLOWED_HOSTS = [host.strip() for host in os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',') if host.strip()]
 
+# Fix for CSRF_TRUSTED_ORIGINS - must include scheme
+csrf_origins = os.getenv('DJANGO_CSRF_TRUSTED_ORIGINS', '')
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_origins.split(',') if origin.strip()]
+
+# Fix for CORS_ALLOWED_ORIGINS - must include scheme  
+cors_origins = os.getenv('DJANGO_CORS_ALLOWED_ORIGINS', '')
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins.split(',') if origin.strip()]
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET', 
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -86,35 +92,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-
 ROOT_URLCONF = 'backend.urls'
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
-}
-CORS_ALLOW_METHODS = [
-    'DELETE',
-    'GET', 
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
-]
-
-CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-]
-
+# Templates configuration
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -132,16 +112,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-
-# Database
+# Database configuration
+DATABASES = {
+    'default': dj_database_url.parse(os.getenv('DATABASE_URL'))
+}
 
 # Redis configuration
 REDIS_URL = os.getenv('REDIS_URL')
 
+# REST Framework configuration
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
 
 # Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -157,27 +143,40 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
+
+# External API configurations
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+GOOGLE_AI_API_KEY = os.getenv("GOOGLE_AI_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+PIXABAY_API_KEY = os.getenv("PIXABAY_API_KEY")
+
+# Model configurations
+MODEL = os.getenv("MODEL")
+MODEL_URL = os.getenv("MODEL_URL")
+
+# Frontend configuration
+FRONTEND_BASE_URL = os.getenv('https://resourceful-tranquility-production.up.railway.app')
