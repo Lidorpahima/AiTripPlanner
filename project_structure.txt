@@ -2,7 +2,6 @@
   📄 copilot-instructions.md
 📄 .gitignore
 📄 Procfile
-📄 README.md
 📁 backend
   📄 .env
   📄 Dockerfile
@@ -15,6 +14,8 @@
       📄 0003_savedtrip.py
       📄 0004_savedtrip_title.py
       📄 0005_savedtrip_destination_image_urls.py
+      📄 0006_activitynote.py
+      📄 0007_activitynote_is_done.py
       📄 __init__.py
     📄 models.py
     📄 serializers.py
@@ -37,12 +38,12 @@
   📄 .env.local
   📄 .gitignore
   📄 .npmrc
+  📁 .pnpm-store
   📁 .vscode
     📄 settings.json
   📄 Dockerfile
   📁 app
     📁 (auth)
-      📁 about
       📁 components
         📄 AuthButton.tsx
         📄 AuthFooter.tsx
@@ -80,19 +81,36 @@
       📁 terms
         📄 page.tsx
     📁 api
+      📁 auth
+        📁 google
+          📁 callback
+            📄 page.tsx
     📁 css
       📁 additional-styles
         📄 custom-fonts.css
         📄 theme.css
         📄 utility-patterns.css
       📄 style.css
+    📁 destinations
+      📄 page.tsx
     📁 fastplan
+      📁 components
+        📁 steps
+          📄 Step1_Destination.tsx
+          📄 Step2_TravelDates.tsx
+          📄 Step3_TripStyleAndTravelWith.tsx
+          📄 Step4_Interests.tsx
+          📄 Step5_PaceBudgetTransport.tsx
+          📄 Step6_FinalTouches.tsx
+          📄 Step7_SearchMode.tsx
+      📄 constants.ts
       📄 layout.tsx
       📄 page.tsx
       📁 result
         📁 components
           📄 ActivityCard.tsx
           📄 ChatBubble.tsx
+          📄 ChatMessageItem.tsx
           📄 CostBreakdownCard.tsx
           📄 CostsTab.tsx
           📄 DayCard.tsx
@@ -107,20 +125,38 @@
           📄 TripStats.tsx
           📄 Tripltinerary.tsx
         📄 page.tsx
-        📁 pages
     📄 globals.css
     📄 layout.tsx
     📁 login
     📁 mytrips
+      📁 [tripId]
+        📁 live
+          📁 components
+            📄 ActivitiesList.tsx
+            📄 ActivityItem.tsx
+            📄 DailyProgressBar.tsx
+            📄 ErrorStateDisplay.tsx
+            📄 LiveDayDetails.tsx
+            📄 LiveTripHeader.tsx
+            📄 LoadingStateDisplay.tsx
+            📄 NoteModal.tsx
+            📄 SwipeableActivities.tsx
+            📄 saveNote.ts
+          📁 hooks
+            📄 saveNote.ts
+            📄 useActivityNotes.ts
+            📄 useSideChat.ts
+          📄 liveTypes.ts
+          📄 page.tsx
       📄 layout.tsx
       📄 page.tsx
+    📄 not-found.tsx
     📁 profile
       📄 layout.tsx
       📄 page.tsx
   📁 assets
     📄 globe-animation.json
   📁 components
-    📄 AnimatedBlobs.tsx
     📄 CostBreakdownCard.tsx
     📄 CostsTab.tsx
     📄 DayCard.tsx
@@ -130,16 +166,15 @@
     📄 LoadingSection.tsx
     📄 MapChart.tsx
     📄 Preview.tsx
-    📄 SectionBackground.tsx
     📄 TipsTab.tsx
     📄 TripDetailModal.tsx
     📄 accordion.tsx
+    📄 all-destinations.tsx
     📄 call-to-action.tsx
     📄 features-planet.tsx
     📄 hero-home.tsx
     📄 how-it-works.tsx
     📄 popular-destinations.tsx
-    📄 testimonials.tsx
     📁 ui
       📄 AnimatedSection.tsx
       📄 MacbookFrame.tsx
@@ -164,86 +199,70 @@
       📄 world-110m.json
     📁 desktop
       📄 1696388255210.gif
-      📄 60 - Copy.png
-      📄 60.png
-      📄 61 - Copy (2).png
-      📄 61.png
-      📄 62 - Copy.png
-      📄 62.png
-      📄 63 - Copy.png
+      📄 60.webp
+      📄 61.webp
+      📄 62.webp
       📄 cca5022c86f67861746d7cf2eb486de8.gif
-      📄 w.png
+      📄 w.webp
     📄 favicon.ico
     📁 images
       📄 404.png
       📄 921j.gif
       📄 Homepage.png
+      📄 Showcase.png
+      📄 ShowcaseMobile1.webp
+      📄 ShowcaseMobile2.webp
+      📄 ShowcaseMobile3.webp
+      📄 ShowcaseMobile4.webp
+      📄 ShowcaseMobile5.webp
       📄 auth-bg.svg
       📄 back.jpg
       📄 default-avatar.png
       📁 destinations
         📄 bangkok.jpg
+        📄 bangkok.webp
         📄 lhero.jpg
+        📄 lhero.webp
         📄 mHero.png
+        📄 mHero.webp
         📄 mykonos.jpg
+        📄 mykonos.webp
         📄 new-york.jpg
+        📄 new-york.webp
         📄 paris.jpg
+        📄 paris.webp
         📄 parisHero.jpg
+        📄 parisHero.webp
         📄 rhome.jpg
+        📄 rhome.webp
         📄 rome.jpg
+        📄 rome.webp
         📄 tokyo.jpg
+        📄 tokyo.webp
       📄 earth.png
       📄 globe-traveler.svg
       📄 loading.gif
       📄 logo.png
+      📄 long-bg-desktop.webp
+      📄 long-bg-mobile.webp
     📄 index.html
     📁 mobile
-      📄 60 - Copy.png
-      📄 60.png
-      📄 61.png
-      📄 62.png
-      📄 63.png
+      📄 60.webp
+      📄 61.webp
+      📄 62.webp
+      📄 63.webp
       📄 cca5022c86f67861746d7cf2eb486de8.gif
-      📄 w.png
-    📁 svg
-      📄 1696388255210.gif
-      📄 36.png
-      📄 37.png
-      📄 40.png
-      📄 48.png
-      📄 49.png
-      📄 50.png
-      📄 56.png
-      📄 60 - Copy.png
-      📄 60.png
-      📄 64.png
-      📄 69.png
-      📄 71.png
-      📄 73.png
-      📄 80.png
-      📄 87.png
-      📄 90.png
-      📄 @ Macbook Pro.svg
-      📄 Desktop Header Light - 1.png
-      📄 Rectangle 14326.png
-      📄 Rectangle 14327.png
-      📄 budget.jpg
-      📄 cca5022c86f67861746d7cf2eb486de8.gif
-      📄 desktop Hero Light 1.png
-      📄 desktop Hero Light 6.svg
-      📄 planner.png
-      📄 shapes.svg
-      📄 testimonials-blob.svg
-      📄 toolkit.png
+      📄 w.webp
   📄 railway.json
   📄 server.js
   📁 styles
     📄 globals.css
   📄 tailwind.config.js
   📄 tsconfig.json
+  📁 types
   📁 utils
 📄 list_structure.py
-📄 logo.svg
+📄 logo.png
 📄 package-lock.json
 📄 package.json
 📄 project_structure.txt
