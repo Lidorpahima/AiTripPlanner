@@ -24,20 +24,6 @@ RUN chown -R appuser:appuser /app
 
 USER appuser
 
-RUN echo '#!/bin/bash\n\
-set -e\n\
-\n\
-echo "Collecting static files..."\n\
-python manage.py collectstatic --noinput --clear\n\
-\n\
-echo "Running migrations..."\n\
-python manage.py migrate\n\
-\n\
-echo "Starting Gunicorn server on port ${PORT:-8000}..."\n\
-exec gunicorn --bind 0.0.0.0:${PORT:-8000} --workers 3 --timeout 120 backend.wsgi:application' > /app/entrypoint.sh
-
-RUN chmod +x /app/entrypoint.sh
-
 EXPOSE 8000
 
-CMD ["/app/entrypoint.sh"]
+CMD ["gunicorn", "--bind", "0.0.0.0:$PORT", "--workers", "3", "--timeout", "120", "backend.wsgi:application"]
