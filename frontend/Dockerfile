@@ -16,7 +16,7 @@ ARG NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 WORKDIR /app
 
 # Update npm and install pnpm
-RUN npm install -g npm@latest pnpm
+RUN npm install -g pnpm
 
 COPY package.json pnpm-lock.yaml* ./
 COPY .npmrc ./
