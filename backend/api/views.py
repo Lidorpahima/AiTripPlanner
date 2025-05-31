@@ -59,6 +59,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ObjectDoesNotExist
 from google.oauth2 import id_token as google_id_token
 from google.auth.transport import requests as google_requests
+from django.db import connection
 
 
 # ──────────────────────────────── CSRF Token ──────────────────────────────── #
@@ -1211,5 +1212,18 @@ class MyTripDetailView(generics.RetrieveAPIView):
     
     def get_queryset(self):
         return SavedTrip.objects.filter(user=self.request.user)
+
+@api_view(['GET'])
+def health_check(request):
+    """
+    Health check endpoint to verify database connection.
+    Returns 200 if database is connected, 500 if there's an error.
+    """
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        return JsonResponse({"status": "healthy", "database": "connected"})
+    except Exception as e:
+        return JsonResponse({"status": "error", "database": str(e)}, status=500)
 
 

@@ -151,7 +151,15 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 # Database configuration
 DATABASES = {
-    'default': dj_database_url.parse(os.getenv('DATABASE_URL'))
+    'default': {
+        **dj_database_url.parse(os.getenv('DATABASE_URL')),
+        'OPTIONS': {
+            'connect_timeout': 60,
+            'options': '-c statement_timeout=30000',
+            'sslmode': 'require',
+        },
+        'CONN_MAX_AGE': 60,  # Connection pooling - 60 seconds
+    }
 }
 
 # Redis configuration

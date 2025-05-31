@@ -22,9 +22,11 @@ from .views import (
     save_activity_note,
     get_activity_notes,
     GoogleOAuthCallbackView,
+    health_check,
 )
 from django.contrib.auth import views as auth_views
 urlpatterns = [
+    path('health/', health_check, name='health_check'),
     path('csrf/', get_csrf_token, name='csrf'),
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
