@@ -179,4 +179,4 @@ MODEL = os.getenv("MODEL")
 MODEL_URL = os.getenv("MODEL_URL")
 
 # Frontend configuration
-FRONTEND_BASE_URL = os.getenv('https://resourceful-tranquility-production.up.railway.app')
+FRONTEND_BASE_URL = os.getenv('FRONTEND_BASE_URL')
