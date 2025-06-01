@@ -1,9 +1,9 @@
 version: "3.9"
 
-services:
+services: 
   redis:
     image: redis
-    container_name: redis
+    container_name: redis 
     ports:
       - "6379:6379"
     volumes:
@@ -11,55 +11,48 @@ services:
 
   db:
     image: postgres:14
-    container_name: trip-db
-    restart: always
+    container_name: trip_planner_local_db
+    restart: always 
     environment:
-      POSTGRES_DB: trip_planner_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 1
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydatabase
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres_local_data:/var/lib/postgresql/data/
 
   backend:
     build: ./backend
-    container_name: trip-backend
+    container_name: trip-backend 
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app
+      - ./backend:/app 
     env_file:
-      - ./backend/.env
+      - ./backend/.env 
+
     depends_on:
       - redis
       - db
-    command: >
-      sh -c "python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
 
-  frontend:
+    command: sh -c "python manage.py migrate --noinput && exec gunicorn backend.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+
+  frontend: 
     build: ./frontend
-    container_name: trip-frontend
+    container_name: trip-frontend 
     ports:
       - "3000:3000"
     volumes:
       - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
+      - /app/node_modules 
+      - /app/.next       
     environment:
-      PORT: 3000
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-      NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
-      NEXT_PUBLIC_SEARCH_KEY: ${NEXT_PUBLIC_SEARCH_KEY}
-      NEXT_PUBLIC_BREVO_CONVERSATIONS_ID: ${NEXT_PUBLIC_BREVO_CONVERSATIONS_ID}
-      NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
-    env_file:
-      - ./frontend/.env.local
+      PORT: 3000 
+
     depends_on:
       - backend
-  
 
 volumes:
+  postgres_local_data:
   redis-data:
-  postgres-data:
