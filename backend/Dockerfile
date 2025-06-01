@@ -31,8 +31,7 @@ RUN useradd -m appuser
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH="/home/appuser/.local/bin:$PATH" \
-    DJANGO_SETTINGS_MODULE=backend.settings \
-    PORT=8000
+    DJANGO_SETTINGS_MODULE=backend.settings
 
 # Set work directory
 WORKDIR /app
@@ -66,7 +65,7 @@ RUN python manage.py migrate --noinput || echo "Warning: migrate failed, but con
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:${PORT}/health/ || exit 1
+    CMD curl -f http://0.0.0.0:${PORT:-8000}/health/ || exit 1
 
 # Run gunicorn with proper settings
-CMD gunicorn backend.wsgi:application --bind 0.0.0.0:${PORT} --workers 3 --threads 2 --timeout 60
+CMD gunicorn backend.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 3 --threads 2 --timeout 60
