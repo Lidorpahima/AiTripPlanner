@@ -30,7 +30,8 @@ RUN useradd -m appuser
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH="/home/appuser/.local/bin:$PATH" \
-    DJANGO_SETTINGS_MODULE=backend.settings
+    DJANGO_SETTINGS_MODULE=backend.settings \
+    PORT=8000
 
 # Set work directory
 WORKDIR /app
@@ -50,17 +51,19 @@ RUN pip install --no-cache /wheels/*
 # Copy project files
 COPY . .
 
-# Change ownership of the project files
-RUN chown -R appuser:appuser /app
+# Create necessary directories and set permissions
+RUN mkdir -p /app/staticfiles /app/media && \
+    chown -R appuser:appuser /app
 
 # Switch to non-root user
 USER appuser
 
-# Create static directory and set permissions
-RUN mkdir -p /app/static && chown -R appuser:appuser /app/static
-
 # Collect static files (with error handling)
 RUN python manage.py collectstatic --noinput || echo "Warning: collectstatic failed, but continuing..."
 
-# Run gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "backend.wsgi:application"]
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:${PORT}/health/ || exit 1
+
+# Run gunicorn with proper settings
+CMD gunicorn backend.wsgi:application --bind 0.0.0.0:${PORT} --workers 4 --threads 2 --timeout 60
