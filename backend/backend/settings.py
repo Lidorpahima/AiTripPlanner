@@ -35,11 +35,7 @@ ENVIRONMENT = os.getenv('ENVIRONMENT', 'production')
 POSTGRES_LOCALLY = os.getenv('POSTGRES_LOCALLY', 'False').lower() == 'true'
 
 # Hosts and CORS configuration
-ALLOWED_HOSTS = [
-    'aitripplanner-production.up.railway.app',
-    'localhost',
-    '127.0.0.1',
-] + [host.strip() for host in os.getenv('DJANGO_ALLOWED_HOSTS', '').split(',') if host.strip()]
+ALLOWED_HOSTS = ['*']
 
 # Fix for CSRF_TRUSTED_ORIGINS - must include scheme
 csrf_origins = os.getenv('DJANGO_CSRF_TRUSTED_ORIGINS', 'https://resourceful-tranquility-production.up.railway.app')

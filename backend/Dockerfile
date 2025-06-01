@@ -59,4 +59,4 @@ RUN useradd -r appuser && \
 
 USER appuser
 
-CMD ["./django_runner.sh"]
+CMD ["sh", "-c", "gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT --workers 3"]
