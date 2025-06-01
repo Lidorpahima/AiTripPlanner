@@ -410,9 +410,6 @@ function PhoneWithScrollingScreens() {
                   "hover:bg-primary/90",                        
                   "cursor-pointer"                             
                 )}
-                onClick={() => {
-                  console.log('Start Planning button clicked');
-                }}
               >
                 Start Planning!
                 <ChevronRight className="ml-2 h-4 w-4" />

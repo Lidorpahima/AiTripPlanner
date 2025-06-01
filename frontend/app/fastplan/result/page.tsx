@@ -560,7 +560,6 @@ export default function TripResultPage() {
         body: stringifiedBody
       });
       
-      // console.log("Fetch response status:", response.status); // Removed console.log
 
       if (!response.ok) {
         console.error("Server returned an error status:", response.status, response.statusText); // Kept console.error

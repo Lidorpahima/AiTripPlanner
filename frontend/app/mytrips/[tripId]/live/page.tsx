@@ -242,8 +242,6 @@ export default function TripLiveModePage() {
                     widgetToHideElement.style.display = originalDisplayStyle || '';
                 }
             };
-        } else {
-            console.log("Live Mode: Brevo chat widget not found or already hidden.");
         }
     }, []);
 

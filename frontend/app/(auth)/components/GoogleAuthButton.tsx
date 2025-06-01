@@ -164,9 +164,7 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
             locale: 'en',
           });
           setIsGoogleApiReady(true);
-          console.log("Google Sign-In initialized successfully.");
         } catch (error) {
-          console.error("Error initializing Google Sign-In:", error);
           toast.error("Failed to initialize Google Sign-In.");
           setIsGoogleApiReady(false);
         }
@@ -177,7 +175,6 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ context }) => {
 
     // Handle Google script load event
     const handleGoogleScriptLoad = () => {
-      console.log("Google script loaded event fired.");
       initializeGoogleSignIn();
     };
 

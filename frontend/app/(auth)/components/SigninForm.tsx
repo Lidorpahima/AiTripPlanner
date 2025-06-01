@@ -111,16 +111,7 @@ const SignInForm: React.FC = () => {
 
       // Handle response parsing
       try {
-        console.log("ENV api url", process.env.NEXT_PUBLIC_API_URL);
-        console.log("OPENROUTER_API_KEY", process.env.OPENROUTER_API_KEY);
-        console.log("MODEL_URL", process.env.MODEL_URL);
-        console.log("NODE_ENV", process.env.NODE_ENV);
-        console.log("NEXT_DISABLE_TURBOPACK", process.env.NEXT_DISABLE_TURBOPACK);
-        console.log("NEXT_PUBLIC_GOOGLE_CLIENT_ID", process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
-        console.log("NEXT_PUBLIC_SEARCH_KEY", process.env.NEXT_PUBLIC_SEARCH_KEY);
-        console.log("BrevoConversationsID", process.env.BrevoConversationsID);
-        console.log("NEXT_PUBLIC_BREVO_CONVERSATIONS_ID", process.env.NEXT_PUBLIC_BREVO_CONVERSATIONS_ID);
-        console.log("NEXT_PUBLIC_GOOGLE_MAPS_API_KEY", process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
+
         data = await res.json();
       } catch (jsonError) {
         

@@ -17,9 +17,6 @@ app.prepare().then(() => {
   })
   .listen(port, '0.0.0.0', (err) => {
     if (err) throw err;
-    console.log(`> Ready on http://0.0.0.0:${port}`);
-    console.log(`> Environment: ${process.env.NODE_ENV}`);
-    console.log(`> Using PORT: ${port}`);
   });
 }).catch(err => {
   console.error('Error occurred starting server:');

@@ -209,7 +209,6 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
                                         height={300}
                                         className="w-full h-48 object-cover"
                                         onError={(e) => {
-                                            console.error("Image failed to load:", currentPhotoUrl);
                                             e.currentTarget.src = '/images/loading.gif';
                                         }}
                                         unoptimized={process.env.NODE_ENV === 'development'}
@@ -436,7 +435,6 @@ async function refreshAuthToken(): Promise<string | null> {
     try {
         const refresh = Cookies.get('refresh');
         if (!refresh) {
-            console.error('No refresh token available');
             return null;
         }
 
@@ -474,7 +472,6 @@ async function refreshAuthToken(): Promise<string | null> {
         }
         return null;
     } catch (error) {
-        console.error('Error refreshing token:', error);
         return null;
     }
 }
@@ -508,13 +505,11 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
 
     const fetchPlaceDetails = useCallback(async (key: string, placeQuery: string) => {
       if (placeDetails[key] && placeDetails[key] !== 'error') {
-          // console.log(`Details for '${placeQuery}' (key: ${key}) already available or loading.`); // Removed console.log
           setActivePopupKey(key);
           setActivePopupQuery(placeQuery);
           return;
       }
   
-      // console.log(`Fetching details for: "${placeQuery}" (key: ${key})`); // Removed console.log
       setPlaceDetails(prev => ({ ...prev, [key]: 'loading' }));
       setActivePopupKey(key);
       setActivePopupQuery(placeQuery);
@@ -530,12 +525,9 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
           if (!response.ok) {
               // Handle specific errors like 404 (Not Found)
               if (response.status === 404) {
-                  console.warn(`[fetchPlaceDetails Error] Place not found (404) for query: ${placeQuery}`);
                   toast.error(`Place details not found for "${placeQuery}" on Google Maps.`);
               } else {
                   // Handle other non-successful statuses (e.g., 500 Internal Server Error)
-                  console.error(`[fetchPlaceDetails Error] HTTP error ${response.status}: ${response.statusText}`); 
-                  // Try to get error message from response body if backend provides one
                   let serverErrorMessage = `HTTP error ${response.status}`;
                   try {
                       const errorBody = await response.json(); 
@@ -554,7 +546,6 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
   
           // Basic validation if needed (e.g., check if data has expected properties)
           if (!data || typeof data !== 'object' || !data.name) {
-               console.error("[fetchPlaceDetails Error] Invalid data received from API:", data); 
                throw new Error("Invalid data format received from server.");
           }
   
@@ -562,7 +553,6 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
           setPlaceDetails(prev => ({ ...prev, [key]: data }));
   
       } catch (err) { // Catches network errors and errors thrown above
-          console.error(`[fetchPlaceDetails Error] Failed for query "${placeQuery}":`, err); 
           setPlaceDetails(prev => ({ ...prev, [key]: 'error' })); // Ensure state is 'error'
   
           // Check if the error is a standard Error object and show its message
@@ -605,12 +595,10 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
     // --- Chat Submit Handler ---
     const handleChatSubmit = async (message: string) => {
         if (chatDayIdx === null || chatActIdx === null) {
-            console.log("Chat day or activity index is null, chatDayIdx:", chatDayIdx, "chatActIdx:", chatActIdx);
             return;
         }
         setChatLoading(true);
         try {
-            console.log("im in")
             const response = await fetch(`${API_BASE}/api/chat-replace-activity/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -621,10 +609,8 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
                     plan: localPlan
                 })
             });
-            console.log("response:", response);
             if (!response.ok) throw new Error('Server error');
             const data = await response.json();
-            console.log("data:", data);
             if (!data || !data.activity) throw new Error('No new activity received');
             setLocalPlan(prevPlan => {
                 const updatedPlan = { ...prevPlan };
@@ -632,7 +618,6 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
                 updatedPlan.days[chatDayIdx] = { ...prevPlan.days[chatDayIdx] };
                 updatedPlan.days[chatDayIdx].activities = [...prevPlan.days[chatDayIdx].activities];
                 updatedPlan.days[chatDayIdx].activities[chatActIdx] = data.activity;
-                console.log("Updated plan:", updatedPlan);
                 sessionStorage.setItem("fastplan_result", JSON.stringify(updatedPlan));
                 return updatedPlan;
             });
@@ -644,10 +629,8 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
             });
             toast.success('Activity replaced successfully!');
         } catch (e: any) {
-            console.log("error:", e);
             toast.error(e.message || 'An error occurred');
         } finally {
-            console.log("finally"); 
             setChatLoading(false);
             setChatOpen(false);
         }
@@ -744,7 +727,6 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
                 if (!response.ok) {
                     if (response.status === 401) {
                         if (isRetry) {
-                            console.error("Token refresh failed or retried save also failed with token error."); 
                             toast.error("Session issue. Please log out and log in again.");
                             setSaveError("Session invalid. Please re-login.");
                             Cookies.remove('access');
@@ -775,7 +757,6 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
                 router.push(`/mytrips/${savedTrip.id}/live`);
 
             } catch (err: any) {
-                console.error("Error saving trip:", err); 
                 const message = err instanceof Error ? err.message : "An unknown error occurred.";
                 setSaveError(`Error: ${message}`);
                 toast.error(`Error: ${message}`);

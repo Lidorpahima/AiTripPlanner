@@ -48,7 +48,6 @@ export default function ProfilePage() {
             const now = new Date().getTime();
             
             if (now - timestamp < CACHE_EXPIRY) {
-              console.log("Using cached profile data");
               setProfileData({
                 name: data.name || '',
                 email: data.email || '',
@@ -80,7 +79,6 @@ export default function ProfilePage() {
           });
 
           if (response.status === 401) {
-            console.log("Access token expired or invalid. Attempting refresh...");
             const refresh = Cookies.get('refresh');
 
             if (!refresh) {
@@ -112,7 +110,6 @@ export default function ProfilePage() {
                     throw new Error("Invalid refresh response. Please log in again.");
                 }
 
-                console.log("Token refreshed successfully.");
                 Cookies.set('access', refreshData.access, {
                     path: '/',
                     expires: 7,
@@ -197,7 +194,6 @@ export default function ProfilePage() {
         }
 
         setIsSaving(true);
-        console.log('Attempting to save changes...');
 
         try {
             const response = await fetch(`${API_BASE}/api/profile/update/`, {
