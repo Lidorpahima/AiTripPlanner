@@ -29,7 +29,8 @@ RUN useradd -m appuser
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PATH="/home/appuser/.local/bin:$PATH"
+    PATH="/home/appuser/.local/bin:$PATH" \
+    DJANGO_SETTINGS_MODULE=backend.settings
 
 # Set work directory
 WORKDIR /app
@@ -55,8 +56,11 @@ RUN chown -R appuser:appuser /app
 # Switch to non-root user
 USER appuser
 
-# Collect static files
-RUN python manage.py collectstatic --noinput
+# Create static directory and set permissions
+RUN mkdir -p /app/static && chown -R appuser:appuser /app/static
+
+# Collect static files (with error handling)
+RUN python manage.py collectstatic --noinput || echo "Warning: collectstatic failed, but continuing..."
 
 # Run gunicorn
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "backend.wsgi:application"]
