@@ -32,6 +32,7 @@ FROM python:3.11-slim AS runner
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     DJANGO_SETTINGS_MODULE=backend.settings
+    # PORT will be injected by Railway, or you can set a default for local dev if needed
 
 # Set work directory
 WORKDIR /app
@@ -56,26 +57,15 @@ COPY . .
 # Create necessary directories
 RUN mkdir -p /app/staticfiles /app/media
 
-# Create startup script
-RUN echo '#!/bin/bash\n\
-set -e\n\
-\n\
-# Run migrations\n\
-python manage.py migrate --noinput\n\
-\n\
-# Collect static files\n\
-python manage.py collectstatic --noinput\n\
-\n\
-# Start Gunicorn\n\
-exec gunicorn backend.wsgi:application --bind 0.0.0.0:8000 --workers 3 --threads 2 --timeout 60\n\
-' > /app/start.sh && chmod +x /app/start.sh
+# Ensure start.sh is executable
+RUN chmod +x /app/start.sh
 
-# Expose port
+# Expose port (this is more for documentation; Railway uses the PORT env var)
 EXPOSE 8000
 
 # Add healthcheck
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://0.0.0.0:8000/api/health/ || exit 1
+HEALTHCHECK --interval=30s --timeout=30s --start-period=15s --retries=3 \
+    CMD curl -f "http://localhost:${PORT:-8000}/api/health/" || exit 1
 
 # Run the startup script
 CMD ["/app/start.sh"]
