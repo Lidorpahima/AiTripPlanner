@@ -396,26 +396,25 @@ You are an expert travel planner and researcher AI assistant. Your task is to cr
 **Your Combined Task & Output Requirements:**
 
 1.  **Implicit Research:** Based *only* on the preferences above, identify key attractions, activities, relevant food/cafe types/locations, and any specific real-world events (concerts, festivals, markets, etc.) occurring in {destination} during the specified dates ({date_range_str}) that align with the traveler's interests ({interests}), style ({trip_style}), and consider their primary transportation mode ({transportation_mode}). Use your internal knowledge and search capabilities for this. **Do not show the research findings separately.**
-2.  **Directly Create JSON Itinerary:** Use the information gathered (implicitly) to construct a day-by-day travel itinerary.
-3.  **Strict JSON Output Format:** Format the *entire* output **strictly** as a single JSON object adhering precisely to the format specified below. **ABSOLUTELY NO TEXT BEFORE OR AFTER THE JSON OBJECT.** Your entire response must start with `{{` and end with `}}`.
-4.  **Currency Standardization:** For all cost estimates, use USD (US Dollars) as the standard currency, regardless of the destination country. This makes it easier for travelers to compare costs.
-5.  **Activity Object Details:** For each activity within the `activities` array in the JSON, include:
+2.  **Activity Suitability for Companions:** Tailor activity suggestions to be highly appropriate for the specified `travel_companions` ({travel_with}). For example, if 'Family with young children', prioritize child-friendly attractions, suitable dining, and a comfortable pace. If 'Couple', suggest romantic spots, activities suitable for two, or experiences that enhance a couple's trip. If 'Solo traveler', ensure activities are safe and enjoyable for an individual. If 'Group of friends', consider activities that are fun in a group setting.
+3.  **Budget-Conscious Activity Selection:** When selecting activities, dining options, and making recommendations, ensure they align with the specified `budget_level` ({budget}). For 'Budget' or 'Mid-range', prioritize free/low-cost attractions, affordable yet good quality dining, and value-for-money options. For 'Luxury', feel free to include higher-end experiences, fine dining, and premium services, but still provide a justification for the cost in the value offered.
+4.  **Directly Create JSON Itinerary:** Use the information gathered (implicitly) to construct a day-by-day travel itinerary.
+5.  **Strict JSON Output Format:** Format the *entire* output **strictly** as a single JSON object adhering precisely to the format specified below. **ABSOLUTELY NO TEXT BEFORE OR AFTER THE JSON OBJECT.** Your entire response must start with `{{` and end with `}}`.
+6.  **Currency Standardization:** For all cost estimates, use USD (US Dollars) as the standard currency, regardless of the destination country. This makes it easier for travelers to compare costs.
+7.  **Activity Object Details:** For each activity within the `activities` array in the JSON, include:
     *   `time` (string): Approximate start time in HH:MM format (e.g., "09:00", "13:30"). Be logical with timing.
-    *   `description` (string): User-friendly description using specific names of places/events found during your internal research (e.g., "Visit Kinkaku-ji (Golden Pavilion)", "Lunch exploring Nishiki Market", "Evening stroll in Gion district looking for Geiko/Maiko", "Attend the Gion Matsuri parade (specific date if applicable)").
+    *   `description` (string): User-friendly description using specific names of places/events found during your internal research (e.g., "Visit Kinkaku-ji (Golden Pavilion)", "Lunch exploring Nishiki Market", "Evening stroll in Gion district looking for Geiko/Maiko", "Attend the Gion Matsuri parade (specific date if applicable)"). Write the description in an engaging, enticing, and informative tone, suitable for a traveler looking forward to their trip. Make the descriptions vivid and appealing.
     *   `place_name_for_lookup` (string or null): The specific, **searchable name** of the physical location (e.g., "Kinkaku-ji", "Nishiki Market", "Gion Corner", "Fushimi Inari Shrine", "Arashiyama Bamboo Grove"). Use the most common English name suitable for map lookups. Set to `null` or an empty string (`""`) ONLY for general activities like "Breakfast at Hotel", "Free time", or generic neighborhood explorations without a single point of interest (e.g., "Explore the charming streets of Higashiyama District").
-    *   `place_details` (object or null, optional): If available, include additional details about the place:
-      * `name` (string): Official name of the location
-      * `category` (string): Category like "restaurant", "attraction", "museum", "cafe", etc. 
-      * `price_level` (number, optional): Price level on a scale of 1-4 (1 being least expensive)
+    *   `place_details` (object or null, optional): If you identify a specific venue for an activity, make an effort to include `place_details` like `name` (official name), `category` (e.g., "restaurant", "attraction", "museum", "cafe"), and `price_level` (1-4, if available).
     *   `cost_estimate` (object, optional): Include cost estimate for the activity:
       * `min` (number): Minimum estimated cost in USD
       * `max` (number): Maximum estimated cost in USD
       * `currency` (string): Always set to "USD"
-    *   `ticket_url` (string or null, optional): If the activity requires booking or tickets (e.g., museum, concert, specific tour), provide a direct URL for booking or purchasing tickets. If booking is not required, not typically done online, or no direct link is available, set this to `null`.
-6.  **Event Integration:** If your research finds relevant specific events (festivals, concerts, markets) happening during the trip dates, integrate them logically into the schedule as activities. Ensure `description` mentions the event and `place_name_for_lookup` is the venue name (if known and searchable).
-7.  **Pace Adherence:** Ensure the number and density of activities per day reflect the requested pace ('{pace}'). A 'relaxed' pace should have fewer scheduled items than 'moderate' or 'fast-paced'. Include buffer time or 'Free time' entries for relaxed paces.
-8.  **Cost Estimates at Day Level:** For each day, include a `day_cost_estimate` object with `min`, `max`, and `currency` properties (always in USD).
-9.  **Overall Cost Breakdown:** Include a `total_cost_estimate` object in the root of the JSON with the following structure:
+    *   `ticket_url` (string or null, optional): Actively search for and provide a direct URL for booking or purchasing tickets if the activity typically requires or offers online booking (e.g., museums, concerts, specific tours, popular attractions). Prioritize official sources. If, after a diligent search, no suitable, direct, or official link is found, or if booking is genuinely not required/typically done online, set this to `null`.
+8.  **Event Integration:** If your research finds relevant specific events (festivals, concerts, markets) happening during the trip dates, integrate them logically into the schedule as activities. Ensure `description` mentions the event and `place_name_for_lookup` is the venue name (if known and searchable).
+9.  **Pace Adherence:** Ensure the number and density of activities per day reflect the requested pace ('{pace}'). A 'relaxed' pace should have fewer scheduled items than 'moderate' or 'fast-paced'. Include buffer time or 'Free time' entries for relaxed paces.
+10. **Cost Estimates at Day Level:** For each day, include a `day_cost_estimate` object with `min`, `max`, and `currency` properties (always in USD).
+11. **Overall Cost Breakdown:** Include a `total_cost_estimate` object in the root of the JSON with the following structure:
     * `min` (number): Minimum estimated total cost for the entire trip in USD
     * `max` (number): Maximum estimated total cost for the entire trip in USD
     * `currency` (string): Always "USD"
@@ -424,7 +423,7 @@ You are an expert travel planner and researcher AI assistant. Your task is to cr
     * `attractions` (object): Sub-object with `min` and `max` properties in USD
     * `transportation` (object): Sub-object with `min` and `max` properties in USD
     * `other` (object): Sub-object with `min` and `max` properties in USD
-10.  **Destination Information:** Include a `destination_info` object in the root of the JSON with:
+12. **Destination Information:** Include a `destination_info` object in the root of the JSON with:
     * `country` (string): Country of the destination
     * `city` (string/locality name)
     * `language` (string): Primary language(s) spoken
@@ -442,13 +441,10 @@ You are an expert travel planner and researcher AI assistant. Your task is to cr
       * `description` (string): What it includes and why it's valuable
       * `price` (string): Approximate cost in USD
       * `link` (string, optional): Where to purchase/learn more
-    * `emergency_info` (object, optional): Emergency contact numbers:
-      * `police` (string): Local police number
-      * `ambulance` (string): Local emergency medical number
-      * `tourist_police` (string, optional): Tourist police if applicable
-11. **Summary Field:** Include a short, engaging `summary` field within the JSON object (1-2 sentences).
-12. **Day Titles:** Provide a meaningful `title` for each day reflecting the main theme or area (e.g., "Day 1: Arrival and Golden Exploration", "Day 2: Temples, Shrines, and Bamboo").
-13. **CRITICAL OUTPUT CONSTRAINT:** Output **ONLY the raw JSON object**. Do not include markdown formatting like ```json ... ```. Do not include any introductory or concluding sentences like "Here is your itinerary:". Your response must be *only* the JSON.
+    * `emergency_info` (object, optional): Emergency contact numbers. Whenever possible and relevant for the destination, include this object with local `police`, `ambulance`, and `tourist_police` (if applicable) numbers.
+13. **Summary Field:** Include a short, engaging `summary` field (1-2 sentences) within the JSON object. Write this summary in an engaging, enticing, and informative tone, suitable for a traveler looking forward to their trip.
+14. **Day Titles:** Provide a meaningful `title` for each day reflecting the main theme or area (e.g., "Day 1: Arrival and Golden Exploration", "Day 2: Temples, Shrines, and Bamboo").
+15. **CRITICAL OUTPUT CONSTRAINT:** Output **ONLY the raw JSON object**. Do not include markdown formatting like ```json ... ```. Do not include any introductory or concluding sentences like "Here is your itinerary:". Your response must be *only* the JSON.
 
 **Required JSON Output Format Example:**
 ```json
@@ -517,7 +513,11 @@ You are an expert travel planner and researcher AI assistant. Your task is to cr
       "description": "Unlimited bus and subway travel within Kyoto",
       "price": "$8 for 1-day pass"
     }}
-  ]
+  ],
+  "emergency_info": {{
+    "police": "110",
+    "ambulance": "119"
+  }}
 }},
 "total_cost_estimate": {{
   "min": 800,
@@ -549,6 +549,7 @@ You are an expert travel planner and researcher AI assistant. Your task is to cr
 Now, generate ONLY the JSON itinerary based on the user preferences and your research. Remember the strict output constraint and ensure all cost estimates are in USD.
 """
     return prompt.strip()
+
 # ──────────────────────────────── Plan Trip View (Main Logic) ──────────────────────────────── #
 @api_view(['POST'])
 def plan_trip_view(request):
@@ -578,18 +579,17 @@ def plan_trip_view(request):
             print(f"⚠️ Redis Error: {e}. Proceeding without cache.")
 
         print("\n🧠 Generating combined prompt for Gemini...")
-        print("DEBUG: Before calling ask_gemini")
         single_prompt = generate_trip_prompt(data) 
         print(f"DEBUG: Generated prompt length: {len(single_prompt)}")
         print("🚀 Sending combined prompt to Gemini...")
         raw_response = None
         try:
             if data.get("searchMode") == "normal":
-                raw_response = ask_gemini(single_prompt, 'gemini-2.5-flash-preview-04-17')
+                raw_response = ask_gemini(single_prompt, 'gemini-2.5-flash-preview-05-20')
             elif data.get("searchMode") == "quick":
                 raw_response = ask_gemini(single_prompt, 'gemini-2.0-flash')
             else:
-                raw_response = ask_gemini(single_prompt, 'gemini-2.5-pro-preview-03-25')
+                raw_response = ask_gemini(single_prompt, 'gemini-2.5-pro-preview-05-06')
 
 
             if raw_response is None:
