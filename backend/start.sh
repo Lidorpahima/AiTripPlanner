@@ -20,7 +20,7 @@ GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-60}
 echo "Gunicorn command to be executed: exec gunicorn backend.wsgi:application --bind \"0.0.0.0:${PORT:-8000}\" --workers \"$GUNICORN_WORKERS\" --threads \"$GUNICORN_THREADS\" --timeout \"$GUNICORN_TIMEOUT\""
 
 exec gunicorn backend.wsgi:application \
-    --bind "0.0.0.0:8080" \
+    --bind "0.0.0.0:8000" \
     --workers "$GUNICORN_WORKERS" \
     --threads "$GUNICORN_THREADS" \
     --timeout "$GUNICORN_TIMEOUT"
