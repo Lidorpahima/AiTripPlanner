@@ -218,14 +218,14 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
                                         <>
                                             <button
                                                 onClick={() => handlePhotoChange('prev')}
-                                                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-40 text-white p-1 rounded-full hover:bg-opacity-60"
+                                                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-40 text-white p-1 rounded-full hover:bg-opacity-60 cursor-pointer"
                                                 aria-label="Previous photo"
                                             >
                                                 <ChevronLeft size={20} />
                                             </button>
                                             <button
                                                 onClick={() => handlePhotoChange('next')}
-                                                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-40 text-white p-1 rounded-full hover:bg-opacity-60"
+                                                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-40 text-white p-1 rounded-full hover:bg-opacity-60 cursor-pointer"
                                                 aria-label="Next photo"
                                             >
                                                 <ChevronRight size={20} />
@@ -579,7 +579,6 @@ const TripItinerary: React.FC<TripItineraryProps> = ({ plan, originalRequestData
 
     // --- Activity Click Handler ---
     const handleActivityClick = useCallback((dayIndex: number, activityIndex: number, placeNameLookup: string | null | undefined) => {
-        // **** בדיקה אם יש שם לחיפוש ****
         if (!placeNameLookup) {
 
             toast.info("Detailed information not available for this activity.", { autoClose: 2000 });

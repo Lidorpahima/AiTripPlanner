@@ -138,7 +138,7 @@ export default function HeroHome() {
                   </p>
                   {/* CTA Buttons */}
                   <div
-                    className="max-w-xs md:flex md:max-w-none md:justify-start"
+                    className="max-w-xs sm:flex md:max-w-none md:justify-start"
                     data-aos="zoom-y-out"
                     data-aos-delay={450}
                     data-aos-once="true"
