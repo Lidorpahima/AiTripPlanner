@@ -19,4 +19,4 @@ RUN chown -R appuser:appuser /app
 
 USER appuser
 
-CMD ["echo", "Ready for Railway to run Procfile"]
+CMD ["gunicorn", "--bind", "0.0.0.0:$PORT", "--workers", "1", "backend.wsgi:application"]
