@@ -1,10 +1,10 @@
+# Build stage
 FROM python:3.11-slim as builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    DJANGO_SECRET_KEY=dummy-for-build
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
 WORKDIR /app
 
@@ -13,41 +13,50 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH=/opt/venv/bin:$PATH
 
+COPY requirements.txt .
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt && \
+    rm -rf /root/.cache/pip/*
+
+# Final stage
 FROM python:3.11-slim
 
-RUN useradd -m appuser
+# Copy virtual env from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH=/opt/venv/bin:$PATH
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PATH="/home/appuser/.local/bin:$PATH" \
-    DJANGO_SETTINGS_MODULE=backend.settings \
-    PORT=8000 \
-    DJANGO_SECRET_KEY=$RAILWAY_SECRET_KEY
+    DJANGO_SETTINGS_MODULE=backend.settings
 
 WORKDIR /app
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq5 \
-    && rm -rf /var/lib/apt/lists/*
-
-COPY --from=builder /app/wheels /wheels
-COPY --from=builder /app/requirements.txt .
-
-RUN pip install --no-cache /wheels/*
 COPY . .
 
-RUN mkdir -p /app/staticfiles /app/media && \
-    chown -R appuser:appuser /app
+# Create startup script with proper PORT handling
+RUN printf "#!/bin/bash\n" > ./django_runner.sh && \
+    printf "set -e\n\n" >> ./django_runner.sh && \
+    printf "RUN_PORT=\"\${PORT:-8000}\"\n\n" >> ./django_runner.sh && \
+    printf "echo \"Starting on port: \$RUN_PORT\"\n\n" >> ./django_runner.sh && \
+    printf "python manage.py migrate --no-input\n" >> ./django_runner.sh && \
+    printf "python manage.py collectstatic --no-input\n" >> ./django_runner.sh && \
+    printf "gunicorn backend.wsgi:application --bind \"0.0.0.0:\$RUN_PORT\" --workers 3 --timeout 120\n" >> ./django_runner.sh
+
+# Setup non-root user
+RUN useradd -r appuser && \
+    chown -R appuser:appuser /app && \
+    chown -R appuser:appuser /opt/venv && \
+    chmod +x django_runner.sh
 
 USER appuser
 
-# הסר את collectstatic מה-build
-# הוסף לסקריפט ההתחלה
-
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:${PORT}/health/ || exit 1
-
-CMD ["sh", "-c", "python manage.py collectstatic --noinput && gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT --workers 4 --threads 2 --timeout 60"]
+CMD ["./django_runner.sh"]
