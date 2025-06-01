@@ -9,6 +9,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Set work directory
 WORKDIR /app
 
+# Copy requirements first to leverage Docker cache
+COPY requirements.txt .
+
 # Install system dependencies and Python packages
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
