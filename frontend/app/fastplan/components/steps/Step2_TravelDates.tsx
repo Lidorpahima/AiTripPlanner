@@ -65,6 +65,11 @@ const Step2_TravelDates: React.FC<Step2TravelDatesProps> = ({
   prevStep,
   fadeIn,
 }) => {
+  // Calculate max date (15 days from today)
+  const maxDate = new Date();
+  maxDate.setDate(maxDate.getDate() + 15);
+  const maxDateString = maxDate.toISOString().split('T')[0];
+
   return (
     <motion.div variants={fadeIn} className="space-y-6">
       {/* Step title with destination */}
@@ -86,6 +91,7 @@ const Step2_TravelDates: React.FC<Step2TravelDatesProps> = ({
             value={formData.startDate}
             onChange={handleInputChange}
             min={today}
+            max={maxDateString}
             className="w-full rounded-lg border border-gray-300 py-3 pl-4 text-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 cursor-pointer"
           />
         </div>
@@ -101,6 +107,7 @@ const Step2_TravelDates: React.FC<Step2TravelDatesProps> = ({
             value={formData.endDate}
             onChange={handleInputChange}
             min={formData.startDate || today}
+            max={maxDateString}
             className="w-full rounded-lg border border-gray-300 py-3 pl-4 text-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 cursor-pointer"
           />
           {/* Date validation error message */}
