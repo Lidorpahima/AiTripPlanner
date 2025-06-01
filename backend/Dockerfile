@@ -26,9 +26,19 @@ COPY . .
 # Create necessary directories
 RUN mkdir -p /app/staticfiles /app/media
 
-# Run migrations and collect static files
-RUN python manage.py migrate --noinput && \
-    python manage.py collectstatic --noinput
+# Create startup script
+RUN echo '#!/bin/bash\n\
+set -e\n\
+\n\
+# Run migrations\n\
+python manage.py migrate --noinput\n\
+\n\
+# Collect static files\n\
+python manage.py collectstatic --noinput\n\
+\n\
+# Start Gunicorn\n\
+exec gunicorn backend.wsgi:application --bind 0.0.0.0:8000 --workers 3 --threads 2 --timeout 60\n\
+' > /app/start.sh && chmod +x /app/start.sh
 
 # Expose port
 EXPOSE 8000
@@ -37,5 +47,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://0.0.0.0:8000/api/health/ || exit 1
 
-# Run gunicorn
-CMD ["gunicorn", "backend.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--threads", "2", "--timeout", "60"]
+# Run the startup script
+CMD ["/app/start.sh"]
