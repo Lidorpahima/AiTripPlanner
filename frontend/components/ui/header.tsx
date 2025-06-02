@@ -98,9 +98,9 @@ export default function Header() {
         zIndex: 9999
       }}
       pinStart={0}
+      disableInlineStyles={true}
       upTolerance={1}
       downTolerance={1}
-      disableInlineStyles={false}
       className="transition-all duration-300 ease-in-out"
     >
       <motion.header 
