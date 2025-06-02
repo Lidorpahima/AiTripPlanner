@@ -54,7 +54,7 @@ export default function DefaultLayout({
       <Header />
 
       {/* Reverted main element, removed relative positioning and decorative container */}
-      <main className="grow">
+      <main className="grow -mt-14">
 
         {/* Removed Decorative background container div and its contents */}
 

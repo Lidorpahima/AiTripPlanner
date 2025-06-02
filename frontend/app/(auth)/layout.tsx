@@ -14,7 +14,7 @@ export default function AuthLayout({
     <>
       <Header />
 
-      <main className="relative flex grow">
+      <main className="relative flex grow -mt-14">
         <div
           className="pointer-events-none absolute bottom-0 left-0 -translate-x-1/3"
           aria-hidden="true"

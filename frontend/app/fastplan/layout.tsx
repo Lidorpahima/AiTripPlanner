@@ -11,7 +11,7 @@ export default function FastPlanLayout({
   return (
     <div className="relative z-10">
       <Header />
-      <main className="relative">
+      <main className="relative -mt-14">
         {children}
       </main>
       <Footer/>

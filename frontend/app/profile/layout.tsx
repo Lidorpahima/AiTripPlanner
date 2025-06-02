@@ -10,7 +10,7 @@ export default function ProfileLayout({
   return (
     <div className="relative min-h-screen bg-gray-100">
       <Header />
-      <main className="relative z-10">
+      <main className="relative z-10 -mt-14">
         {children}
       </main>
       <Footer showBigText={false}/> 

@@ -14,6 +14,10 @@
 import React from "react";
 import { toast } from "react-toastify";
 import { useState } from "react";
+import Link from "next/link";
+import AuthLayout from "../components/AuthLayout";
+import AuthInput from "../components/AuthInput";
+import AuthButton from "../components/AuthButton";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -79,48 +83,44 @@ export default function ResetPassword() {
   };
 
   return (
-    <>
-      {/* Page header */}
-      <div className="mb-10">
-        <h1 className="text-4xl font-bold">Reset password</h1>
-      </div>
-
-      {/* Password reset form */}
-      <form onSubmit={handleSubmit}>
-        <div className="space-y-4">
-          {/* Email input field */}
-          <div>
-            <label
-              className="mb-1 block text-sm font-medium text-gray-700"
-              htmlFor="email"
-            >
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              className="form-input w-full py-2"
-              type="email"
-              value={email}
-              placeholder="mail@email.com"
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
-              required
-            />
-          </div>
-        </div>
+    <AuthLayout
+      headerText="Reset Your Password"
+      subText="Enter your email address and we'll send you a link to reset your password."
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Email input field */}
+        <AuthInput
+          id="email"
+          name="email"
+          type="email"
+          label="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="mail@example.com"
+          autoComplete="email"
+          required
+        />
 
         {/* Submit button */}
-        <div className="mt-6">
-          <button
-            type="submit"
-            className={`btn w-full bg-linear-to-t from-blue-600 to-blue-500 bg-[length:100%_100%] bg-[bottom] text-white shadow-sm hover:bg-[length:100%_150%] ${isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
-            disabled={isLoading}
+        <div className="pt-2">
+          <AuthButton 
+            type="submit" 
+            isLoading={isLoading}
           >
-            {isLoading ? 'Sending...' : 'Reset Password'}
-          </button>
+            Reset Password
+          </AuthButton>
+        </div>
+
+        {/* Back to sign in link */}
+        <div className="mt-4 text-center">
+          <Link
+            className="text-sm text-gray-700 underline hover:no-underline"
+            href="/signin"
+          >
+            Back to Sign In
+          </Link>
         </div>
       </form>
-    </>
+    </AuthLayout>
   );
 }

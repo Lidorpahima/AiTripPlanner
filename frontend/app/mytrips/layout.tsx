@@ -13,7 +13,7 @@ export default function MyTripsLayout({
   return (
     <div className="flex min-h-screen flex-col bg-gray-100"> 
       <Header />
-      <main className="flex-grow relative z-10 py-10"> 
+      <main className="flex-grow relative z-10 py-10 -mt-14"> 
         <Suspense fallback={<div>Loading...</div>}>
           {children} 
         </Suspense>
