@@ -70,6 +70,7 @@ interface PlaceDetailsData {
 const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose, placeNameQuery }) => {
     // State for photo gallery navigation
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+    const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
     const router = useRouter();
     
     /**
@@ -147,6 +148,10 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
     const { name, address, rating, total_ratings, phone, website, photos, opening_hours, reviews, location } = details;
     const currentPhotoUrl = photos?.[currentPhotoIndex];
     const proxiedPhotoUrl = currentPhotoUrl ? getProxiedPhotoUrl(currentPhotoUrl) : null;
+    
+    // Check if current image has failed before
+    const shouldShowLoadingGif = proxiedPhotoUrl ? failedImages.has(proxiedPhotoUrl) : true;
+
     const mapLink = location
         ? `https://www.google.com/maps/search/?api=1&query=${location.lat},${location.lng}`
         : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address || name)}`;
@@ -171,16 +176,19 @@ const PlaceDetailsPopup: React.FC<PlaceDetailsPopupProps> = ({ details, onClose,
                 <div className="relative mb-4 rounded-lg overflow-hidden">
                     <Image
                     key={proxiedPhotoUrl}
-                    src={proxiedPhotoUrl || '/images/loading.gif'}
+                    src={shouldShowLoadingGif ? '/images/loading.gif' : proxiedPhotoUrl || '/images/loading.gif'}
                     alt={`${name} photo ${currentPhotoIndex + 1}`}
                     width={500}
                     height={300}
                     className="w-full h-48 object-cover"
                     onError={(e) => {
-                        console.error("Image failed to load:", proxiedPhotoUrl);
+                        if (proxiedPhotoUrl) {
+                            setFailedImages(prev => new Set(Array.from(prev).concat(proxiedPhotoUrl)));
+                        }
                         e.currentTarget.src = '/images/loading.gif';
                     }}
-                    unoptimized={process.env.NODE_ENV === 'development'}
+                    unoptimized={true}
+                    priority={true}
                     />
                     {/* Photo Navigation */}
                     {photos.length > 1 && (
